@@ -115,8 +115,12 @@ func (e *Engine) getNode(address string) (*Node, error) {
 	return nil, fmt.Errorf("Node %s not found", address)
 }
 
-// Run the engine
-func (e *Engine) Run() error {
+// Setup engine for simulation
+// This will
+func (e *Engine) Setup(wait bool) error {
+	if !wait {
+		return nil
+	}
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -138,6 +142,17 @@ setup:
 			return fmt.Errorf("Engine timeout awaiting node connections")
 		}
 	}
+
+	log.Printf("Connections completed")
+
+	return nil
+}
+
+// Run the engine
+func (e *Engine) Run() error {
+
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
 	// Run simulation
 	e.startTime = time.Now()
@@ -192,7 +207,7 @@ func (e *Engine) Ready() bool {
 
 	// Check that all expected nodes are connected
 	for _, n := range e.nodes {
-		if n.connected {
+		if !n.connected {
 			ready = false
 		}
 	}

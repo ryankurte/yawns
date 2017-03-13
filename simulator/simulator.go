@@ -34,6 +34,11 @@ func NewSimulator(o *Options) (*Simulator, error) {
 
 	sim := Simulator{e}
 
+	err = sim.e.Setup(true)
+	if err != nil {
+		return nil, err
+	}
+
 	return &sim, nil
 }
 
@@ -43,10 +48,14 @@ func (s *Simulator) Info() {
 }
 
 // Run launches a simulation
-func (s *Simulator) Run() {
+func (s *Simulator) Run() error {
 	log.Printf("Launching Simulation Instance")
 
-	s.e.Run()
+	err := s.e.Run()
+	if err != nil {
+		return err
+	}
 
 	log.Printf("Simulation complete")
+	return nil
 }

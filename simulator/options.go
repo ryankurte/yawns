@@ -13,7 +13,7 @@ type Options struct {
 func DefaultOptions() Options {
 	return Options{
 		ConfigFile: "./example.yml",
-		BindAddr:   "inproc://ons",
+		BindAddr:   "ipc:///tmp/ons",
 		Connector:  "zmq",
 		PCAPFile:   "",
 		PCAPStream: "",
