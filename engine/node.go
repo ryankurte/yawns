@@ -1,13 +1,16 @@
 package engine
 
-import (
-	"github.com/golang/geo/s2"
-)
+// Location is a world location in floating point degrees with altitude in meters
+type Location struct {
+	Lat float64
+	Lng float64
+	Alt float64
+}
 
 // Node base type
 type Node struct {
 	Address  string
-	Location s2.LatLng
+	Location Location
 
 	connected bool
 	received  uint32

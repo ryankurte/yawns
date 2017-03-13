@@ -28,8 +28,11 @@ type Update struct {
 
 // Config Engine configuration
 type Config struct {
-	Name    string
-	Nodes   []Node
+	// Configuration Name
+	Name string
+	// Nodes definitions for the engine
+	Nodes []Node
+	// Update actions to execute when running
 	Updates []Update
 }
 

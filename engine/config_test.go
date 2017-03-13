@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"github.com/golang/geo/s2"
 	"testing"
 )
 
@@ -10,7 +9,7 @@ func TestConfigLoading(t *testing.T) {
 	t.Run("Marshal Config", func(t *testing.T) {
 		c := Config{}
 
-		node := Node{Address: "TestAddress", Location: s2.LatLng{Lat: 0.0, Lng: 0.0}}
+		node := Node{Address: "TestAddress", Location: Location{Lat: 0.0, Lng: 0.0, Alt: 100.0}}
 		c.Nodes = append(c.Nodes, node)
 
 		updateData := make(map[string]string)
