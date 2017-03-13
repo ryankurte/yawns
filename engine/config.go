@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 // UpdateAction type for valid update actions
@@ -17,7 +18,7 @@ const (
 // Update struct defines changes to the system
 type Update struct {
 	// Simulation time at which the update action should be executed
-	TimeStamp uint64
+	TimeStamp time.Duration
 	// Node address for update to be applied
 	Node string
 	// Update action to be executed
@@ -30,14 +31,16 @@ type Update struct {
 type Config struct {
 	// Configuration Name
 	Name string
+	// End time in ms
+	EndTime time.Duration
 	// Nodes definitions for the engine
 	Nodes []Node
 	// Update actions to execute when running
 	Updates []Update
 }
 
-// LoadConfig loads an engine configuration from a config file
-func LoadConfig(file string) (*Config, error) {
+// LoadConfigFile loads an engine configuration from a config file
+func LoadConfigFile(file string) (*Config, error) {
 
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -56,8 +59,8 @@ func LoadConfig(file string) (*Config, error) {
 	return &c, nil
 }
 
-// WriteConfig writes an engine configuration to a config file
-func WriteConfig(file string, c *Config) error {
+// WriteConfigFile writes an engine configuration to a config file
+func WriteConfigFile(file string, c *Config) error {
 
 	data, err := yaml.Marshal(c)
 	if err != nil {

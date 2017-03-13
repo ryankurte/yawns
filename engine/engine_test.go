@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 	"testing"
@@ -26,7 +25,9 @@ func TestEngine(t *testing.T) {
 		node := Node{Address: "TestAddress", Location: Location{Lat: 0.0, Lng: 0.0}}
 		c.Nodes = append(c.Nodes, node)
 
-		e = NewEngine(&c)
+		e = NewEngine()
+
+		e.LoadConfig(&c)
 	})
 
 	t.Run("Handles location updates", func(t *testing.T) {
@@ -48,8 +49,6 @@ func TestEngine(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-
-		fmt.Printf("Node C: %+v\n", node)
 
 		if !FloatEq(float64(node.Location.Lat), lat) {
 			t.Errorf("Failed to set latitude (actual %f, expected %f)", node.Location.Lat, lat)

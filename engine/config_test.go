@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestConfigLoading(t *testing.T) {
 		update := Update{1000, "TestAddress", UpdateSetLocation, updateData}
 		c.Updates = append(c.Updates, update)
 
-		err := WriteConfig("/tmp/ons-test.yml", &c)
+		err := WriteConfigFile("/tmp/ons-test.yml", &c)
 		if err != nil {
 			t.Error(err)
 			t.FailNow()
@@ -28,7 +29,7 @@ func TestConfigLoading(t *testing.T) {
 
 	t.Run("Parse config file", func(t *testing.T) {
 
-		c, err := LoadConfig("../example.yml")
+		c, err := LoadConfigFile("../example.yml")
 		if err != nil {
 			t.Error(err)
 			t.FailNow()
@@ -38,6 +39,8 @@ func TestConfigLoading(t *testing.T) {
 		}
 
 		c.Info()
+
+		fmt.Printf("Config: %+v\n", c)
 	})
 
 }

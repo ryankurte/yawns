@@ -1,6 +1,7 @@
 ---
 
 name: Example Config
+endtime: 15s
 
 nodes:
   - address: 0x0001
@@ -13,7 +14,7 @@ nodes:
       lng: 174.783203
 
 updates:
-  - timestamp: 10000
+  - timestamp: 10s
     node: 0x001
     action: "update-Location"
     comment: Update the location of node 0x001 at 10000 ms into the simulation

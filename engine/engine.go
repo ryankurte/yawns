@@ -3,31 +3,65 @@ package engine
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 )
 
 // Engine is the base simulation engine
 type Engine struct {
-	nodes   map[string]Node
-	updates []Update
+	nodes       map[string]Node
+	updates     []Update
+	startTime   time.Time
+	currentTime time.Time
+	endTime     time.Duration
+	connector   Connector
 }
 
 // NewEngine creates a new engine instance
-func NewEngine(c *Config) *Engine {
-	nodes := make(map[string]Node)
+func NewEngine() *Engine {
+	// Create engine object
+	e := Engine{}
+
+	return &e
+}
+
+// LoadConfig Loads a simulation config
+func (e *Engine) LoadConfig(c *Config) {
+	e.nodes = make(map[string]Node)
 
 	// Create map of nodes
 	for _, n := range c.Nodes {
-		nodes[n.Address] = n
+		e.nodes[n.Address] = n
 	}
 
-	// Create engine object
-	e := Engine{
-		nodes:   nodes,
-		updates: c.Updates,
-	}
+	e.updates = c.Updates
 
-	return &e
+	e.endTime = c.EndTime
+}
+
+// LoadConfigFile Loads a simulation config from a file
+func (e *Engine) LoadConfigFile(fileName string) error {
+	c, err := LoadConfigFile(fileName)
+	if err != nil {
+		return err
+	}
+	e.LoadConfig(c)
+	return nil
+}
+
+func (e *Engine) SetConnector(c Connector) {
+	e.connector = c
+}
+
+// Info prints engine information
+func (e *Engine) Info() {
+	log.Printf("Engine Info")
+	log.Printf("  - End Time: %d ms", e.endTime)
+	log.Printf("  - Nodes: %d ms", len(e.nodes))
+	log.Printf("  - Updates: %d ms", len(e.updates))
 }
 
 func parseFieldFloat64(name string, data map[string]string) (float64, error) {
@@ -82,9 +116,50 @@ func (e *Engine) getNode(address string) (*Node, error) {
 }
 
 // Run the engine
-func (e *Engine) Run() {
-	// Start network interfaces
+func (e *Engine) Run() error {
 
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+
+	// Await node connections
+	log.Printf("Awaiting node connections...")
+
+setup:
+	for {
+		ready := e.Ready()
+		if ready {
+			break setup
+		}
+
+		select {
+		case <-ch:
+			return fmt.Errorf("Engine interrupted awaiting node connections")
+		case <-time.After(1 * time.Minute):
+			return fmt.Errorf("Engine timeout awaiting node connections")
+		}
+	}
+
+	// Run simulation
+	e.startTime = time.Now()
+	log.Printf("Starting simulation")
+
+running:
+	for {
+		// TODO: simulation things here
+
+		// Exit after endtime
+		select {
+		case <-ch:
+			log.Printf("Interrupting simulation after %s", time.Now().Sub(e.startTime))
+			break running
+		case <-time.After(e.endTime):
+			break running
+		}
+	}
+
+	log.Printf("Exiting simulation")
+
+	return nil
 }
 
 // OnConnect Called when a node connects
@@ -99,20 +174,8 @@ func (e *Engine) OnConnect(address string) {
 	node.connected = true
 }
 
-// OnDisconnect called when a node disconnects
-func (e *Engine) OnDisconnect(address string) {
-	node, ok := e.nodes[address]
-	if !ok {
-		log.Printf("Engine.OnDisconnect: node %s not recognised", address)
-		return
-	}
-
-	log.Printf("Engine.OnDisconnect: node %s disconnected", address)
-	node.connected = false
-}
-
-// HandlePacket is called when a packet is received
-func (e *Engine) HandlePacket(from string, packet interface{}) {
+// Receive is called when a packet is received
+func (e *Engine) Receive(from string, packet []byte) {
 	// Check which devices are within range
 	for id, _ := range e.nodes {
 		if id == from {
@@ -121,4 +184,18 @@ func (e *Engine) HandlePacket(from string, packet interface{}) {
 
 		//hasPath := e.model.HasPath(from, id)
 	}
+}
+
+// Ready Checks whether the engine is ready to launch
+func (e *Engine) Ready() bool {
+	ready := true
+
+	// Check that all expected nodes are connected
+	for _, n := range e.nodes {
+		if n.connected {
+			ready = false
+		}
+	}
+
+	return ready
 }

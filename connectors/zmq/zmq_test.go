@@ -28,14 +28,13 @@ func (tc *TestServerReceiver) Receive(address string, message []byte) {
 	tc.Received = true
 }
 
-func (tc *TestServerReceiver) OnConnected(address string) {
+func (tc *TestServerReceiver) OnConnect(address string) {
 	tc.Connected = address
 }
 
 func TestZMQ(t *testing.T) {
 
 	clientAddress := "fakeClient"
-	serverAddress := "fakeServer"
 
 	sr := TestServerReceiver{}
 	cr := TestClientReceiver{}
@@ -44,7 +43,8 @@ func TestZMQ(t *testing.T) {
 	var client *ZMQClient
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
-		c := NewZMQConnector(serverAddress, "inproc://test", &sr)
+		c := NewZMQConnector()
+		c.Init("inproc://test", &sr)
 		go c.Run()
 		server = c
 	})

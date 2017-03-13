@@ -7,7 +7,7 @@ import (
 
 // Handler interface for server components
 type Handler interface {
-	OnConnected(address string)
+	OnConnect(address string)
 	Receive(address string, data []byte)
 }
 
@@ -24,15 +24,24 @@ const (
 )
 
 // NewZMQConnector creates a new ZMQ based connector instance
-func NewZMQConnector(clientAddress, bindAddress string, handler Handler) *ZMQConnector {
+func NewZMQConnector() *ZMQConnector {
+	c := ZMQConnector{}
+
+	c.clients = make(map[string][]byte)
+
+	return &c
+}
+
+// Init binds a connector instance and handler to an address
+func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
+
+	c.handler = h.(Handler)
 
 	ch := goczmq.NewRouterChanneler(bindAddress)
 
-	base := NewZMQBase(ch)
+	c.ZMQBase = NewZMQBase(ch)
 
-	clients := make(map[string][]byte)
-
-	return &ZMQConnector{base, clients, handler}
+	return nil
 }
 
 // Send sends a message to the provided client by address
@@ -56,8 +65,8 @@ func (c *ZMQConnector) receive(data [][]byte) {
 	address := string(data[1])
 	_, ok := c.clients[address]
 	if !ok {
-		// Call OnConnected handler if required
-		c.handler.OnConnected(address)
+		// Call OnConnect handler if required
+		c.handler.OnConnect(address)
 		c.clients[address] = id
 	}
 
