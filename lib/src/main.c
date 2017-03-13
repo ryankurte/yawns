@@ -1,4 +1,9 @@
-
+/**
+ * OpenNetworkSim CZMQ Radio Driver Example
+ * https://github.com/ryankurte/ons
+ * Copyright 2017 Ryan Kurte
+ */
+ 
 #include <stdio.h>
 #include <signal.h>
 

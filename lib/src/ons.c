@@ -1,5 +1,5 @@
 /**
- * OpenNetworkSim CZMQ Radio Driver Example
+ * OpenNetworkSim CZMQ Radio Driver Library
  * https://github.com/ryankurte/ons
  * Copyright 2017 Ryan Kurte
  */
