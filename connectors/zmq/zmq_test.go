@@ -16,15 +16,20 @@ func (tc *TestClientReceiver) Receive(message []byte) {
 }
 
 type TestServerReceiver struct {
-	Received bool
-	Address  string
-	Messsage []byte
+	Received  bool
+	Address   string
+	Connected string
+	Messsage  []byte
 }
 
 func (tc *TestServerReceiver) Receive(address string, message []byte) {
 	tc.Address = address
 	tc.Messsage = message
 	tc.Received = true
+}
+
+func (tc *TestServerReceiver) OnConnected(address string) {
+	tc.Connected = address
 }
 
 func TestZMQ(t *testing.T) {
@@ -64,11 +69,15 @@ func TestZMQ(t *testing.T) {
 		}
 
 		if sr.Address != clientAddress {
-			t.Errorf("Address mismatch (expected %s received %s)", clientAddress, sr.Address)
+			t.Errorf("Received address mismatch (expected %s received %s)", clientAddress, sr.Address)
 		}
 
 		if string(sr.Messsage) != data {
 			t.Errorf("Data mismatch (expected %s received %s)", data, sr.Messsage)
+		}
+
+		if sr.Connected != clientAddress {
+			t.Errorf("OnConnected address mismatch (expected %s received %s)", clientAddress, sr.Address)
 		}
 
 	})
