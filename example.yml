@@ -14,8 +14,9 @@ nodes:
 
 updates:
   - timestamp: 10000
-    node: 0x011
+    node: 0x001
     action: "update-Location"
+    comment: Update the location of node 0x001 at 10000 ms into the simulation
     data:
       lat: -36.845214
       lng: 174.784408

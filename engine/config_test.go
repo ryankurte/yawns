@@ -19,7 +19,7 @@ func TestConfigLoading(t *testing.T) {
 		update := Update{1000, "TestAddress", UpdateSetLocation, updateData}
 		c.Updates = append(c.Updates, update)
 
-		err := WriteConfig("test.yml", &c)
+		err := WriteConfig("/tmp/ons-test.yml", &c)
 		if err != nil {
 			t.Error(err)
 			t.FailNow()
