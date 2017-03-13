@@ -41,6 +41,8 @@ func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
 
 	c.ZMQBase = NewZMQBase(ch)
 
+	go c.Run()
+
 	return nil
 }
 
@@ -70,8 +72,11 @@ func (c *ZMQConnector) receive(data [][]byte) {
 		c.clients[address] = id
 	}
 
-	// Call receive handler
-	c.handler.Receive(address, data[2])
+	if len(data) == 3 {
+		// Call receive handler
+		c.handler.Receive(address, data[2])
+	}
+
 }
 
 // Run the ZMQ connector

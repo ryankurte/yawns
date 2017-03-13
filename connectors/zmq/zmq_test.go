@@ -45,7 +45,6 @@ func TestZMQ(t *testing.T) {
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
 		c := NewZMQConnector()
 		c.Init("inproc://test", &sr)
-		go c.Run()
 		server = c
 	})
 

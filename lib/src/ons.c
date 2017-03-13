@@ -21,14 +21,16 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     strncpy(ons->local_address, local_address, ONS_STRING_LENGTH);   
     
     // Create ZMQ socket
-    ons->sock = zsock_new_dealer(ons_address); 
+    ons->sock = zsock_new_dealer(ons_address);
 
     // Start listener thread
     ons->running = 1; 
     //pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
+    zstr_send(ons->sock, "Test String");
+
     // Send message to register with server
-    ONS_send(ons, NULL, 0);
+    //ONS_send(ons, NULL, 0);
 
     return 0;
 }
