@@ -28,12 +28,12 @@ func NewZMQConnector(bindAddr string) (*ZMQConnector, error) {
 
 func (c *ZMQConnector) run() {
 	for {
-		request, err := c.sock.RecvMessage()
-		if err != nil {
-			log.Fatal(err)
+		select {
+			case p, ok := <- c.ch.RecvChan:
+				if ok {
+					
+				}
 		}
-
-		log.Printf("router received '%s' from '%v'", request[1], request[0])
 	}
 }
 

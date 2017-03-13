@@ -1,0 +1,22 @@
+---
+
+name: Example Config
+
+nodes:
+  - address: 0x0001
+    location: 
+      lat: -36.8474505
+      lng: 174.773418
+  - address: 0x0002
+    location: 
+      lat: -36.840376
+      lng: 174.783203
+
+updates:
+  - timestamp: 10000
+    node: 0x011
+    action: "update-Location"
+    data:
+      lat: -36.845214
+      lng: 174.784408
+  
