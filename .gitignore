@@ -1,2 +1,8 @@
 test.yml
 ons
+
+build/
+*.o
+*.a
+*.so
+

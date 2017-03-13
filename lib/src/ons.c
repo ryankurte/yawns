@@ -1,7 +1,9 @@
 /**
- * OpenNetworkSim ZMQ Radio Driver
+ * OpenNetworkSim CZMQ Radio Driver Example
  * https://github.com/ryankurte/ons
+ * Copyright 2017 Ryan Kurte
  */
+
 
 #include "ons/ons.h"
 
@@ -27,7 +29,7 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     ons->running = 1; 
     //pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
-    zstr_send(ons->sock, "Test String");
+    zstr_send(ons->sock, local_address);
 
     // Send message to register with server
     //ONS_send(ons, NULL, 0);
