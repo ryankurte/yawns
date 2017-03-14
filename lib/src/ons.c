@@ -123,11 +123,6 @@ int ONS_get_cca(struct ons_s *ons)
     ts.tv_sec = time(NULL) + 2;
     res = pthread_cond_timedwait(&ons->cca_cond, &ons->cca_mutex, &ts);
 
-    ONS_DEBUG_PRINT("[ONCS] pthread_cond_timedwait result %d (errno: %d)\n", res, errno);
-    perror("pthread");
-
-    pthread_mutex_unlock(&ons->cca_mutex);
-
     if ((res == -1) && (errno == ETIMEDOUT))  {
         ONS_DEBUG_PRINT("[ONSC] get_cca timeout");
         return -1;
@@ -213,6 +208,7 @@ void *ons_handle_receive(void* ctx)
 
                 ons->cca = zdata[0];
                 ONS_DEBUG_PRINT("[ONCS] got cca response %u\n", ons->cca);
+                pthread_cond_signal(&ons->cca_cond);
                 pthread_mutex_unlock(&ons->cca_mutex);
 
             } else {
