@@ -15,14 +15,6 @@ void interrupt_handler(int x) {
     running = 0;
 }
 
-void print_arr(char* name, uint8_t* data, uint16_t len) {
-    printf("%s: ", name);
-    for(int i=0; i<len; i++) {
-        printf("%.2x ", data[len]);
-    }
-    printf("/n");
-}
-
 int main(int argc, char** argv) {
 
     printf("ONS Example Client\n");
@@ -46,15 +38,11 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, interrupt_handler);
 
-
-    uint8_t send_data[] = "Cats";
-    ONS_send(&ons, send_data, strlen(send_data));
-
     while(running) {
         int res = ONS_check_receive(&ons);
         if (res > 0) {
             ONS_get_received(&ons, sizeof(data), data, &len);
-            print_arr("Received", data, len);
+            ONS_print_arr("Received", data, len);
             ONS_send(&ons, data, len);
         }
     }

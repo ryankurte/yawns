@@ -38,7 +38,7 @@ $(OUTDIR)/$(LIB).so: $(OBJECTS)
 util: $(OUTDIR)/$(TARGET)
 
 # Build and link example util
-$(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(LIB).a
+$(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(OUTDIR)/$(LIB).a
 	@$(CC) $^ $(LFLAGS) -o $@
 
 # Run the example util
