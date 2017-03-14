@@ -1,4 +1,4 @@
-package zmq
+package connector
 
 import (
 	"fmt"
@@ -72,7 +72,7 @@ func (c *ZMQConnector) Send(address string, data []byte) {
 	c.SendMsg(address, ONSMessagePacket, data)
 }
 
-// Send sends an ONS message to the provided client by address
+// SendMsg sends an ONS message to the provided client by address
 // Note that address lookup is not available until the server has received a message from each client
 func (c *ZMQConnector) SendMsg(address string, msgType int, data []byte) {
 	// Lookup ZMQ ID by address

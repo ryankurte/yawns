@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/jessevdk/go-flags"
-	"github.com/ryankurte/ons/simulator"
+	"github.com/ryankurte/ons/lib/simulator"
 	"log"
 )
 

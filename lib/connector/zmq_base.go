@@ -1,4 +1,4 @@
-package zmq
+package connector
 
 import (
 	"gopkg.in/zeromq/goczmq.v4"

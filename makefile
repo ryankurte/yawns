@@ -9,12 +9,20 @@ install:
 build:
 	go build
 
+# Build libons C library
+libons:
+	cd ./libons && make libs; cd ..
+
+# Build libons example client
+ons-client:
+	cd ./libons && make util; cd ..
+
 # Run application
 run: build
 	./ons
 
 # Test application
-test:
+test: libons
 	go test -p=1 ./...
 
 # Utilities

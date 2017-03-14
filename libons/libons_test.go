@@ -7,7 +7,7 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/connectors/zmq"
+	"github.com/ryankurte/ons/lib/connector"
 )
 
 type TestServerReceiver struct {
@@ -38,11 +38,11 @@ func TestLibONS(t *testing.T) {
 
 	sr := TestServerReceiver{}
 
-	var server *zmq.ZMQConnector
+	var server *connector.ZMQConnector
 	var client *ONSConnector
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
-		c := zmq.NewZMQConnector()
+		c := connector.NewZMQConnector()
 		c.Init("inproc://test", &sr)
 		server = c
 	})

@@ -29,7 +29,7 @@ func TestConfigLoading(t *testing.T) {
 
 	t.Run("Parse config file", func(t *testing.T) {
 
-		c, err := LoadConfigFile("../example.yml")
+		c, err := LoadConfigFile("../../example.yml")
 		if err != nil {
 			t.Error(err)
 			t.FailNow()

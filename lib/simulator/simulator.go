@@ -1,8 +1,8 @@
 package sim
 
 import (
-	"github.com/ryankurte/ons/connectors"
-	"github.com/ryankurte/ons/engine"
+	"github.com/ryankurte/ons/lib/connector"
+	"github.com/ryankurte/ons/lib/engine"
 	"log"
 )
 
@@ -18,16 +18,16 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	e := engine.NewEngine()
 
 	// Load connector
-	c, err := connectors.GetConnector(o.Connector)
-	if err != nil {
-		return nil, err
-	}
+	c := connector.NewZMQConnector()
 
+	// Initialise connector
 	c.Init(o.BindAddr, e)
+
+	// Bind to engine
 	e.SetConnector(c)
 
 	// Load configuration file
-	err = e.LoadConfigFile(o.ConfigFile)
+	err := e.LoadConfigFile(o.ConfigFile)
 	if err != nil {
 		return nil, err
 	}

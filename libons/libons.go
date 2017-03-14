@@ -11,7 +11,7 @@ package libons
 /*
 #include <stdint.h>
 #include "ons/ons.h"
-#cgo LDFLAGS: -L./build/ -L./lib/build/ -lons -lzmq -lczmq -lpthread
+#cgo LDFLAGS: -L./build/ -L./libons/build/ -lons -lzmq -lczmq -lpthread
 */
 import "C"
 
