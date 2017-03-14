@@ -26,7 +26,7 @@ func (tc *TestServerReceiver) OnConnect(address string) {
 	tc.Connected = address
 }
 
-func TestZMQ(t *testing.T) {
+func TestLibONS(t *testing.T) {
 
 	clientAddress := "fakeClient"
 

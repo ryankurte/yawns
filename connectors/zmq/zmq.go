@@ -1,9 +1,11 @@
 package zmq
 
 import (
-	"encoding/binary"
+	"fmt"
 	"gopkg.in/zeromq/goczmq.v4"
 	"log"
+	"reflect"
+	"strconv"
 )
 
 // Handler interface for server components
@@ -23,8 +25,14 @@ const (
 	// DefaultBindAddr default address to bind zmq listener
 	DefaultBindAddr string = "tcp://*:6666"
 
-	onsMessageRegister uint64 = 1
-	onsMessagePacket   uint64 = 2
+	// ONSMessageRegister Registration message type, this message binds a socket ID to a client address
+	ONSMessageRegister int = 1
+	// ONSMessagePacket Packet message type, used for transferring virtual network packets
+	ONSMessagePacket int = 2
+	// ONSMessageCCAReq CCA request type, requests CCA information from the ONS server
+	ONSMessageCCAReq int = 3
+	// ONSMessageCCAResp CCA response type, response with CCA info from the ONS server
+	ONSMessageCCAResp int = 4
 )
 
 // NewZMQConnector creates a new ZMQ based connector instance
@@ -50,18 +58,22 @@ func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
 	return nil
 }
 
-func (c *ZMQConnector) findClientAddressById(id []byte) string {
+func (c *ZMQConnector) findClientAddressByID(id []byte) string {
 	for key, client := range c.clients {
-		if client == id {
+		if reflect.DeepEqual(client, id) {
 			return key
 		}
 	}
 	return ""
 }
 
-// Send sends a message to the provided client by address
-// Note that address lookup is not available until the server has received a message from each client
 func (c *ZMQConnector) Send(address string, data []byte) {
+	c.SendMsg(address, ONSMessagePacket, data)
+}
+
+// Send sends an ONS message to the provided client by address
+// Note that address lookup is not available until the server has received a message from each client
+func (c *ZMQConnector) SendMsg(address string, msgType int, data []byte) {
 	// Lookup ZMQ ID by address
 	id, ok := c.clients[address]
 	if !ok {
@@ -69,52 +81,11 @@ func (c *ZMQConnector) Send(address string, data []byte) {
 	}
 
 	// Create packet type
-	t := make([]byte, 4)
-	binary.LittleEndian.PutUint32(t, 1)
+	// Weirdly these seem to be sent as strings by ZMQ :-/
+	t := []byte(fmt.Sprintf("%d", msgType))
 
+	// Send message via channel
 	c.ZMQBase.ch.SendChan <- [][]byte{id, t, data}
-}
-
-func (c *ZMQConnector) receive(data [][]byte) {
-	log.Printf("Received: %+v", data)
-
-	if len(data) != 3 {
-		log.Printf("Error parsing message, required 3 parts")
-		return
-	}
-
-	// Fetch ZMQ client ID
-	clientID := data[0]
-
-	// Fetch message type
-	messageType, err := binary.Uvarint(data[1])
-	if err != nil {
-		log.Printf("Error parsing message type (%+v)", data[1])
-		return
-	}
-
-	body := data[2]
-
-	// Handle message type
-	switch messageType {
-	case onsMessageRegister:
-		// Bind address to ID lookup for sending
-		address := string(body)
-		_, ok := c.clients[address]
-		if !ok {
-			// Call OnConnect handler if required
-			c.handler.OnConnect(address)
-			c.clients[address] = clientID
-		}
-	case onsMessagePacket:
-		address := c.findClientAddressById(clientID)
-		if address == "" {
-			log.Printf("Received message for unknown clientID (%+v)", clientId)
-		}
-		c.handler.Receive(address, body)
-
-	}
-
 }
 
 // Run the ZMQ connector
@@ -129,4 +100,48 @@ func (c *ZMQConnector) Run() {
 			c.receive(p)
 		}
 	}
+}
+
+func (c *ZMQConnector) receive(data [][]byte) {
+
+	if len(data) != 3 {
+		log.Printf("Error parsing message, required 3 parts")
+		return
+	}
+
+	// Fetch ZMQ client ID
+	clientID := data[0]
+
+	// Fetch message type
+	messageType, err := strconv.Atoi(string(data[1]))
+	if err != nil {
+		log.Printf("Error parsing message type (%+v)", data[1])
+		return
+	}
+
+	// All ONS messages have data[2]
+	body := data[2]
+
+	// Handle message type
+	switch messageType {
+	case ONSMessageRegister:
+		// Bind address to ID lookup for sending
+		address := string(body)
+		_, ok := c.clients[address]
+		if !ok {
+			// Call OnConnect handler if required
+			c.handler.OnConnect(address)
+			c.clients[address] = clientID
+		}
+	case ONSMessagePacket:
+		address := c.findClientAddressByID(clientID)
+		if address == "" {
+			log.Printf("Received message for unknown clientID (%+v)", clientID)
+		}
+		c.handler.Receive(address, body)
+
+	default:
+		log.Printf("Recieved unknown packet type (%d)", messageType)
+	}
+
 }
