@@ -12,6 +12,7 @@ import (
 type Handler interface {
 	OnConnect(address string)
 	Receive(address string, data []byte)
+	GetCCA(address string) bool
 }
 
 // ZMQConnector is a connector instance using ZMQ messaging
@@ -139,6 +140,20 @@ func (c *ZMQConnector) receive(data [][]byte) {
 			log.Printf("Received message for unknown clientID (%+v)", clientID)
 		}
 		c.handler.Receive(address, body)
+
+	case ONSMessageCCAReq:
+		address := c.findClientAddressByID(clientID)
+		if address == "" {
+			log.Printf("Received message for unknown clientID (%+v)", clientID)
+		}
+		cca := c.handler.GetCCA(address)
+		dataOut := make([]byte, 1)
+		if cca {
+			dataOut[0] = 1
+		} else {
+			dataOut[0] = 0
+		}
+		c.SendMsg(address, ONSMessageCCAResp, dataOut)
 
 	default:
 		log.Printf("Recieved unknown packet type (%d)", messageType)

@@ -201,6 +201,10 @@ func (e *Engine) Receive(from string, packet []byte) {
 	}
 }
 
+func (e *Engine) GetCCA(addr string) bool {
+	return true
+}
+
 // Ready Checks whether the engine is ready to launch
 func (e *Engine) Ready() bool {
 	ready := true
