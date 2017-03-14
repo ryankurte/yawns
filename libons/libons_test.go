@@ -1,3 +1,12 @@
+/**
+ * OpenNetworkSim CZMQ Radio Driver Tests
+ * Uses the libons.go cgo wrapper around libons to test the native ons connector
+ * against the ONS controller
+ *
+ * https://github.com/ryankurte/ons
+ * Copyright 2017 Ryan Kurte
+ */
+
 package libons
 
 import (

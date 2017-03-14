@@ -8,6 +8,11 @@ import (
 	"strconv"
 )
 
+const (
+	// DefaultBindAddr default address to bind zmq listener
+	DefaultBindAddr string = "tcp://*:6666"
+)
+
 // Handler interface for server components
 type Handler interface {
 	OnConnect(address string)
@@ -21,20 +26,6 @@ type ZMQConnector struct {
 	clients map[string][]byte
 	handler Handler
 }
-
-const (
-	// DefaultBindAddr default address to bind zmq listener
-	DefaultBindAddr string = "tcp://*:6666"
-
-	// ONSMessageRegister Registration message type, this message binds a socket ID to a client address
-	ONSMessageRegister int = 1
-	// ONSMessagePacket Packet message type, used for transferring virtual network packets
-	ONSMessagePacket int = 2
-	// ONSMessageCCAReq CCA request type, requests CCA information from the ONS server
-	ONSMessageCCAReq int = 3
-	// ONSMessageCCAResp CCA response type, response with CCA info from the ONS server
-	ONSMessageCCAResp int = 4
-)
 
 // NewZMQConnector creates a new ZMQ based connector instance
 func NewZMQConnector() *ZMQConnector {
