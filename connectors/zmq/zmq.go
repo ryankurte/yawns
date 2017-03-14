@@ -1,6 +1,7 @@
 package zmq
 
 import (
+	"encoding/binary"
 	"gopkg.in/zeromq/goczmq.v4"
 	"log"
 )
@@ -21,6 +22,9 @@ type ZMQConnector struct {
 const (
 	// DefaultBindAddr default address to bind zmq listener
 	DefaultBindAddr string = "tcp://*:6666"
+
+	onsMessageRegister uint64 = 1
+	onsMessagePacket   uint64 = 2
 )
 
 // NewZMQConnector creates a new ZMQ based connector instance
@@ -46,35 +50,69 @@ func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
 	return nil
 }
 
+func (c *ZMQConnector) findClientAddressById(id []byte) string {
+	for key, client := range c.clients {
+		if client == id {
+			return key
+		}
+	}
+	return ""
+}
+
 // Send sends a message to the provided client by address
 // Note that address lookup is not available until the server has received a message from each client
 func (c *ZMQConnector) Send(address string, data []byte) {
+	// Lookup ZMQ ID by address
 	id, ok := c.clients[address]
 	if !ok {
 		return
 	}
 
-	c.ZMQBase.ch.SendChan <- [][]byte{id, data}
+	// Create packet type
+	t := make([]byte, 4)
+	binary.LittleEndian.PutUint32(t, 1)
+
+	c.ZMQBase.ch.SendChan <- [][]byte{id, t, data}
 }
 
 func (c *ZMQConnector) receive(data [][]byte) {
 	log.Printf("Received: %+v", data)
 
-	// Fetch ZMQ client ID
-	id := data[0]
-
-	// Bind address to ID lookup for sending
-	address := string(data[1])
-	_, ok := c.clients[address]
-	if !ok {
-		// Call OnConnect handler if required
-		c.handler.OnConnect(address)
-		c.clients[address] = id
+	if len(data) != 3 {
+		log.Printf("Error parsing message, required 3 parts")
+		return
 	}
 
-	if len(data) == 3 {
-		// Call receive handler
-		c.handler.Receive(address, data[2])
+	// Fetch ZMQ client ID
+	clientID := data[0]
+
+	// Fetch message type
+	messageType, err := binary.Uvarint(data[1])
+	if err != nil {
+		log.Printf("Error parsing message type (%+v)", data[1])
+		return
+	}
+
+	body := data[2]
+
+	// Handle message type
+	switch messageType {
+	case onsMessageRegister:
+		// Bind address to ID lookup for sending
+		address := string(body)
+		_, ok := c.clients[address]
+		if !ok {
+			// Call OnConnect handler if required
+			c.handler.OnConnect(address)
+			c.clients[address] = clientID
+		}
+	case onsMessagePacket:
+		address := c.findClientAddressById(clientID)
+		if address == "" {
+			log.Printf("Received message for unknown clientID (%+v)", clientId)
+		}
+		c.handler.Receive(address, body)
+
 	}
 
 }

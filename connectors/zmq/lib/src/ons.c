@@ -12,6 +12,12 @@
 #include <signal.h>
 #include <czmq.h>
 
+// ONS message enum
+// Types must match go connector
+enum ons_msg_e {
+    ONS_MSG_REGISTER = 1,
+    ONS_MSG_PACKET = 2
+}
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -22,7 +28,9 @@
 
 // Internal receiving thread
 void *ons_handle_receive(void* ctx);
+int ons_send_msg(struct ons_s *ons, uint32_t type, uint8_t *data, uint16_t length);
 
+/** External Functions **/
 
 int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
 {    
@@ -40,24 +48,16 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     ons->running = 1; 
     pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
-    zstr_send(ons->sock, local_address);
-
     // Send message to register with server
-    //ONS_send(ons, NULL, 0);
+    ons_send_msg(ons, ONS_MSG_REGISTER, ons->local_address, strlen(ons->local_address));
 
     return 0;
 }
 
-int ONS_send(struct ons_s *ons, uint8_t *data, uint16_t length)
+
+int ONS_send(struct ons_s *ons, uint8_t *data, uint16_t length) 
 {
-    ONS_print_arr("[ONSC] Send", data, length);
-
-    // Send data packet
-    int res = zsock_send(ons->sock, "bb", 
-                            ons->local_address, strlen(ons->local_address),
-                            data, length);
-
-    return res;
+   return ons_send_msg(ons, ONS_MSG_PACKET, data, length);
 }
 
 int ONS_check_send(struct ons_s *ons)
@@ -128,6 +128,8 @@ void *ons_handle_receive(void* ctx)
     struct ons_s *ons = (struct ons_s*) ctx;
     uint8_t *zdata;
     size_t zsize;
+    int type;
+    int res;
 
     ONS_DEBUG_PRINT("[ONSC] Starting recieve thread\n");
 
@@ -136,7 +138,7 @@ void *ons_handle_receive(void* ctx)
 
     while(ons->running) {
 
-        int res = zsock_recv(ons->sock, "b", &zdata, &zsize);   
+        res = zsock_recv(ons->sock, "ib", &type, &zdata, &zsize);   
         if (res == 0) {
     
             int max_size = (zsize > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1: zsize;
@@ -153,4 +155,10 @@ void *ons_handle_receive(void* ctx)
     ONS_DEBUG_PRINT("[ONSC] Exiting recieve thread\n");
 
     return NULL;
+}
+
+// Send an ONS message with the specified type
+int ons_send_msg(struct ons_s *ons, uint32_t type, uint8_t *data, uint16_t length)
+{
+    return zsock_send(ons->sock, "ib", type, data, length);
 }
