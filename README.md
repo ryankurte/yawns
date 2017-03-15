@@ -2,7 +2,9 @@
 
 A Next-Generation Wireless Sensor Network Simulation Engine for Wireless Sensor Network (WSN) Research and Development.
 
-This is designed to allow the development and evaluation of WSN operating systems, protocols, and applications in a programmable manner.
+This is designed to assist the development and evaluation of WSN operating systems, protocols, and applications in a programmable virtual environment, with a focus on replicating the radio environment of a physical environment in a virtual space.
+
+This project consists of two parts. The core simulator (ons) that manages clients and connections, simulates the medium and environment, and processes updates to the simulation environment, and libons that implements a C Language radio interface for use in the node application.
 
 ## Status
 
@@ -22,6 +24,8 @@ Very early prototype
 - OpenGL / Map Visualisation
 
 ## Usage
+
+ONS is designed to be platform and network agnostic. To simulate a given platform
 
 1. Install ons
 2. Create a wrapper for libons to adapt to the system under test

@@ -11,7 +11,8 @@ type Options struct {
 	ReportFile string `short:"r" long:"report" description:"Report file to write"`
 	LogDir     string `short:"l" long:"log-dir" description:"Log file directory"`
 
-	RunClients string `short:"x" long:"run-clients" description:"Enable simulator client management and specify the command to run (ie. ./app {{server}} {{address}})"`
+	RunCommand string `short:"x" long:"run-command" description:"Enable simulator client management and specify the default command to run (ie. ./node-app)"`
+	RunArgs    string `short:"x" long:"run-args" description:"Specify default arguments for client management"`
 }
 
 // DefaultOptions creates an options instance populated with the default options
@@ -21,5 +22,6 @@ func DefaultOptions() Options {
 		BindAddr:   "tcp://*:10109",
 		PCAPFile:   "",
 		PCAPStream: "",
+		RunArgs:    "{{.server}} {{.address}}",
 	}
 }
