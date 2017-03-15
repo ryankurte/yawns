@@ -25,16 +25,16 @@ type ReceiveHandler interface {
 	Received(address string, message []byte)
 }
 
-// UpdateHandler interface should be implemented by plugins to handle simulation updates
-type UpdateHandler interface {
-	Updated(address string, data map[string]string)
+// EventHandler interface should be implemented by plugins to handle simulation Events
+type EventHandler interface {
+	Event(eventType, address string, data map[string]string)
 }
 
 // PluginManager manages plugins and calls underlying handlers when required
 type PluginManager struct {
 	connectHandlers []ConnectHandler
 	receiveHandlers []ReceiveHandler
-	updateHandlers  []UpdateHandler
+	EventHandlers   []EventHandler
 }
 
 // NewPluginManager creates an empty plugin manager instance
@@ -58,9 +58,9 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 		bound++
 	}
 
-	update, ok := plugin.(UpdateHandler)
+	Event, ok := plugin.(EventHandler)
 	if ok {
-		pm.updateHandlers = append(pm.updateHandlers, update)
+		pm.EventHandlers = append(pm.EventHandlers, Event)
 		bound++
 	}
 
@@ -84,9 +84,9 @@ func (pm *PluginManager) OnReceived(address string, data []byte) {
 	}
 }
 
-// OnUpdate calls bound plugin UpdateHandlers
-func (pm *PluginManager) OnUpdate(address string, data map[string]string) {
-	for _, h := range pm.updateHandlers {
-		h.Updated(address, data)
+// OnEvent calls bound plugin EventHandlers
+func (pm *PluginManager) OnEvent(eventType, address string, data map[string]string) {
+	for _, h := range pm.EventHandlers {
+		h.Event(eventType, address, data)
 	}
 }

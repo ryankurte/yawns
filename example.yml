@@ -3,7 +3,8 @@
 
 # Top Level Simulation Configuration
 name: Example Config
-endtime: 1m
+endtime: 2s
+tickrate: 500ms
 
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
@@ -23,14 +24,14 @@ nodes:
       lat: -36.840376
       lng: 174.783203
 
-# Update definitions
+# Event definitions
 # These define changes to the simulation and environment at a given point in time
-updates:
-  - timestamp: 3s
+Events:
+  - timestamp: 1s
     nodes: [0x0001]
-    action: "update-Location"
-    comment: Update the location of node 0x001 at 30s into the simulation
+    action: "set-location"
+    comment: Event the location of node 0x001 at 30s into the simulation
     data:
       lat: -36.845214
-      lng: 174.784408
+      lon: 174.784408
   

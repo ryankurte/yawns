@@ -36,17 +36,17 @@ func TestEngine(t *testing.T) {
 		e.LoadConfig(&c)
 	})
 
-	t.Run("Handles location updates", func(t *testing.T) {
+	t.Run("Handles location Events", func(t *testing.T) {
 
 		lat := -87.3245
 		lng := 35.47
 
-		// Location update data
-		updateData := make(map[string]string)
-		updateData["lat"] = strconv.FormatFloat(lat, 'f', 6, 64)
-		updateData["lon"] = strconv.FormatFloat(lng, 'f', 6, 64)
+		// Location Event data
+		EventData := make(map[string]string)
+		EventData["lat"] = strconv.FormatFloat(lat, 'f', 6, 64)
+		EventData["lon"] = strconv.FormatFloat(lng, 'f', 6, 64)
 
-		err := e.handleUpdate("TestAddress", config.UpdateSetLocation, updateData)
+		err := e.handleNodeEvent("TestAddress", config.EventSetLocation, EventData)
 		if err != nil {
 			t.Error(err)
 		}

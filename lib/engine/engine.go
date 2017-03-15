@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -17,10 +16,11 @@ import (
 // Engine is the base simulation engine
 type Engine struct {
 	nodes       map[string]Node
-	updates     []*Update
+	Events      []*Event
 	startTime   time.Time
 	currentTime time.Time
 	endTime     time.Duration
+	tickRate    time.Duration
 	connector   Connector
 }
 
@@ -36,9 +36,13 @@ func NewEngine(c Connector) *Engine {
 
 // LoadConfig Loads a simulation config
 func (e *Engine) LoadConfig(c *config.Config) {
-	e.nodes = make(map[string]Node)
+
+	// Load settings
+	e.tickRate = c.TickRate
+	e.endTime = c.EndTime
 
 	// Create map of nodes
+	e.nodes = make(map[string]Node)
 	for _, n := range c.Nodes {
 		node := Node{
 			Node:      &n,
@@ -49,10 +53,11 @@ func (e *Engine) LoadConfig(c *config.Config) {
 		e.nodes[n.Address] = node
 	}
 
-	// Create update array
-	for _, u := range c.Updates {
-		update := NewUpdate(&u)
-		e.updates = append(e.updates, update)
+	// Create Event array
+	e.Events = make([]*Event, len(c.Events))
+	for i, u := range c.Events {
+		Event := NewEvent(&u)
+		e.Events[i] = Event
 	}
 
 	e.endTime = c.EndTime
@@ -63,25 +68,12 @@ func (e *Engine) Info() {
 	log.Printf("Engine Info")
 	log.Printf("  - End Time: %d ms", e.endTime)
 	log.Printf("  - Nodes: %d", len(e.nodes))
-	log.Printf("  - Updates: %d", len(e.updates))
+	log.Printf("  - Events: %d", len(e.Events))
 }
 
-func parseFieldFloat64(name string, data map[string]string) (float64, error) {
-	field, ok := data[name]
-	if !ok {
-		return 0.0, fmt.Errorf("ParseFieldFloat64 error field %s not found", field)
-	}
-
-	fieldFloat, err := strconv.ParseFloat(field, 64)
-	if err != nil {
-		return 0.0, fmt.Errorf("ParseFieldFloat64 error field %s is not a float", field)
-	}
-	return fieldFloat, nil
-}
-
-func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, data map[string]string) error {
+func (e *Engine) handleEvent(addresses []string, action config.EventAction, data map[string]string) error {
 	for _, address := range addresses {
-		err := e.handleNodeUpdate(address, action, data)
+		err := e.handleNodeEvent(address, action, data)
 		if err != nil {
 			return err
 		}
@@ -89,35 +81,27 @@ func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, da
 	return nil
 }
 
-func (e *Engine) handleNodeUpdate(address string, action config.UpdateAction, data map[string]string) error {
+func (e *Engine) handleNodeEvent(address string, action config.EventAction, data map[string]string) error {
 	// Fetch matching node
 	node, ok := e.nodes[address]
 	if !ok {
-		return fmt.Errorf("handleUpdate node %s not found", address)
+		return fmt.Errorf("handleEvent node %s not found", address)
 	}
 
 	// Handle actions
 	var err error
 	switch action {
-	case config.UpdateSetLocation:
-		node.Location.Lat, err = parseFieldFloat64("lat", data)
-		if err != nil {
-			return fmt.Errorf("handleUpdate error parsing UpdateSetLocation %s", err)
-		}
-
-		node.Location.Lng, err = parseFieldFloat64("lon", data)
-		if err != nil {
-			return fmt.Errorf("handleUpdate error parsing UpdateSetLocation %s", err)
-		}
+	case config.EventSetLocation:
+		err = HandleSetLocationEvent(&node, data)
 
 	default:
-		return fmt.Errorf("handleUpdate error, unrecognised action (%s)", action)
+		return fmt.Errorf("handleEvent error, unrecognised action (%s)", action)
 	}
 
-	// Update node instance in storage
+	// Event node instance in storage
 	e.nodes[address] = node
 
-	return nil
+	return err
 }
 
 func (e *Engine) getNode(address string) (*Node, error) {
@@ -128,7 +112,7 @@ func (e *Engine) getNode(address string) (*Node, error) {
 }
 
 // Setup engine for simulation
-// This will
+// TODO: this is a bit broken...
 func (e *Engine) Setup(wait bool) error {
 	if !wait {
 		return nil
@@ -160,23 +144,23 @@ setup:
 	return nil
 }
 
-// Handle updates at a given tick
-func (e *Engine) handleUpdates(d time.Duration) {
-	for i, u := range e.updates {
-		// If the time has passed and the update has not been executed
+// Handle Events at a given tick
+func (e *Engine) handleEvents(d time.Duration) {
+	for i, u := range e.Events {
+		// If the time has passed and the Event has not been executed
 		if d >= u.TimeStamp && !u.executed {
 
-			log.Printf("Executing update %s (%s)", u.Action, u.Comment)
+			log.Printf("Executing Event %s (%s)", u.Action, u.Comment)
 
-			// Execute the update
-			err := e.handleUpdate(u.Nodes, u.Action, u.Data)
+			// Execute the Event
+			err := e.handleEvent(u.Nodes, u.Action, u.Data)
 			if err != nil {
-				log.Printf("Update error: %s", err)
+				log.Printf("Event error: %s", err)
 			}
 
-			// Update the update list
+			// Event the Event list
 			u.executed = true
-			e.updates[i] = u
+			e.Events[i] = u
 		}
 	}
 }
@@ -192,16 +176,15 @@ func (e *Engine) Run() error {
 	log.Printf("Starting simulation")
 
 	var lastTime time.Duration
-	tickTime := time.Second
 
 running:
 	for {
 		select {
-		// Simulation update ticks
-		case <-time.After(lastTime + tickTime):
-			lastTime += tickTime
+		// Simulation Event ticks
+		case <-time.After(lastTime + e.tickRate):
+			lastTime += e.tickRate
 			log.Printf("Simulation tick: %s", lastTime)
-			e.handleUpdates(lastTime)
+			e.handleEvents(lastTime)
 
 		// Handle command line interrupts
 		case <-ch:

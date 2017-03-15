@@ -4,7 +4,7 @@ A Next-Generation Wireless Sensor Network Simulation Engine for Wireless Sensor 
 
 This is designed to assist the development and evaluation of WSN operating systems, protocols, and applications in a programmable virtual environment, with a focus on replicating the radio environment of a physical environment in a virtual space.
 
-This project consists of two parts. The core simulator (ons) that manages clients and connections, simulates the medium and environment, and processes updates to the simulation environment, and libons that implements a C Language radio interface for use in the node application.
+This project consists of two parts. The core simulator (ons) that manages clients and connections, simulates the medium and environment, and processes Events to the simulation environment, and libons that implements a C Language radio interface for use in the node application.
 
 ## Status
 

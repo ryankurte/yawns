@@ -14,18 +14,33 @@ type Config struct {
 	// End time in ms
 	EndTime time.Duration
 
+	TickRate time.Duration
+
 	// Defaults defines default settings for each node
 	Defaults Node
 
 	// Nodes definitions for the engine
 	Nodes []Node
 
-	// Update actions to execute when running
-	Updates []Update
+	// Event actions to execute when running
+	Events []Event
 }
+
+const (
+	defaultEndTime  = 1 * time.Second
+	defaultTickRate = 100 * time.Millisecond
+)
 
 // LoadConfig parses a configuration object and initialises defaults
 func loadConfig(c *Config) *Config {
+
+	if c.EndTime == 0 {
+		c.EndTime = defaultEndTime
+	}
+
+	if c.TickRate == 0 {
+		c.TickRate = defaultTickRate
+	}
 
 	// Setup node defaults
 	for i, n := range c.Nodes {
@@ -86,5 +101,5 @@ func WriteConfigFile(file string, c *Config) error {
 func (c *Config) Info() {
 	log.Printf("Config Name: %s", c.Name)
 	log.Printf("  - Nodes: %d", len(c.Nodes))
-	log.Printf("  - Updates: %d", len(c.Updates))
+	log.Printf("  - Events: %d", len(c.Events))
 }

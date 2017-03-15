@@ -13,12 +13,12 @@ func TestConfigLoading(t *testing.T) {
 		node := Node{Address: "TestAddress", Location: Location{Lat: 0.0, Lng: 0.0, Alt: 100.0}}
 		c.Nodes = append(c.Nodes, node)
 
-		updateData := make(map[string]string)
-		updateData["lat"] = "1.0"
-		updateData["lon"] = "2.0"
+		EventData := make(map[string]string)
+		EventData["lat"] = "1.0"
+		EventData["lon"] = "2.0"
 
-		update := Update{1000, []string{"TestAddress"}, UpdateSetLocation, updateData}
-		c.Updates = append(c.Updates, update)
+		Event := Event{1000, []string{"TestAddress"}, EventSetLocation, EventData, "Test Comment"}
+		c.Events = append(c.Events, Event)
 
 		err := WriteConfigFile("/tmp/ons-test.yml", &c)
 		if err != nil {

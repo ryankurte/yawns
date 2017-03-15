@@ -21,9 +21,11 @@ type Handler interface {
 
 // ZMQConnector is a connector instance using ZMQ messaging
 type ZMQConnector struct {
-	*ZMQBase
+	ch      *goczmq.Channeler
 	clients map[string][]byte
 	handler Handler
+	in      chan interface{}
+	out     chan interface{}
 }
 
 // NewZMQConnector creates a new ZMQ based connector instance
@@ -40,9 +42,7 @@ func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
 
 	c.handler = h.(Handler)
 
-	ch := goczmq.NewRouterChanneler(bindAddress)
-
-	c.ZMQBase = NewZMQBase(ch)
+	c.ch = goczmq.NewRouterChanneler(bindAddress)
 
 	go c.Run()
 
@@ -58,6 +58,8 @@ func (c *ZMQConnector) findClientAddressByID(id []byte) string {
 	return ""
 }
 
+// Send a data message to the provided address
+// This wraps SendMsg as a convenience for other modules
 func (c *ZMQConnector) Send(address string, data []byte) {
 	c.SendMsg(address, ONSMessagePacket, data)
 }
@@ -76,7 +78,7 @@ func (c *ZMQConnector) SendMsg(address string, msgType int, data []byte) {
 	t := []byte(fmt.Sprintf("%d", msgType))
 
 	// Send message via channel
-	c.ZMQBase.ch.SendChan <- [][]byte{id, t, data}
+	c.ch.SendChan <- [][]byte{id, t, data}
 }
 
 // Run the ZMQ connector
@@ -91,4 +93,9 @@ func (c *ZMQConnector) Run() {
 			c.receive(p)
 		}
 	}
+}
+
+// Exit a ZMQConnector instance
+func (c *ZMQConnector) Exit() {
+	c.ch.Destroy()
 }
