@@ -9,41 +9,33 @@
 package runner
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
-	"io"
-	"log"
-	"os"
-	"os/exec"
 	"strings"
 	"text/template"
-	"time"
 )
 
-// KillTimeout timeout for kill signal when exiting a runnable
-var KillTimeout = 1000 * time.Millisecond
-
-// InterruptTimeout timeout for interrupt signal when exiting a runnable
-var InterruptTimeout = 200 * time.Millisecond
+import (
+	"gopkg.in/ryankurte/go-async-cmd.v1"
+)
 
 // Runnable wraps an executable with arguments to allow management of the underlying executing instance
 type Runnable struct {
+	*gocmd.Cmd
 	name string
 	tmpl string
 	args map[string]string
-	cmd  *exec.Cmd
-	in   chan string
-	out  chan string
 }
 
 // NewRunnable Create a new runnable instance
 func NewRunnable(name string, tmpl string, args map[string]string) *Runnable {
-	return &Runnable{
-		name: name,
-		tmpl: tmpl,
-		args: args,
-	}
+	runnable := new(Runnable)
+
+	runnable.name = name
+	runnable.tmpl = tmpl
+	runnable.args = args
+
+	return runnable
 }
 
 func (runnable *Runnable) generateArgs() (string, error) {
@@ -63,45 +55,13 @@ func (runnable *Runnable) generateArgs() (string, error) {
 	return runCmd.String(), nil
 }
 
-// Bind a readable pipe to an output channel for IPC
-func (runnable *Runnable) bindReadPipeToChannel(r io.ReadCloser, ch chan string) {
-	reader := bufio.NewReader(r)
-	go func() {
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					log.Printf("Pipe read error: %s", err)
-				}
-				break
-			}
-			ch <- line
-		}
-	}()
-}
-
-// Bind a writable pipe to an input channel for IPC
-func (runnable *Runnable) bindWritePipeToChannel(w io.WriteCloser, ch chan string) {
-	go func() {
-		for {
-			select {
-			case line, ok := <-ch:
-				if !ok {
-					w.Close()
-					break
-				}
-				_, err := io.WriteString(w, fmt.Sprintln(line))
-				if err != nil {
-					w.Close()
-					break
-				}
-			}
-		}
-	}()
-}
-
-// Run a runnable instance
+// Run stub to block use of that method
 func (runnable *Runnable) Run() error {
+	return fmt.Errorf("Runnable.Run() not supported, see Runnable.Start()")
+}
+
+// Start a runnable instance
+func (runnable *Runnable) Start() error {
 	var err error
 
 	// Generate command args
@@ -115,26 +75,17 @@ func (runnable *Runnable) Run() error {
 
 	// Create command
 	if runnable.args != nil {
-		runnable.cmd = exec.Command(runnable.name, strings.Split(args, " ")...)
+		runnable.Cmd = gocmd.Command(runnable.name, strings.Split(args, " ")...)
 	} else {
-		runnable.cmd = exec.Command(runnable.name)
+		runnable.Cmd = gocmd.Command(runnable.name)
 	}
 
 	// Create channels
-	runnable.in = make(chan string, 128)
-	runnable.out = make(chan string, 128)
-
-	// Bind input and output pipes to channels
-	stdout, _ := runnable.cmd.StdoutPipe()
-	runnable.bindReadPipeToChannel(stdout, runnable.out)
-	stderr, _ := runnable.cmd.StderrPipe()
-	runnable.bindReadPipeToChannel(stderr, runnable.out)
-
-	stdin, _ := runnable.cmd.StdinPipe()
-	runnable.bindWritePipeToChannel(stdin, runnable.in)
+	runnable.Cmd.InputChan = make(chan string, 128)
+	runnable.Cmd.OutputChan = make(chan string, 128)
 
 	// Launch command
-	err = runnable.cmd.Start()
+	err = runnable.Cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -144,59 +95,10 @@ func (runnable *Runnable) Run() error {
 
 // Write a line to the running process
 func (runnable *Runnable) Write(line string) {
-	runnable.in <- line
+	runnable.Cmd.InputChan <- line
 }
 
 // GetReadCh Fetch a read channel to the running process
 func (runnable *Runnable) GetReadCh() chan string {
-	return runnable.out
-}
-
-// Interrupt sends an os.Interrupt to the running process
-func (runnable *Runnable) Interrupt() {
-	log.Printf("Runnable: %+v", runnable)
-	if runnable.cmd.Process != nil {
-		runnable.cmd.Process.Signal(os.Interrupt)
-	}
-}
-
-// Kill sends an os.Kill signal to the running process
-func (runnable *Runnable) Kill() {
-	if runnable.cmd.Process != nil {
-		runnable.cmd.Process.Kill()
-	}
-}
-
-// Exit a running runnable
-func (runnable *Runnable) Exit() error {
-	// TODO: read pipes / return here?
-
-	if runnable.cmd == nil {
-		return fmt.Errorf("Runnable not yet started (no cmd)")
-	}
-
-	//Start timeouts to interrupt and kill
-	interruptTimer := time.AfterFunc(InterruptTimeout, func() {
-		runnable.cmd.Process.Signal(os.Interrupt)
-	})
-	killTimer := time.AfterFunc(KillTimeout, func() {
-		runnable.cmd.Process.Kill()
-	})
-
-	// Wait for exit
-	err := runnable.cmd.Wait()
-	status := runnable.cmd.ProcessState
-
-	// Disable timers
-	interruptTimer.Stop()
-	killTimer.Stop()
-
-	if err != nil && !strings.Contains(status.String(), "signal: interrupt") {
-		return fmt.Errorf("Runnable exit error (status: %s)", status.String())
-	}
-
-	//close(runnable.in)
-	//close(runnable.out)
-
-	return nil
+	return runnable.Cmd.OutputChan
 }

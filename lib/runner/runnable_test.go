@@ -8,43 +8,48 @@ import (
 
 func TestRunnable(t *testing.T) {
 
-	var runnable *Runnable
-
-	t.Run("Create Runnable", func(t *testing.T) {
+	t.Run("Can generate arguments", func(t *testing.T) {
 		args := make(map[string]string)
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
-		runnable = NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
-	})
+		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
 
-	t.Run("Can generate arguments", func(t *testing.T) {
-		args, err := runnable.generateArgs()
+		argString, err := r.generateArgs()
 		if err != nil {
 			t.Error(err)
 		}
-		if args != "Hello World" {
+		if argString != "Hello World" {
 			t.Errorf("Invalid args: '%s'", args)
 		}
 	})
 
 	t.Run("Can run commands", func(t *testing.T) {
-		err := runnable.Run()
+		args := make(map[string]string)
+		args["arg1"] = "Hello"
+		args["arg2"] = "World"
+		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
+
+		err := r.Start()
 		if err != nil {
 			t.Error(err)
 		}
-		runnable.Exit()
+		r.Exit()
 	})
 
 	t.Run("Can stream output from commands", func(t *testing.T) {
+		args := make(map[string]string)
+		args["arg1"] = "Hello"
+		args["arg2"] = "World"
+		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
 
-		err := runnable.Run()
+		err := r.Start()
 		if err != nil {
 			t.Error(err)
 		}
 
 		time.Sleep(1 * time.Second)
 
-		line, ok := <-runnable.out
+		line, ok := <-r.GetReadCh()
 		if !ok {
 			t.Errorf("Error fetching from channel")
 		}
@@ -52,37 +57,35 @@ func TestRunnable(t *testing.T) {
 			t.Errorf("Unexpected line out: %s", line)
 		}
 
-		runnable.Exit()
+		r.Exit()
 	})
 
 	t.Run("Can interrupt and exit commands", func(t *testing.T) {
 		r := NewRunnable("cat", "", nil)
 
-		err := r.Run()
+		err := r.Start()
 		if err != nil {
 			t.Error(err)
 		}
 
 		err = r.Exit()
-		if err != nil {
-			t.Error(err)
+		if err == nil {
+			t.Errorf("Expected interrupt error")
 		}
 	})
 
 	t.Run("Can write input to commands", func(t *testing.T) {
-		data := make(map[string]string)
-		data["file"] = "test.txt"
-		r := NewRunnable("cat", "", nil)
+		r := NewRunnable("tee", "", nil)
 
-		testString := "Test String"
+		testString := "Test String\n"
 
-		r.Run()
+		r.Start()
 
-		r.in <- testString
+		r.Write(testString)
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 
-		line, ok := <-r.out
+		line, ok := <-r.GetReadCh()
 		if !ok {
 			t.Errorf("Error fetching from channel")
 		}

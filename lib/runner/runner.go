@@ -58,7 +58,7 @@ func (runner *Runner) Start() error {
 	// Launch runnables
 	for name, runner := range runner.runnables {
 		log.Printf("Runner.Start starting client %s", name)
-		err := runner.Run()
+		err := runner.Start()
 		if err != nil {
 			return err
 		}
