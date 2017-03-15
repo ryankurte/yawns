@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -46,9 +47,72 @@ func Command(name string, arg ...string) *Cmd {
 	return c
 }
 
+// Start wraps Cmd.Start and hooks channels if provided
+func (c *Cmd) Start() error {
+
+	// Bind output routines if channel exists
+	if c.OutputChan != nil {
+		stdout, err := c.StdoutPipe()
+		if err != nil {
+			return err
+		}
+		go c.readCloserToChannel(stdout)
+		stderr, err := c.StderrPipe()
+		if err != nil {
+			return err
+		}
+		go c.readCloserToChannel(stderr)
+	}
+
+	// Bind input routine if channel exists
+	if c.InputChan != nil {
+		stdin, err := c.StdinPipe()
+		if err != nil {
+			return err
+		}
+		go c.channelToWriteCloser(stdin)
+	}
+
+	return c.Cmd.Start()
+}
+
+// Interrupt sends an os.Interrupt to the process if running
+func (c *Cmd) Interrupt() {
+	if c.Process != nil {
+		c.Process.Signal(os.Interrupt)
+	}
+}
+
+// Exit a running command
+// This attempts a wait, with timeout based interrupt and kill signals
+func (c *Cmd) Exit() error {
+
+	// Create exit timers
+	interruptTimer := time.AfterFunc(InterruptTimeout, func() {
+		c.Cmd.Process.Signal(os.Interrupt)
+	})
+	killTimer := time.AfterFunc(KillTimeout, func() {
+		c.Cmd.Process.Kill()
+	})
+
+	// Wait for exit
+	err := c.Cmd.Wait()
+
+	interruptTimer.Stop()
+	killTimer.Stop()
+
+	return err
+}
+
 // Handle output to channel or log
 func (c *Cmd) output(text string) {
-	out := fmt.Sprintf("[%s] %s", c.OutputPrefix, text)
+	var out string
+	if c.OutputPrefix != "" {
+		out = fmt.Sprintf("[%s] %s", c.OutputPrefix, text)
+	} else {
+		out = text
+	}
+
 	if c.OutputChan != nil {
 		c.OutputChan <- out
 	} else {
