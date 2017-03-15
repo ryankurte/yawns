@@ -9,8 +9,10 @@ type Location struct {
 
 // Node base type
 type Node struct {
-	Address  string
-	Location Location
+	Address    string
+	Location   Location
+	Executable string
+	Arguments  string
 
 	connected bool
 	received  uint32

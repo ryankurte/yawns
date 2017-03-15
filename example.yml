@@ -1,8 +1,18 @@
 ---
+# OpenNetworkSim (ONS) Example Configuration
 
+# Top Level Simulation Configuration
 name: Example Config
 endtime: 1m
 
+# Node defaults
+# These are inherited by all child nodes (unless overwritten)
+defaults:
+  executable: ./ons-client
+  arguments: "{{.server}} {{.address}}"
+
+# Node definitions
+# This defines the nodes to be linked to the simulator
 nodes:
   - address: 0x0001
     location: 
@@ -13,6 +23,8 @@ nodes:
       lat: -36.840376
       lng: 174.783203
 
+# Update definitions
+# These define changes to the simulation and environment at a given point in time
 updates:
   - timestamp: 30s
     node: 0x001

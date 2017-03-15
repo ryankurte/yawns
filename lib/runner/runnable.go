@@ -144,6 +144,16 @@ func (runnable *Runnable) Run() error {
 	return nil
 }
 
+// Write a line to the running process
+func (runnable *Runnable) Write(line string) {
+	runnable.in <- line
+}
+
+// GetReadCh Fetch a read channel to the running process
+func (runnable *Runnable) GetReadCh() chan string {
+	return runnable.out
+}
+
 // Interrupt sends an os.Interrupt to the running process
 func (runnable *Runnable) Interrupt() {
 	log.Printf("Runnable: %+v", runnable)

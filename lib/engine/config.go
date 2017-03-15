@@ -33,10 +33,32 @@ type Config struct {
 	Name string
 	// End time in ms
 	EndTime time.Duration
+
+	// Defaults defines default settings for each node
+	Defaults Node
+
 	// Nodes definitions for the engine
 	Nodes []Node
 	// Update actions to execute when running
 	Updates []Update
+}
+
+// LoadConfig parses a configuration object and initialises defaults
+func LoadConfig(c *Config) *Config {
+
+	// Setup node defaults
+	for i, n := range c.Nodes {
+		if n.Arguments == "" {
+			n.Arguments = c.Defaults.Arguments
+		}
+		if n.Executable == "" {
+			n.Executable = c.Defaults.Executable
+		}
+
+		c.Nodes[i] = n
+	}
+
+	return c
 }
 
 // LoadConfigFile loads an engine configuration from a config file
@@ -48,15 +70,17 @@ func LoadConfigFile(file string) (*Config, error) {
 		return nil, err
 	}
 
-	c := Config{}
+	c := &Config{}
 
-	err = yaml.Unmarshal(data, &c)
+	err = yaml.Unmarshal(data, c)
 	if err != nil {
 		log.Printf("LoadConfig error parsing file (%s)", err)
 		return nil, err
 	}
 
-	return &c, nil
+	c = LoadConfig(c)
+
+	return c, nil
 }
 
 // WriteConfigFile writes an engine configuration to a config file
