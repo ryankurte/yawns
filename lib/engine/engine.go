@@ -10,10 +10,14 @@ import (
 	"time"
 )
 
+import (
+	"github.com/ryankurte/ons/lib/config"
+)
+
 // Engine is the base simulation engine
 type Engine struct {
 	nodes       map[string]Node
-	updates     []Update
+	updates     []*Update
 	startTime   time.Time
 	currentTime time.Time
 	endTime     time.Duration
@@ -21,47 +25,45 @@ type Engine struct {
 }
 
 // NewEngine creates a new engine instance
-func NewEngine() *Engine {
+func NewEngine(c Connector) *Engine {
 	// Create engine object
-	e := Engine{}
+	e := Engine{
+		connector: c,
+	}
 
 	return &e
 }
 
 // LoadConfig Loads a simulation config
-func (e *Engine) LoadConfig(c *Config) {
+func (e *Engine) LoadConfig(c *config.Config) {
 	e.nodes = make(map[string]Node)
 
 	// Create map of nodes
 	for _, n := range c.Nodes {
-		e.nodes[n.Address] = n
+		node := Node{
+			Node:      &n,
+			connected: false,
+			received:  0,
+			sent:      0,
+		}
+		e.nodes[n.Address] = node
 	}
 
-	e.updates = c.Updates
+	// Create update array
+	for _, u := range c.Updates {
+		update := NewUpdate(&u)
+		e.updates = append(e.updates, update)
+	}
 
 	e.endTime = c.EndTime
-}
-
-// LoadConfigFile Loads a simulation config from a file
-func (e *Engine) LoadConfigFile(fileName string) error {
-	c, err := LoadConfigFile(fileName)
-	if err != nil {
-		return err
-	}
-	e.LoadConfig(c)
-	return nil
-}
-
-func (e *Engine) SetConnector(c Connector) {
-	e.connector = c
 }
 
 // Info prints engine information
 func (e *Engine) Info() {
 	log.Printf("Engine Info")
 	log.Printf("  - End Time: %d ms", e.endTime)
-	log.Printf("  - Nodes: %d ms", len(e.nodes))
-	log.Printf("  - Updates: %d ms", len(e.updates))
+	log.Printf("  - Nodes: %d", len(e.nodes))
+	log.Printf("  - Updates: %d", len(e.updates))
 }
 
 func parseFieldFloat64(name string, data map[string]string) (float64, error) {
@@ -77,7 +79,17 @@ func parseFieldFloat64(name string, data map[string]string) (float64, error) {
 	return fieldFloat, nil
 }
 
-func (e *Engine) handleUpdate(address string, action UpdateAction, data map[string]string) error {
+func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, data map[string]string) error {
+	for _, address := range addresses {
+		err := e.handleNodeUpdate(address, action, data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (e *Engine) handleNodeUpdate(address string, action config.UpdateAction, data map[string]string) error {
 	// Fetch matching node
 	node, ok := e.nodes[address]
 	if !ok {
@@ -87,7 +99,7 @@ func (e *Engine) handleUpdate(address string, action UpdateAction, data map[stri
 	// Handle actions
 	var err error
 	switch action {
-	case UpdateSetLocation:
+	case config.UpdateSetLocation:
 		node.Location.Lat, err = parseFieldFloat64("lat", data)
 		if err != nil {
 			return fmt.Errorf("handleUpdate error parsing UpdateSetLocation %s", err)
@@ -148,6 +160,27 @@ setup:
 	return nil
 }
 
+// Handle updates at a given tick
+func (e *Engine) handleUpdates(d time.Duration) {
+	for i, u := range e.updates {
+		// If the time has passed and the update has not been executed
+		if d >= u.TimeStamp && !u.executed {
+
+			log.Printf("Executing update %s (%s)", u.Action, u.Comment)
+
+			// Execute the update
+			err := e.handleUpdate(u.Nodes, u.Action, u.Data)
+			if err != nil {
+				log.Printf("Update error: %s", err)
+			}
+
+			// Update the update list
+			u.executed = true
+			e.updates[i] = u
+		}
+	}
+}
+
 // Run the engine
 func (e *Engine) Run() error {
 
@@ -158,21 +191,29 @@ func (e *Engine) Run() error {
 	e.startTime = time.Now()
 	log.Printf("Starting simulation")
 
+	var lastTime time.Duration
+	tickTime := time.Second
+
 running:
 	for {
-		// TODO: simulation things here
-
-		// Exit after endtime
 		select {
+		// Simulation update ticks
+		case <-time.After(lastTime + tickTime):
+			lastTime += tickTime
+			log.Printf("Simulation tick: %s", lastTime)
+			e.handleUpdates(lastTime)
+
+		// Handle command line interrupts
 		case <-ch:
 			log.Printf("Interrupting simulation after %s", time.Now().Sub(e.startTime))
 			break running
+
+		// Exit once endtime has occurred
 		case <-time.After(e.endTime):
+			log.Printf("Simulation complete")
 			break running
 		}
 	}
-
-	log.Printf("Exiting simulation")
 
 	return nil
 }

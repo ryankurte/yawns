@@ -16,9 +16,8 @@ import (
 	"log"
 )
 
-const (
-	// DefaultRunCommand is the default command executed by the runner
-	DefaultRunCommand = "{{server_address}} {{client_address}}"
+import (
+	"github.com/ryankurte/ons/lib/config"
 )
 
 // Runner instance manages runnable clients
@@ -33,13 +32,23 @@ func NewRunner() *Runner {
 	}
 }
 
-// NewRunnable creates a runnable instance in the runner
+// LoadConfig loads runnables from a provided configuration
+func (runner *Runner) LoadConfig(c *config.Config, args map[string]string) {
+	for _, n := range c.Nodes {
+		if n.Address != "" && n.Executable != "" && n.Arguments != "" {
+			runner.NewRunnable(n.Address, n.Executable, n.Arguments, args)
+		}
+	}
+}
+
+// NewRunnable creates a runnable instance indexed by address
 func (runner *Runner) NewRunnable(address, executable, template string, args map[string]string) {
 
+	// Load address into args for command building
 	args["address"] = address
 
+	// Create and save runnable instance
 	runnable := NewRunnable(executable, template, args)
-
 	runner.runnables[address] = runnable
 }
 
@@ -48,7 +57,7 @@ func (runner *Runner) Start() error {
 
 	// Launch runnables
 	for name, runner := range runner.runnables {
-		log.Printf("Runner.Start starting runnable %s", name)
+		log.Printf("Runner.Start starting client %s", name)
 		err := runner.Run()
 		if err != nil {
 			return err
@@ -61,6 +70,39 @@ func (runner *Runner) Start() error {
 	return nil
 }
 
+// Info prints info about the runner
+func (runner *Runner) Info() {
+	log.Printf("Runner Info")
+	log.Printf("  - Bound clients %d", len(runner.runnables))
+}
+
+// Write writes an input line to the provided runnable by address
+func (runner *Runner) Write(address, line string) {
+	r, ok := runner.runnables[address]
+	if !ok {
+		return
+	}
+	r.Write(line)
+}
+
+// Stop exits all child runnables
+func (runner *Runner) Stop() error {
+
+	errors := make(map[string]error)
+
+	for name, runner := range runner.runnables {
+		log.Printf("Runner.Stop exiting client %s", name)
+		err := runner.Exit()
+		if err != nil {
+			errors[name] = err
+		}
+	}
+
+	return nil
+}
+
+// Internal function to collect outputs from each runnable
+// TODO: this needs to support writing to a logfile
 func (runner *Runner) collect() {
 	outputs := make(chan string, 1024)
 
@@ -71,7 +113,6 @@ func (runner *Runner) collect() {
 				select {
 				case d, ok := <-ch:
 					if !ok {
-						log.Printf("Exiting reader for ch: %s", address)
 						break
 					}
 					outputs <- fmt.Sprintf("[CLIENT %s] %s", address, d)
@@ -92,20 +133,4 @@ func (runner *Runner) collect() {
 			}
 		}
 	}(outputs)
-}
-
-// Stop exits all child runnables
-func (runner *Runner) Stop() error {
-
-	errors := make(map[string]error)
-
-	for name, runner := range runner.runnables {
-		log.Printf("Runner.Stop exiting runnable %s", name)
-		err := runner.Exit()
-		if err != nil {
-			errors[name] = err
-		}
-	}
-
-	return nil
 }

@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+import (
+	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/connector"
+)
+
 func FloatEq(a, b float64) bool {
 	diff := math.Abs(a - b)
 	avg := math.Abs((a + b) / 2)
@@ -18,14 +23,15 @@ func FloatEq(a, b float64) bool {
 func TestEngine(t *testing.T) {
 
 	var e *Engine
+	connector := connector.NewZMQConnector()
 
 	t.Run("Create from config", func(t *testing.T) {
-		c := Config{}
+		c := config.Config{}
 
-		node := Node{Address: "TestAddress", Location: Location{Lat: 0.0, Lng: 0.0}}
+		node := config.Node{Address: "TestAddress", Location: config.Location{Lat: 0.0, Lng: 0.0}}
 		c.Nodes = append(c.Nodes, node)
 
-		e = NewEngine()
+		e = NewEngine(connector)
 
 		e.LoadConfig(&c)
 	})
@@ -40,7 +46,7 @@ func TestEngine(t *testing.T) {
 		updateData["lat"] = strconv.FormatFloat(lat, 'f', 6, 64)
 		updateData["lon"] = strconv.FormatFloat(lng, 'f', 6, 64)
 
-		err := e.handleUpdate("TestAddress", UpdateSetLocation, updateData)
+		err := e.handleUpdate("TestAddress", config.UpdateSetLocation, updateData)
 		if err != nil {
 			t.Error(err)
 		}

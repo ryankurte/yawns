@@ -1,20 +1,26 @@
 package engine
 
-// Location is a world location in floating point degrees with altitude in meters
-type Location struct {
-	Lat float64
-	Lng float64
-	Alt float64
-}
+import (
+	"github.com/ryankurte/ons/lib/config"
+)
 
 // Node base type
 type Node struct {
-	Address    string
-	Location   Location
-	Executable string
-	Arguments  string
+	// Base node configuration
+	*config.Node
 
+	// Indicates whether a node has connected to the engine
 	connected bool
-	received  uint32
-	sent      uint32
+
+	// Received packet count
+	received uint32
+	// Sent packet count
+	sent uint32
+}
+
+// NewNode creates an engine node using a provided configuration
+func NewNode(n *config.Node) *Node {
+	return &Node{
+		Node: n,
+	}
 }

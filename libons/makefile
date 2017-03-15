@@ -28,20 +28,20 @@ libs: $(OUTDIR)/$(LIB).a $(OUTDIR)/$(LIB).so
 
 # Create static library
 $(OUTDIR)/$(LIB).a: $(OBJECTS)
-	$(AR) rcs $@ $^
+	@$(AR) rcs $@ $^
 
 # Create shared library
 $(OUTDIR)/$(LIB).so: $(OBJECTS)
-	$(CC) -shared $(LFLAGS) $^ -o $@ 
+	@$(CC) -shared $(LFLAGS) $^ -o $@ 
 
-# Util helper
-util: $(OUTDIR)/$(TARGET)
+# Client helper
+client: $(OUTDIR)/$(TARGET)
 
-# Build and link example util
+# Build and link example client
 $(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(OUTDIR)/$(LIB).a
 	@$(CC) $^ $(LFLAGS) -o $@
 
-# Run the example util
+# Run the example client
 run:
 	./$(TARGET) "ipc:///tmp/ons" "testClient"
 

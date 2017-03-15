@@ -1,4 +1,4 @@
-package engine
+package config
 
 import (
 	"gopkg.in/yaml.v2"
@@ -6,26 +6,6 @@ import (
 	"log"
 	"time"
 )
-
-// UpdateAction type for valid update actions
-type UpdateAction string
-
-const (
-	// Set a node location
-	UpdateSetLocation UpdateAction = "set-location"
-)
-
-// Update struct defines changes to the system
-type Update struct {
-	// Simulation time at which the update action should be executed
-	TimeStamp time.Duration
-	// Node address for update to be applied
-	Node string
-	// Update action to be executed
-	Action UpdateAction
-	// Update data, parsed based on action
-	Data map[string]string
-}
 
 // Config Engine configuration
 type Config struct {
@@ -39,12 +19,13 @@ type Config struct {
 
 	// Nodes definitions for the engine
 	Nodes []Node
+
 	// Update actions to execute when running
 	Updates []Update
 }
 
 // LoadConfig parses a configuration object and initialises defaults
-func LoadConfig(c *Config) *Config {
+func loadConfig(c *Config) *Config {
 
 	// Setup node defaults
 	for i, n := range c.Nodes {
@@ -78,7 +59,7 @@ func LoadConfigFile(file string) (*Config, error) {
 		return nil, err
 	}
 
-	c = LoadConfig(c)
+	c = loadConfig(c)
 
 	return c, nil
 }

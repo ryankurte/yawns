@@ -28,4 +28,7 @@ func main() {
 
 	// Launch simulation
 	sim.Run()
+
+	// Exit simulation
+	sim.Close()
 }

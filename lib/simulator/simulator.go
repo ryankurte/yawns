@@ -1,61 +1,90 @@
 package sim
 
 import (
+	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/connector"
 	"github.com/ryankurte/ons/lib/engine"
+	"github.com/ryankurte/ons/lib/runner"
 	"log"
+	"time"
 )
 
 // Simulator instance
 type Simulator struct {
-	e *engine.Engine
+	engine *engine.Engine
+	runner *runner.Runner
 }
 
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
-	// Create an underlying engine
-	e := engine.NewEngine()
-
 	// Load connector
 	c := connector.NewZMQConnector()
+
+	// Create an underlying engine
+	e := engine.NewEngine(c)
 
 	// Initialise connector
 	c.Init(o.BindAddr, e)
 
-	// Bind to engine
-	e.SetConnector(c)
+	// Create client runner
+	r := runner.NewRunner()
 
 	// Load configuration file
-	err := e.LoadConfigFile(o.ConfigFile)
+	config, err := config.LoadConfigFile(o.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
 
-	sim := Simulator{e}
+	args := make(map[string]string)
+	args["server"] = o.ClientAddr
 
-	err = sim.e.Setup(true)
+	// Load configuration into engine
+	e.LoadConfig(config)
+
+	// Load configuration into runner
+	r.LoadConfig(config, args)
+
+	// Launch runner
+	err = r.Start()
 	if err != nil {
 		return nil, err
 	}
 
-	return &sim, nil
+	time.Sleep(100 * time.Millisecond)
+
+	// Run engine setup
+	err = e.Setup(false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Simulator{e, r}, nil
 }
 
 // Info displays simulation information
 func (s *Simulator) Info() {
-	s.e.Info()
+	s.engine.Info()
+	s.runner.Info()
 }
 
 // Run launches a simulation
 func (s *Simulator) Run() error {
 	log.Printf("Launching Simulation Instance")
 
-	err := s.e.Run()
+	// Run engine
+	err := s.engine.Run()
 	if err != nil {
 		return err
 	}
 
 	log.Printf("Simulation complete")
 	return nil
+}
+
+// Close the simulation
+func (s *Simulator) Close() {
+
+	s.runner.Stop()
+
 }

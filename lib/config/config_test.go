@@ -1,4 +1,4 @@
-package engine
+package config
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func TestConfigLoading(t *testing.T) {
 		updateData["lat"] = "1.0"
 		updateData["lon"] = "2.0"
 
-		update := Update{1000, "TestAddress", UpdateSetLocation, updateData}
+		update := Update{1000, []string{"TestAddress"}, UpdateSetLocation, updateData}
 		c.Updates = append(c.Updates, update)
 
 		err := WriteConfigFile("/tmp/ons-test.yml", &c)

@@ -75,7 +75,6 @@ func (runnable *Runnable) bindReadPipeToChannel(r io.ReadCloser, ch chan string)
 				}
 				break
 			}
-			log.Printf("Runnable stdout/stderr: %s", line)
 			ch <- line
 		}
 	}()
@@ -91,7 +90,6 @@ func (runnable *Runnable) bindWritePipeToChannel(w io.WriteCloser, ch chan strin
 					w.Close()
 					break
 				}
-				log.Printf("Runnable stdin: %s", line)
 				_, err := io.WriteString(w, fmt.Sprintln(line))
 				if err != nil {
 					w.Close()

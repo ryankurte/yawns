@@ -11,11 +11,11 @@ build:
 
 # Build libons C library
 libons:
-	cd ./libons && make libs; cd ..
+	@cd ./libons && make libs; cd ..
 
 # Build libons example client
-ons-client:
-	cd ./libons && make util; cd ..
+client:
+	@cd ./libons && make client; cd ..
 
 # Run application
 run: build
@@ -37,3 +37,5 @@ coverage:
 	go test -p=1 -cover ./...
 	
 checks: lint format coverage
+
+.PHONY: build run test lint format coverage

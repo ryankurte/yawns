@@ -8,8 +8,8 @@ endtime: 1m
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
 defaults:
-  executable: ./ons-client
-  arguments: "{{.server}} {{.address}}"
+#  executable: ./libons/build/ons-client
+#  arguments: "{{.server}} {{.address}}"
 
 # Node definitions
 # This defines the nodes to be linked to the simulator
@@ -26,10 +26,10 @@ nodes:
 # Update definitions
 # These define changes to the simulation and environment at a given point in time
 updates:
-  - timestamp: 30s
-    node: 0x001
+  - timestamp: 3s
+    nodes: [0x0001]
     action: "update-Location"
-    comment: Update the location of node 0x001 at 10000 ms into the simulation
+    comment: Update the location of node 0x001 at 30s into the simulation
     data:
       lat: -36.845214
       lng: 174.784408
