@@ -73,7 +73,7 @@ func (c *ZMQConnector) handleClientReceive(data [][]byte) error {
 		}
 
 		// Write data packet message
-		c.OutputChan <- messages.NewMessage(messages.Packet, address, data[3])
+		c.OutputChan <- messages.NewMessage(messages.Packet, address, body)
 
 	case onsMessageIDCCAReq:
 		address := c.findClientAddressByID(clientID)

@@ -17,76 +17,76 @@ import (
 
 import (
 	"github.com/ryankurte/ons/lib/connector"
+	"github.com/ryankurte/ons/lib/messages"
 )
-
-type TestServerReceiver struct {
-	Received  bool
-	Address   string
-	Connected string
-	Messsage  []byte
-	CCA       bool
-}
-
-func (tc *TestServerReceiver) Receive(address string, message []byte) {
-	tc.Address = address
-	tc.Messsage = message
-	tc.Received = true
-}
-
-func (tc *TestServerReceiver) OnConnect(address string) {
-	tc.Connected = address
-}
-
-func (tc *TestServerReceiver) GetCCA(address string) bool {
-	return tc.CCA
-}
 
 func TestLibONS(t *testing.T) {
 
 	clientAddress := "fakeClient"
 
-	sr := TestServerReceiver{}
-
 	var server *connector.ZMQConnector
 	var client *ONSConnector
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
-		c := connector.NewZMQConnector()
-		c.Init("inproc://test", &sr)
-		server = c
+		server = connector.NewZMQConnector("inproc://test")
 	})
 
 	t.Run("Test init client", func(t *testing.T) {
-		c := NewONSConnector()
-		c.Init("inproc://test", clientAddress)
-		client = c
+		client = NewONSConnector()
+		client.Init("inproc://test", clientAddress)
+	})
+
+	t.Run("Client sends registration packet", func(t *testing.T) {
+
+		timer := time.AfterFunc(time.Second, func() {
+			t.Errorf("Timeout")
+			t.FailNow()
+		})
+
+		msg := <-server.OutputChan
+
+		log.Printf("Message %+v", msg)
+
+		if msg.GetAddress() != clientAddress {
+			t.Errorf("Received address mismatch (expected '%s' received '%s')", clientAddress, msg.GetAddress())
+		}
+
+		if msg.GetType() != messages.Connected {
+			t.Errorf("OnConnected message type mismatch (expected '%s' received '%s')", messages.Connected, msg.GetType())
+		}
+
+		timer.Stop()
 	})
 
 	t.Run("Client can message server", func(t *testing.T) {
-		sr.Received = false
 
 		data := "Test Client Data String"
 		client.Send([]byte(data))
 
 		time.Sleep(100 * time.Millisecond)
 
-		if !sr.Received {
-			t.Errorf("Receive callback not called")
+		timer := time.AfterFunc(time.Second, func() {
+			t.Errorf("Timeout")
 			t.FailNow()
+		})
+
+		msg := <-server.OutputChan
+
+		log.Printf("Message %+v", msg)
+
+		if msg.GetAddress() != clientAddress {
+			t.Errorf("Received address mismatch (expected '%s' received '%s')", clientAddress, msg.GetAddress())
 		}
 
-		if sr.Address != clientAddress {
-			t.Errorf("Received address mismatch (expected '%s' received '%s')", clientAddress, sr.Address)
+		if string(msg.GetData()) != data {
+			t.Errorf("Data mismatch (expected '%s' received '%s')", data, string(msg.GetData()))
 		}
 
-		if string(sr.Messsage) != data {
-			t.Errorf("Data mismatch (expected '%s' received '%s')", data, sr.Messsage)
+		if msg.GetType() != messages.Packet {
+			t.Errorf("OnConnected message type mismatch (expected '%s' received '%s')", messages.Packet, msg.GetType())
 		}
 
-		if sr.Connected != clientAddress {
-			t.Errorf("OnConnected address mismatch (expected '%s' received '%s')", clientAddress, sr.Address)
-		}
-
+		timer.Stop()
 	})
 
 	t.Run("Client starts with no messages", func(t *testing.T) {
@@ -121,24 +121,43 @@ func TestLibONS(t *testing.T) {
 	})
 
 	t.Run("Client can request cca", func(t *testing.T) {
-		sr.CCA = false
+
+		respond := func(value bool) {
+			select {
+			case msg, ok := <-server.OutputChan:
+				if !ok {
+					return
+				}
+				if msg.GetType() == messages.CCAReq {
+					resp := messages.NewMessage(messages.CCAResp, msg.GetAddress(), []byte{})
+					resp.SetCCA(value)
+
+					server.InputChan <- resp
+				}
+			}
+		}
 
 		log.Printf("CCA Check 1")
+		go respond(false)
+		time.Sleep(100)
+
 		cca, err := client.GetCCA()
 		if err != nil {
 			t.Error(err)
 		}
-		if cca != sr.CCA {
+		if cca != false {
 			t.Errorf("CCA error")
 		}
 
 		log.Printf("CCA Check 2")
-		sr.CCA = true
+		go respond(true)
+		time.Sleep(100)
+
 		cca, err = client.GetCCA()
 		if err != nil {
 			t.Error(err)
 		}
-		if cca != sr.CCA {
+		if cca != true {
 			t.Errorf("CCA error")
 		}
 	})

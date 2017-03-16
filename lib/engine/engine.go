@@ -12,12 +12,14 @@ import (
 import (
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/messages"
+	"github.com/ryankurte/ons/lib/plugins"
 )
 
 // Engine is the base simulation engine
 type Engine struct {
-	nodes  map[string]Node
-	Events []*Event
+	nodes         map[string]Node
+	Events        []*Event
+	pluginManager *plugins.PluginManager
 
 	connectorReadCh  chan *messages.Message
 	connectorWriteCh chan *messages.Message
@@ -34,6 +36,8 @@ type Engine struct {
 func NewEngine() *Engine {
 	// Create engine object
 	e := Engine{}
+
+	e.pluginManager = plugins.NewPluginManager()
 
 	return &e
 }

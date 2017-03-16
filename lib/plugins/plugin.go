@@ -19,10 +19,15 @@ type ConnectHandler interface {
 	Connected(address string)
 }
 
-// ReceiveHandler interface should be implemented by plugins to receive messages
-// sent by any node
+// ReceiveHandler interface should be implemented by plugins to receive packets sent by any node
 type ReceiveHandler interface {
 	Received(address string, message []byte)
+}
+
+// SendHandler interface should be implemented by plugins to receive packets distributed by the simulator
+// Note that packets will be repeated based on connectivity
+type SendHandler interface {
+	Send(address string, message []byte)
 }
 
 // EventHandler interface should be implemented by plugins to handle simulation Events
@@ -34,7 +39,8 @@ type EventHandler interface {
 type PluginManager struct {
 	connectHandlers []ConnectHandler
 	receiveHandlers []ReceiveHandler
-	EventHandlers   []EventHandler
+	sendHandlers    []SendHandler
+	eventHandlers   []EventHandler
 }
 
 // NewPluginManager creates an empty plugin manager instance
@@ -58,9 +64,15 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 		bound++
 	}
 
-	Event, ok := plugin.(EventHandler)
+	send, ok := plugin.(SendHandler)
 	if ok {
-		pm.EventHandlers = append(pm.EventHandlers, Event)
+		pm.sendHandlers = append(pm.sendHandlers, send)
+		bound++
+	}
+
+	event, ok := plugin.(EventHandler)
+	if ok {
+		pm.eventHandlers = append(pm.eventHandlers, event)
 		bound++
 	}
 
@@ -84,9 +96,16 @@ func (pm *PluginManager) OnReceived(address string, data []byte) {
 	}
 }
 
+// OnSend calls bound plugin SendHandlers
+func (pm *PluginManager) OnSend(address string, data []byte) {
+	for _, h := range pm.sendHandlers {
+		h.Send(address, data)
+	}
+}
+
 // OnEvent calls bound plugin EventHandlers
 func (pm *PluginManager) OnEvent(eventType, address string, data map[string]string) {
-	for _, h := range pm.EventHandlers {
+	for _, h := range pm.eventHandlers {
 		h.Event(eventType, address, data)
 	}
 }
