@@ -22,25 +22,25 @@ dir:
 
 # Generic compilation rule
 $(OUTDIR)/%.o: src/%.c dir
-	@$(CC) $(IFLAGS) $(CFLAGS) $< -o $@
+	$(CC) $(IFLAGS) $(CFLAGS) $< -o $@
 
 # Library helper
 libs: $(OUTDIR)/$(LIB).a $(OUTDIR)/$(LIB).so
 
 # Create static library
 $(OUTDIR)/$(LIB).a: $(OBJECTS)
-	@$(AR) rcs $@ $^
+	$(AR) rcs $@ $^
 
 # Create shared library
 $(OUTDIR)/$(LIB).so: $(OBJECTS)
-	@$(CC) -shared $(LFLAGS) $^ -o $@ 
+	$(CC) -shared $(LFLAGS) $^ -o $@ 
 
 # Client helper
 client: $(OUTDIR)/$(TARGET)
 
 # Build and link example client
 $(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(OUTDIR)/$(LIB).a
-	@$(CC) $^ $(LFLAGS) -o $@
+	$(CC) $^ $(LFLAGS) -o $@
 
 # Run the example client
 run:

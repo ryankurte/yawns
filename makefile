@@ -29,7 +29,8 @@ run: build
 
 # Test application
 test: libons
-	go test -p=1 ./...
+	go test -v -p=1 ./lib/...
+	go test -v -p=1 -timeout=10s ./libons
 
 # Utilities
 
