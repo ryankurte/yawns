@@ -31,7 +31,7 @@ func TestLibONS(t *testing.T) {
 	var server *connector.ZMQConnector
 	var client *ONSConnector
 
-	port := fmt.Sprintf("inproc://ons-%s", uuid.NewV4())
+	port := fmt.Sprintf("inproc:///ons-%s", uuid.NewV4())
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
 		server = connector.NewZMQConnector(port)

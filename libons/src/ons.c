@@ -55,8 +55,15 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     ons->sock = zsock_new_dealer(ons_address);
 
     // Create semaphores
-    pthread_mutex_init(&ons->cca_mutex, NULL);
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+
+    pthread_mutex_init(&ons->cca_mutex, &attr);
     pthread_cond_init(&ons->cca_cond, NULL);
+
+    pthread_mutexattr_destroy(&attr);
 
     // Start listener thread
     ons->running = 1; 
@@ -110,14 +117,23 @@ int ONS_get_cca(struct ons_s *ons)
 {
     int res;
     struct timespec ts;
+    uint8_t data[1];
 
     ONS_DEBUG_PRINT("[ONCS] get cca\n");
 
     // Reset mutex
-    pthread_mutex_lock(&ons->cca_mutex);
+    res = pthread_mutex_lock(&ons->cca_mutex);
+    if (res < 0) {
+        perror("[ONSC] mutex locking error");
+        return -1;
+    }
+
+    ONS_DEBUG_PRINT("[ONCS] get cca mutex locked\n");
     
     // Send get CCA message
-    ons_send_msg(ons, ONS_MSG_CCA_REQ, NULL, 0);
+    ons_send_msg(ons, ONS_MSG_CCA_REQ, data, sizeof(data));
+
+    ONS_DEBUG_PRINT("[ONCS] get cca message sent\n");
 
     // Await cca mutex
     ts.tv_sec = time(NULL) + 2;
@@ -125,13 +141,13 @@ int ONS_get_cca(struct ons_s *ons)
 
     if ((res == -1) && (errno == ETIMEDOUT))  {
         ONS_DEBUG_PRINT("[ONSC] get_cca timeout");
-        return -1;
-    } else if (res == -1) {
-        ONS_DEBUG_PRINT("[ONSC] get_cca error %d", errno);
         return -2;
+    } else if (res == -1) {
+        ONS_DEBUG_PRINT("[ONSC] get_cca error (%d)", errno);
+        return -3;
     }
 
-    ONS_DEBUG_PRINT("[ONCS] got cca value %d\n", ons->cca);
+    ONS_DEBUG_PRINT("[ONCS] got cca value OK (%d)\n", ons->cca);
     
     return ons->cca;
 }
@@ -179,18 +195,18 @@ void *ons_handle_receive(void* ctx)
     uint8_t type = 8;
     int res;
 
-    ONS_DEBUG_PRINT("[ONSC] Starting recieve thread\n");
+    ONS_DEBUG_PRINT("[ONSC THREAD] Starting recieve thread\n");
 
     // Bind exit handler to interrupt handler to avoid unhandled exits
     signal(SIGINT, exit_handler);
 
     while(ons->running) {
 
-        res = zsock_recv(ons->sock, "1b", &type, &zdata, &zsize);   
+        res = zsock_recv(ons->sock, "1b", &type, &zdata, &zsize);
         if (res == 0) {
             
-            ONS_DEBUG_PRINT("[ONCS] Received message type %u\n", type);
-            ONS_print_arr("[ONSC] Data", zdata, zsize);
+            ONS_DEBUG_PRINT("[ONCS THREAD] Received message type %u\n", type);
+            ONS_print_arr("[ONSC THREAD] Raw Data", zdata, zsize);
 
             int max_size = (zsize > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1: zsize;
 
@@ -198,28 +214,28 @@ void *ons_handle_receive(void* ctx)
                 memcpy(ons->receive_data, zdata, max_size);
                 ons->receive_length = max_size;
 
-                ONS_print_arr("[ONSC] Received packet", ons->receive_data, ons->receive_length);
+                ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
 
             } else if (type == ONS_MSG_CCA_RESP) {
                 if (zsize != 1) {
-                    ONS_DEBUG_PRINT("[ONCS] cca_resp invalid length\n");
+                    ONS_DEBUG_PRINT("[ONCS THREAD] cca_resp invalid length\n");
                     break;
                 }
 
                 ons->cca = zdata[0];
-                ONS_DEBUG_PRINT("[ONCS] got cca response %u\n", ons->cca);
+                ONS_DEBUG_PRINT("[ONCS THREAD] got cca response %u\n", ons->cca);
                 pthread_cond_signal(&ons->cca_cond);
                 pthread_mutex_unlock(&ons->cca_mutex);
 
             } else {
-                ONS_DEBUG_PRINT("[ONCS] unrecognised type\n");
+                ONS_DEBUG_PRINT("[ONCS THREAD] unrecognised type\n");
             }
             
             free(zdata);
         }
     }
 
-    ONS_DEBUG_PRINT("[ONSC] Exiting recieve thread\n");
+    ONS_DEBUG_PRINT("[ONSC THREAD] Exiting recieve thread\n");
 
     return NULL;
 }

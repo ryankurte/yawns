@@ -46,6 +46,9 @@ $(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(OUTDIR)/$(LIB).a
 run:
 	./$(TARGET) "ipc:///tmp/ons" "testClient"
 
+test: libs
+	go test -v -p 1 -timeout 10s ./
+
 # Cleanup build files
 clean:
 	rm -rf $(OUTDIR)
