@@ -3,6 +3,23 @@ language: go
 go:
   - 1.8
 
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    - cmake
+    - build-essential
+    - clang
+    - libzmq3-dev
+    - libsodium-dev
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libsodium czmq ; fi
+
 install:
   - make install
   - make build

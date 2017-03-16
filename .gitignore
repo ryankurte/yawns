@@ -1,5 +1,7 @@
 test.yml
+
 ons
+ons-client
 
 build/
 *.o

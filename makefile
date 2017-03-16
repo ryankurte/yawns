@@ -7,15 +7,21 @@ install:
 
 # Build backend and frontend components
 build:
-	go build
+	go build ./cmd/ons/
+
+build-linux-x64:
+	GOOS=linux GOARCH=amd64 go build ./cmd/ons/
+
+build-osx-x64:
+	GOOS=darwin GOARCH=amd64 go build ./cmd/ons/
 
 # Build libons C library
 libons:
-	@cd ./libons && make libs; cd ..
+	/bin/bash -c "cd ./libons && make libs"
 
 # Build libons example client
 client:
-	@cd ./libons && make client; cd ..
+	/bin/bash -c "cd ./libons && make client;"
 
 # Run application
 run: build
@@ -38,4 +44,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: build run test lint format coverage
+.PHONY: build run test lint format coverage libons

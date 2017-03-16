@@ -8,12 +8,13 @@ CC=gcc
 AR=ar
 CFLAGS=-c -Wall -pedantic
 LFLAGS=-lpthread -lczmq -lzmq
+IFLAGS=-I./
 
 # Map source files to objects
 OBJECTS=$(SOURCES:src/%.c=$(OUTDIR)/%.o)
 
 # Helper to set default action
-all: libs util
+all: libs client
 
 # Helper to create output dir
 dir:
@@ -21,7 +22,7 @@ dir:
 
 # Generic compilation rule
 $(OUTDIR)/%.o: src/%.c dir
-	@$(CC) $(INCLUDES) $(CFLAGS) $< -o $@
+	@$(CC) $(IFLAGS) $(CFLAGS) $< -o $@
 
 # Library helper
 libs: $(OUTDIR)/$(LIB).a $(OUTDIR)/$(LIB).so
