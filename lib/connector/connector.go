@@ -7,61 +7,41 @@ import (
 	"reflect"
 )
 
-const (
-	// DefaultBindAddr default address to bind zmq listener
-	DefaultBindAddr string = "tcp://*:6666"
+import (
+	"github.com/ryankurte/ons/lib/messages"
 )
 
-// Handler interface for server components
-type Handler interface {
-	OnConnect(address string)
-	Receive(address string, data []byte)
-	GetCCA(address string) bool
-}
+const (
+	DefaultIPCAddress = "ipc:///ons"
+)
 
 // ZMQConnector is a connector instance using ZMQ messaging
 type ZMQConnector struct {
-	ch      *goczmq.Channeler
-	clients map[string][]byte
-	handler Handler
-	in      chan interface{}
-	out     chan interface{}
+	ch         *goczmq.Channeler
+	clients    map[string][]byte
+	InputChan  chan *messages.Message
+	OutputChan chan *messages.Message
 }
 
-// NewZMQConnector creates a new ZMQ based connector instance
-func NewZMQConnector() *ZMQConnector {
+// NewZMQConnector creates a new ZMQ based connector instance and binds a connector instance and handler to the provided address
+func NewZMQConnector(bindAddress string) *ZMQConnector {
 	c := ZMQConnector{}
 
 	c.clients = make(map[string][]byte)
-
-	return &c
-}
-
-// Init binds a connector instance and handler to an address
-func (c *ZMQConnector) Init(bindAddress string, h interface{}) error {
-
-	c.handler = h.(Handler)
+	c.InputChan = make(chan *messages.Message, 1024)
+	c.OutputChan = make(chan *messages.Message, 1024)
 
 	c.ch = goczmq.NewRouterChanneler(bindAddress)
 
 	go c.Run()
 
-	return nil
-}
-
-func (c *ZMQConnector) findClientAddressByID(id []byte) string {
-	for key, client := range c.clients {
-		if reflect.DeepEqual(client, id) {
-			return key
-		}
-	}
-	return ""
+	return &c
 }
 
 // Send a data message to the provided address
 // This wraps SendMsg as a convenience for other modules
 func (c *ZMQConnector) Send(address string, data []byte) {
-	c.SendMsg(address, ONSMessagePacket, data)
+	c.SendMsg(address, onsMessageIDPacket, data)
 }
 
 // SendMsg sends an ONS message to the provided client by address
@@ -85,12 +65,23 @@ func (c *ZMQConnector) SendMsg(address string, msgType int, data []byte) {
 func (c *ZMQConnector) Run() {
 	for {
 		select {
+		// Handle protocol messages from clients
 		case p, ok := <-c.ch.RecvChan:
 			if !ok {
 				log.Printf("channel error")
 				break
 			}
-			c.receive(p)
+
+			c.handleClientReceive(p)
+
+		// Handle control messages from other components
+		case p, ok := <-c.InputChan:
+			if !ok {
+				log.Printf("channel error")
+				break
+			}
+
+			c.handleMessageReceive(p)
 		}
 	}
 }
@@ -98,4 +89,21 @@ func (c *ZMQConnector) Run() {
 // Exit a ZMQConnector instance
 func (c *ZMQConnector) Exit() {
 	c.ch.Destroy()
+}
+
+func (c *ZMQConnector) findClientIDByAddress(address string) []byte {
+	id, ok := c.clients[address]
+	if !ok {
+		return []byte{}
+	}
+	return id
+}
+
+func (c *ZMQConnector) findClientAddressByID(id []byte) string {
+	for key, client := range c.clients {
+		if reflect.DeepEqual(client, id) {
+			return key
+		}
+	}
+	return ""
 }

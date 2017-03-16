@@ -22,17 +22,17 @@ import (
 // Runnable wraps an executable with arguments to allow management of the underlying executing instance
 type Runnable struct {
 	*gocmd.Cmd
-	name string
-	tmpl string
-	args map[string]string
+	executable string
+	command    string
+	args       map[string]string
 }
 
 // NewRunnable Create a new runnable instance
-func NewRunnable(name string, tmpl string, args map[string]string) *Runnable {
+func NewRunnable(executable string, command string, args map[string]string) *Runnable {
 	runnable := new(Runnable)
 
-	runnable.name = name
-	runnable.tmpl = tmpl
+	runnable.executable = executable
+	runnable.command = command
 	runnable.args = args
 
 	return runnable
@@ -40,7 +40,7 @@ func NewRunnable(name string, tmpl string, args map[string]string) *Runnable {
 
 func (runnable *Runnable) generateArgs() (string, error) {
 	// Parse supplied template
-	tmpl, err := template.New("runner").Parse(runnable.tmpl)
+	tmpl, err := template.New("runner").Parse(runnable.command)
 	if err != nil {
 		return "", fmt.Errorf("Runner.Run error parsing template (%s)", err)
 	}
@@ -75,14 +75,15 @@ func (runnable *Runnable) Start() error {
 
 	// Create command
 	if runnable.args != nil {
-		runnable.Cmd = gocmd.Command(runnable.name, strings.Split(args, " ")...)
+		runnable.Cmd = gocmd.Command(runnable.executable, strings.Split(args, " ")...)
 	} else {
-		runnable.Cmd = gocmd.Command(runnable.name)
+		runnable.Cmd = gocmd.Command(runnable.executable)
 	}
 
 	// Create channels
 	runnable.Cmd.InputChan = make(chan string, 128)
 	runnable.Cmd.OutputChan = make(chan string, 128)
+	runnable.Cmd.ShowOutput = true
 
 	// Launch command
 	err = runnable.Cmd.Start()

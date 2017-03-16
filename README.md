@@ -8,6 +8,8 @@ This project consists of two parts. The core simulator (ons) that manages client
 
 ## Status
 
+[![Documentation](https://img.shields.io/badge/docs-godoc-blue.svg)](https://godoc.org/github.com/ryankurte/ons)
+[![GitHub tag](https://img.shields.io/github/tag/ryankurte/ons.svg)](https://github.com/ryankurte/ons)
 [![Build Status](https://travis-ci.com/ryankurte/ons.svg?token=s4CML2iJ2hd54vvqz5FP&branch=master)](https://travis-ci.com/ryankurte/ons)
 
 Very early prototype
@@ -35,11 +37,13 @@ ONS is designed to be platform and network agnostic. To simulate a given platfor
 ## Layout
 
 - [lib](/lib) contains simulation libraries
-- [lib/engine](/lib/simulator) links the simulation components
+- [lib/simulator](/lib/simulator) links the simulation components
+- [lib/config](/lib/config) defines and parses simulation configurations
+- [lib/connector](/lib/connector) contains (ZMQ based) simulation connector module
 - [lib/engine](/lib/engine) contains the core simulation engine
-- [lib/connector](/lib/connector) contains simulation connector module
 - [lib/medium](/lib/medium) contains the wireless medium emulation
-- [libons](/libons) contains the libons C library for client nodes as well as go binding for testing these
+- [lib/runner](/lib/runner) contains the client application runner
+- [libons](/libons) contains the libons C library for client nodes as well as go bindings for testing these
 
 ## Licence
 

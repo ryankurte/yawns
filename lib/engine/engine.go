@@ -11,27 +11,40 @@ import (
 
 import (
 	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/messages"
 )
 
 // Engine is the base simulation engine
 type Engine struct {
-	nodes       map[string]Node
-	Events      []*Event
+	nodes  map[string]Node
+	Events []*Event
+
+	connectorReadCh  chan *messages.Message
+	connectorWriteCh chan *messages.Message
+
+	runnerLogCh chan string
+
 	startTime   time.Time
 	currentTime time.Time
 	endTime     time.Duration
 	tickRate    time.Duration
-	connector   Connector
 }
 
 // NewEngine creates a new engine instance
-func NewEngine(c Connector) *Engine {
+func NewEngine() *Engine {
 	// Create engine object
-	e := Engine{
-		connector: c,
-	}
+	e := Engine{}
 
 	return &e
+}
+
+func (e *Engine) BindConnectorChannels(read, write chan *messages.Message) {
+	e.connectorReadCh = read
+	e.connectorWriteCh = write
+}
+
+func (e *Engine) BindRunnerChannel(logCh chan string) {
+	e.runnerLogCh = logCh
 }
 
 // LoadConfig Loads a simulation config
@@ -168,8 +181,8 @@ func (e *Engine) handleEvents(d time.Duration) {
 // Run the engine
 func (e *Engine) Run() error {
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+	interruptCh := make(chan os.Signal)
+	signal.Notify(interruptCh, syscall.SIGINT, syscall.SIGTERM)
 
 	// Run simulation
 	e.startTime = time.Now()
@@ -186,8 +199,24 @@ running:
 			log.Printf("Simulation tick: %s", lastTime)
 			e.handleEvents(lastTime)
 
+		// Connector inputs
+		case message, ok := <-e.connectorReadCh:
+			if !ok {
+				log.Printf("Connector channel error")
+				break running
+			}
+			e.HandleConnectorMessage(message)
+
+		// Runner log inputs
+		case line, ok := <-e.runnerLogCh:
+			if !ok {
+				log.Printf("Runner channel error")
+				break running
+			}
+			log.Printf("Runner: %s", line)
+
 		// Handle command line interrupts
-		case <-ch:
+		case <-interruptCh:
 			log.Printf("Interrupting simulation after %s", time.Now().Sub(e.startTime))
 			break running
 
@@ -199,34 +228,6 @@ running:
 	}
 
 	return nil
-}
-
-// OnConnect Called when a node connects
-func (e *Engine) OnConnect(address string) {
-	node, ok := e.nodes[address]
-	if !ok {
-		log.Printf("Engine.OnConnect: node %s not recognised", address)
-		return
-	}
-
-	log.Printf("Engine.OnConnect: node %s connected", address)
-	node.connected = true
-}
-
-// Receive is called when a packet is received
-func (e *Engine) Receive(from string, packet []byte) {
-	// Check which devices are within range
-	for id, _ := range e.nodes {
-		if id == from {
-			continue
-		}
-
-		//hasPath := e.model.HasPath(from, id)
-	}
-}
-
-func (e *Engine) GetCCA(addr string) bool {
-	return true
 }
 
 // Ready Checks whether the engine is ready to launch

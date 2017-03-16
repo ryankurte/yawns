@@ -22,41 +22,43 @@ import (
 
 // Runner instance manages runnable clients
 type Runner struct {
-	runnables map[string]*Runnable
+	OutputChan chan string
+	clients    map[string]*Runnable
 }
 
 // NewRunner Creates a new Runner instance
 func NewRunner() *Runner {
 	return &Runner{
-		runnables: make(map[string]*Runnable),
+		OutputChan: make(chan string, 128),
+		clients:    make(map[string]*Runnable),
 	}
 }
 
-// LoadConfig loads runnables from a provided configuration
+// LoadConfig loads clients from a provided configuration
 func (runner *Runner) LoadConfig(c *config.Config, args map[string]string) {
 	for _, n := range c.Nodes {
-		if n.Address != "" && n.Executable != "" && n.Arguments != "" {
-			runner.NewRunnable(n.Address, n.Executable, n.Arguments, args)
+		if n.Address != "" && n.Executable != "" && n.Command != "" {
+			runner.NewRunnable(n.Address, n.Executable, n.Command, args)
 		}
 	}
 }
 
 // NewRunnable creates a runnable instance indexed by address
-func (runner *Runner) NewRunnable(address, executable, template string, args map[string]string) {
+func (runner *Runner) NewRunnable(address, executable, command string, args map[string]string) {
 
 	// Load address into args for command building
 	args["address"] = address
 
 	// Create and save runnable instance
-	runnable := NewRunnable(executable, template, args)
-	runner.runnables[address] = runnable
+	runnable := NewRunnable(executable, command, args)
+	runner.clients[address] = runnable
 }
 
-// Start launches all child runnables
+// Start launches all child clients
 func (runner *Runner) Start() error {
 
-	// Launch runnables
-	for name, runner := range runner.runnables {
+	// Launch clients
+	for name, runner := range runner.clients {
 		log.Printf("Runner.Start starting client %s", name)
 		err := runner.Start()
 		if err != nil {
@@ -65,7 +67,9 @@ func (runner *Runner) Start() error {
 	}
 
 	// Launch output collector
-	runner.collect()
+	for a, r := range runner.clients {
+		go collect(a, r.GetReadCh(), runner.OutputChan)
+	}
 
 	return nil
 }
@@ -73,24 +77,24 @@ func (runner *Runner) Start() error {
 // Info prints info about the runner
 func (runner *Runner) Info() {
 	log.Printf("Runner Info")
-	log.Printf("  - Bound clients %d", len(runner.runnables))
+	log.Printf("  - Bound clients %d", len(runner.clients))
 }
 
 // Write writes an input line to the provided runnable by address
 func (runner *Runner) Write(address, line string) {
-	r, ok := runner.runnables[address]
+	r, ok := runner.clients[address]
 	if !ok {
 		return
 	}
 	r.Write(line)
 }
 
-// Stop exits all child runnables
+// Stop exits all child clients
 func (runner *Runner) Stop() error {
 
 	errors := make(map[string]error)
 
-	for name, runner := range runner.runnables {
+	for name, runner := range runner.clients {
 		log.Printf("Runner.Stop exiting client %s", name)
 		err := runner.Exit()
 		if err != nil {
@@ -101,36 +105,15 @@ func (runner *Runner) Stop() error {
 	return nil
 }
 
-// Internal function to collect outputs from each runnable
-// TODO: this needs to support writing to a logfile
-func (runner *Runner) collect() {
-	outputs := make(chan string, 1024)
-
-	// Create collection routines
-	for address, runner := range runner.runnables {
-		go func(address string, ch chan string) {
-			for {
-				select {
-				case d, ok := <-ch:
-					if !ok {
-						break
-					}
-					outputs <- fmt.Sprintf("[CLIENT %s] %s", address, d)
-				}
+// Helper to collect inputs to a single output channel
+func collect(address string, in chan string, out chan string) {
+	for {
+		select {
+		case d, ok := <-in:
+			if !ok {
+				return
 			}
-		}(address, runner.GetReadCh())
-	}
-
-	// Join and print outputs
-	go func(ch chan string) {
-		for {
-			select {
-			case d, ok := <-ch:
-				if !ok {
-					break
-				}
-				log.Printf("%s", d)
-			}
+			out <- fmt.Sprintf("[CLIENT %s] %s", address, d)
 		}
-	}(outputs)
+	}
 }

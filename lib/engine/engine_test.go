@@ -23,17 +23,18 @@ func FloatEq(a, b float64) bool {
 func TestEngine(t *testing.T) {
 
 	var e *Engine
-	connector := connector.NewZMQConnector()
+	connector := connector.NewZMQConnector(connector.DefaultIPCAddress)
 
 	t.Run("Create from config", func(t *testing.T) {
-		c := config.Config{}
+		cfg := config.Config{}
 
 		node := config.Node{Address: "TestAddress", Location: config.Location{Lat: 0.0, Lng: 0.0}}
-		c.Nodes = append(c.Nodes, node)
+		cfg.Nodes = append(cfg.Nodes, node)
 
-		e = NewEngine(connector)
+		e = NewEngine()
+		e.BindConnectorChannels(connector.OutputChan, connector.InputChan)
 
-		e.LoadConfig(&c)
+		e.LoadConfig(&cfg)
 	})
 
 	t.Run("Handles location Events", func(t *testing.T) {

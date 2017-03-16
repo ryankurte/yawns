@@ -44,11 +44,14 @@ func loadConfig(c *Config) *Config {
 
 	// Setup node defaults
 	for i, n := range c.Nodes {
-		if n.Arguments == "" {
-			n.Arguments = c.Defaults.Arguments
+		if n.Command == "" {
+			n.Command = c.Defaults.Command
 		}
 		if n.Executable == "" {
 			n.Executable = c.Defaults.Executable
+		}
+		for i, a := range c.Defaults.Arguments {
+			n.Arguments[i] = a
 		}
 
 		c.Nodes[i] = n

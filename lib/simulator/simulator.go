@@ -18,17 +18,16 @@ type Simulator struct {
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
-	// Load connector
-	c := connector.NewZMQConnector()
+	// Create the underlying engine
+	e := engine.NewEngine()
 
-	// Create an underlying engine
-	e := engine.NewEngine(c)
+	// Load and bind connector
+	c := connector.NewZMQConnector(o.BindAddr)
+	e.BindConnectorChannels(c.OutputChan, c.InputChan)
 
-	// Initialise connector
-	c.Init(o.BindAddr, e)
-
-	// Create client runner
+	// Create and bind client runner
 	r := runner.NewRunner()
+	e.BindRunnerChannel(r.OutputChan)
 
 	// Load configuration file
 	config, err := config.LoadConfigFile(o.ConfigFile)
@@ -36,6 +35,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
+	// Add client address to args
 	args := make(map[string]string)
 	args["server"] = o.ClientAddr
 
@@ -45,7 +45,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	// Load configuration into runner
 	r.LoadConfig(config, args)
 
-	// Launch runner
+	// Launch clients via runner
 	err = r.Start()
 	if err != nil {
 		return nil, err
