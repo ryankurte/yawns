@@ -57,6 +57,7 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     ons->sock = zsock_new_dealer(ons_address);
 
     pthread_mutex_init(&ons->cca_mutex, NULL);
+    pthread_mutex_init(&ons->rx_mutex, NULL);
 
     // Start listener thread
     ons->running = 1;
@@ -91,17 +92,20 @@ int ONS_check_receive(struct ons_s *ons)
 
 int ONS_get_received(struct ons_s *ons, uint16_t max_len, uint8_t* data, uint16_t* len)
 {
+
+    pthread_mutex_lock(&ons->rx_mutex);
+
     if (ons->receive_length == 0) {
+        pthread_mutex_unlock(&ons->rx_mutex);
         return 0;
     }
 
-    int max_size = (ons->receive_length > max_len) ? max_len : ons->receive_length;
-
-    memcpy(data, ons->receive_data, max_size);
-
-    *len = max_size;
+    *len = (ons->receive_length > max_len) ? max_len : ons->receive_length;
+    memcpy(data, ons->receive_data, *len);
 
     ons->receive_length = 0;
+
+    pthread_mutex_unlock(&ons->rx_mutex);
 
     return 1;
 }
@@ -116,28 +120,28 @@ int ONS_get_cca(struct ons_s *ons)
 
     ons->cca_received = false;
 
-    res = pthread_mutex_trylock(&ons->cca_mutex);
-    if (res < 0) {
-        perror("[ONSC] mutex lock 1 error");
-    }
+    // TryLock in case mutex already locked
+    pthread_mutex_trylock(&ons->cca_mutex);
 
     // Send get CCA message
     ons_send_msg(ons, ONS_MSG_CCA_REQ, data, sizeof(data));
 
-    ONS_DEBUG_PRINT("[ONCS] get cca message sent\n");
-
-    // Await cca mutex
+    // Await cca mutex unlock from onsc thread
     res = pthread_mutex_lock(&ons->cca_mutex);
     if (res < 0) {
-        perror("[ONSC] mutex lock 2error");
+        perror("[ONSC] mutex lock error");
         return -1;
     }
 
+    // Copy CCA
     bool cca = ons->cca;
+    bool cca_received = ons->cca_received;
 
+    // Return mutex to unlocked state
     pthread_mutex_unlock(&ons->cca_mutex);
-    
-    if (ons->cca_received != true) {
+
+    // Check a CCA message was received
+    if (cca_received != true) {
         ONS_DEBUG_PRINT("[ONCS] no cca response received\n");
         return -2;
     }
@@ -158,6 +162,7 @@ int ONS_close(struct ons_s *ons)
     pthread_join(ons->thread, NULL);
 
     pthread_mutex_destroy(&ons->cca_mutex);
+    pthread_mutex_destroy(&ons->rx_mutex);
 
     zsock_destroy(&ons->sock);
 
@@ -207,8 +212,11 @@ void *ons_handle_receive(void* ctx)
             int max_size = (zsize > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1 : zsize;
 
             if (type == ONS_MSG_PACKET) {
+
+                pthread_mutex_lock(&ons->rx_mutex);
                 memcpy(ons->receive_data, zdata, max_size);
                 ons->receive_length = max_size;
+                pthread_mutex_unlock(&ons->rx_mutex);
 
                 ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
 

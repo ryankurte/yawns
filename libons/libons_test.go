@@ -169,7 +169,7 @@ func TestLibONS(t *testing.T) {
 		}
 
 		log.Printf("CCA Check 2")
-		go respond("check-1", true)
+		go respond("check-2", true)
 		time.Sleep(100)
 
 		cca, err = client.GetCCA()
