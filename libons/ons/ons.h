@@ -30,10 +30,10 @@ struct ons_s {
     uint16_t receive_length;
     uint8_t receive_data[ONS_BUFFER_LENGTH];
 
+    sem_t *cca_sem;
     pthread_mutex_t cca_mutex;
-    pthread_cond_t  cca_cond;
-
     volatile bool cca;
+    volatile bool cca_received;
 };
 
 // Initialise the ONS connector

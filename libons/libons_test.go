@@ -40,7 +40,12 @@ func TestLibONS(t *testing.T) {
 
 	t.Run("Test init client", func(t *testing.T) {
 		client = NewONSConnector()
-		client.Init(port, clientAddress)
+		err := client.Init(port, clientAddress)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+			t.Skip()
+		}
 	})
 
 	t.Run("Client sends registration packet", func(t *testing.T) {
@@ -129,7 +134,7 @@ func TestLibONS(t *testing.T) {
 
 	t.Run("Client can request cca", func(t *testing.T) {
 
-		respond := func(value bool) {
+		respond := func(name string, value bool) {
 			select {
 			case msg, ok := <-server.OutputChan:
 				if !ok {
@@ -138,6 +143,8 @@ func TestLibONS(t *testing.T) {
 				if msg.GetType() == messages.CCAReq {
 					resp := messages.NewMessage(messages.CCAResp, msg.GetAddress(), []byte{})
 					resp.SetCCA(value)
+
+					log.Printf("Response (instance %s) writing %+v", name, resp)
 
 					server.InputChan <- resp
 				}
@@ -150,7 +157,7 @@ func TestLibONS(t *testing.T) {
 		})
 
 		log.Printf("CCA Check 1")
-		go respond(false)
+		go respond("check-1", false)
 		time.Sleep(100)
 
 		cca, err := client.GetCCA()
@@ -162,7 +169,7 @@ func TestLibONS(t *testing.T) {
 		}
 
 		log.Printf("CCA Check 2")
-		go respond(true)
+		go respond("check-1", true)
 		time.Sleep(100)
 
 		cca, err = client.GetCCA()
