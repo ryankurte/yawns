@@ -56,18 +56,7 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     // Create ZMQ socket
     ons->sock = zsock_new_dealer(ons_address);
 
-#if 0
-    // Create semaphores
-    ons->cca_sem = sem_open("/ons-cca", O_CREAT, 0644, 0);
-    if ((int)ons->cca_sem == -1) {
-        perror("[ONSC] error creating cca semaphore");
-        return -1;
-    }
-#endif
-
     pthread_mutex_init(&ons->cca_mutex, NULL);
-
-    printf("ONS ptr: %p\n", ons);
 
     // Start listener thread
     ons->running = 1;
@@ -168,10 +157,6 @@ int ONS_close(struct ons_s *ons)
 
     pthread_join(ons->thread, NULL);
 
-    //sem_close(ons->cca_sem);
-
-    //sem_unlink("/ons-cca");
-
     pthread_mutex_destroy(&ons->cca_mutex);
 
     zsock_destroy(&ons->sock);
@@ -207,7 +192,6 @@ void *ons_handle_receive(void* ctx)
     int res;
 
     ONS_DEBUG_PRINT("[ONSC THREAD] Starting recieve thread\n");
-    printf("[ONSC THREAD] ptr: %p\n", ons);
 
     // Bind exit handler to interrupt handler to avoid unhandled exits
     signal(SIGINT, exit_handler);

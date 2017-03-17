@@ -3,30 +3,19 @@ language: go
 go:
   - 1.8
 
-os:
-  - linux
-  - osx
+sudo: required
 
-addons:
-  apt:
-    packages:
-    - cmake
-    - build-essential
-    - clang
-    - libzmq3-dev
-    - libsodium-dev
+services: 
+  - docker
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                 ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libsodium czmq ; fi
+  - docker pull ryankurte/docker-native-dev
 
 install:
-  - make install
-  - make build
-  - make libons
+  - docker run --rm -it -v`pwd`:/root ryankurte/docker-native-dev /bin/bash -c "make install && make"
 
 script:
-  - make test
+  - docker run --rm -it -v`pwd`:/root ryankurte/docker-native-dev /bin/bash -c "make test"
 
 notifications:
   email: false

@@ -1,4 +1,4 @@
-default: build
+default: build client
 
 # Install dependencies
 install:
