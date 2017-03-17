@@ -24,6 +24,8 @@ Very early prototype
 - [ ] PCAP streaming, file writing
 - [ ] Runnable / Client Management
 - [ ] Platform / OS independent
+  - [X] Generic Radio Driver
+  - [ ] Cross compiled packages
 - [ ] OpenGL / Map Visualisation
 
 ## Dependencies
@@ -60,5 +62,9 @@ ONS is designed to be platform and network agnostic. To simulate a given platfor
 
 ## Licence
 
-TODO.
+This project is licensed using the GNU Affero General Public License v3.0 (AGPL-3.0+), see [here](https://choosealicense.com/licenses/agpl-3.0/#) for a summary.
+
+---
+
+If you have any questions, comments, or suggestions, feel free to open an issue or a pull request.
 
