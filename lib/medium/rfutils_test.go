@@ -62,48 +62,35 @@ func TestRFUtils(t *testing.T) {
 	})
 
 	t.Run("Can calculate free space attenuation", func(t *testing.T) {
-		// TODO: these values need to be checked.
-		// Can't see why they don't agree, but, different from all the online calculators :-/
 
-		// Tests with fake frequency
+		// Test against precalculated results
 
-		fakeFreq := WavelengthToFrequency(math.Pi * 4)
-		fmt.Printf("Fake frequency: %.2f Hz\n", fakeFreq)
-
-		dBLoss := FreeSpaceAttenuationDB(fakeFreq, 1e+1)
-		err := CheckFloat(dBLoss, 20.0)
+		dBLoss := FreeSpaceAttenuationDB(2.4*GHz, 1e+0)
+		err := CheckFloat(dBLoss, 40.02)
 		if err != nil {
 			t.Error(err)
 		}
 
-		dBLoss = FreeSpaceAttenuationDB(fakeFreq, 1e+3)
-		err = CheckFloat(dBLoss, 60.0)
-		if err != nil {
-			t.Error(err)
-		}
-
-		// Tests with precalculated results
-
-		dBLoss = FreeSpaceAttenuationDB(2.4e+6, 1e+3)
-		err = CheckFloat(dBLoss, 40.02)
-		if err != nil {
-			t.Error(err)
-		}
-
-		dBLoss = FreeSpaceAttenuationDB(2.4e+6, 1e+6)
+		dBLoss = FreeSpaceAttenuationDB(2.4*GHz, 1e+3)
 		err = CheckFloat(dBLoss, 100.05)
 		if err != nil {
 			t.Error(err)
 		}
 
-		dBLoss = FreeSpaceAttenuationDB(433e3, 1e+3)
-		err = CheckFloat(dBLoss, 25.177541)
+		dBLoss = FreeSpaceAttenuationDB(2.4*GHz, 1e+6)
+		err = CheckFloat(dBLoss, 160.05)
 		if err != nil {
 			t.Error(err)
 		}
 
-		dBLoss = FreeSpaceAttenuationDB(433e3, 1e+6)
-		err = CheckFloat(dBLoss, 85.177541)
+		dBLoss = FreeSpaceAttenuationDB(433*MHz, 1e+3)
+		err = CheckFloat(dBLoss, 85.178)
+		if err != nil {
+			t.Error(err)
+		}
+
+		dBLoss = FreeSpaceAttenuationDB(433*MHz, 1e+6)
+		err = CheckFloat(dBLoss, 145.178)
 		if err != nil {
 			t.Error(err)
 		}
@@ -113,7 +100,7 @@ func TestRFUtils(t *testing.T) {
 
 		// Magic Numbers from: http://www.wirelessconnections.net/calcs/FresnelZone.asp
 
-		zone, err := FresnelFirstZoneMax(2.4e+6, 10e+3)
+		zone, err := FresnelFirstZoneMax(2.4*GHz, 10e+3)
 		if err != nil {
 			t.Error(err)
 		}
@@ -122,7 +109,7 @@ func TestRFUtils(t *testing.T) {
 			t.Error(err)
 		}
 
-		zone, err = FresnelFirstZoneMax(2.4e+6, 100e+3)
+		zone, err = FresnelFirstZoneMax(2.4*GHz, 100e+3)
 		if err != nil {
 			t.Error(err)
 		}

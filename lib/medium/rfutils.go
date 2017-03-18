@@ -24,6 +24,10 @@ const (
 	C                       = 2.998e+8
 	FresnelObstructionOK    = 0.4
 	FresnelObstructionIdeal = 0.2
+	Hz                      = 1
+	KHz                     = Hz * 1000
+	MHz                     = KHz * 1000
+	GHz                     = MHz * 1000
 )
 
 // Basic RF calculations
@@ -89,7 +93,5 @@ func FresnelFirstZoneMax(freq, dist float64) (float64, error) {
 		return 0, fmt.Errorf("Fresnel calculation valid only for distance >> wavelength (distance: %.2fm wavelength %.2fm)", dist, wavelength)
 	}
 
-	// TODO: Super confused about why distance has to be scaled to Km
-	// It's not apparent from the equation, but everyone else does it...
-	return 0.5 * math.Sqrt((C * dist / 1000 / freq)), nil
+	return 0.5 * math.Sqrt((C * dist / freq)), nil
 }
