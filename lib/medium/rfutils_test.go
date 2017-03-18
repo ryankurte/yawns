@@ -115,8 +115,16 @@ func TestRFUtils(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-
 		err = CheckFloat(zone, 17.671776)
+		if err != nil {
+			t.Error(err)
+		}
+
+		zone, err = FresnelFirstZoneMax(2.4e+6, 100e+3)
+		if err != nil {
+			t.Error(err)
+		}
+		err = CheckFloat(zone, 56.0)
 		if err != nil {
 			t.Error(err)
 		}
