@@ -68,7 +68,7 @@ func TestRFUtils(t *testing.T) {
 		// Tests with fake frequency
 
 		fakeFreq := WavelengthToFrequency(math.Pi * 4)
-		fmt.Printf("Fake frequency: %.2f Hz", fakeFreq)
+		fmt.Printf("Fake frequency: %.2f Hz\n", fakeFreq)
 
 		dBLoss := FreeSpaceAttenuationDB(fakeFreq, 1e+1)
 		err := CheckFloat(dBLoss, 20.0)
@@ -110,6 +110,8 @@ func TestRFUtils(t *testing.T) {
 	})
 
 	t.Run("Can calculate fresnel points", func(t *testing.T) {
+
+		// Magic Numbers from: http://www.wirelessconnections.net/calcs/FresnelZone.asp
 
 		zone, err := FresnelFirstZoneMax(2.4e+6, 10e+3)
 		if err != nil {
