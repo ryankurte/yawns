@@ -16,14 +16,29 @@ Very early prototype
 
 ## Goals
 
-- Common Medium interface
-  - Definition of wireless medium as appropriate for simulation tasks
-- Plugin support
-  - Standard Plugin Interface
-- PCAP streaming, file writing
-- Management interface
-- Platform / OS independent
-- OpenGL / Map Visualisation
+- [ ] Event Engine
+- [ ] Common Medium interface
+  - [ ] Definition of wireless medium as appropriate for simulation tasks
+- [ ] Plugin support
+  - [X]Standard Plugin Interface
+- [ ] PCAP streaming, file writing
+- [ ] Runnable / Client Management
+- [ ] Platform / OS independent
+  - [X] Generic Radio Driver
+  - [ ] Cross compiled packages
+- [ ] OpenGL / Map Visualisation
+
+## Dependencies
+
+- sodium
+- czmq
+- go
+
+### OSX
+
+OSX dependencies can be installed with `brew install libsodium czmq go`, though you may prefer to use the more up-to-date official go package from [golang.org/](https://golang.org/dl/).
+
+
 
 ## Usage
 
@@ -47,4 +62,9 @@ ONS is designed to be platform and network agnostic. To simulate a given platfor
 
 ## Licence
 
-TODO.
+This project is licensed using the GNU Affero General Public License v3.0 (AGPL-3.0+), see [here](https://choosealicense.com/licenses/agpl-3.0/#) for a summary.
+
+---
+
+If you have any questions, comments, or suggestions, feel free to open an issue or a pull request.
+

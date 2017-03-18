@@ -31,14 +31,19 @@ func NewONSConnector() *ONSConnector {
 }
 
 // Init the ONS connector
-func (c *ONSConnector) Init(serverAddress string, localAddress string) {
+func (c *ONSConnector) Init(serverAddress string, localAddress string) error {
 	sa := C.CString(serverAddress)
 	la := C.CString(localAddress)
 
-	C.ONS_init(&c.ons, sa, la)
+	res := C.ONS_init(&c.ons, sa, la)
 
 	C.free(unsafe.Pointer(sa))
 	C.free(unsafe.Pointer(la))
+
+	if res != 0 {
+		return fmt.Errorf("Error initialising ONSC")
+	}
+	return nil
 }
 
 // Send a data packet using the connector

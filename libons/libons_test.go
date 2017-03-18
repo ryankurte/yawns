@@ -13,12 +13,16 @@ import (
 	"log"
 	"testing"
 	"time"
+	"fmt"
 )
 
 import (
+"github.com/satori/go.uuid"
 	"github.com/ryankurte/ons/lib/connector"
 	"github.com/ryankurte/ons/lib/messages"
 )
+
+
 
 func TestLibONS(t *testing.T) {
 
@@ -27,13 +31,21 @@ func TestLibONS(t *testing.T) {
 	var server *connector.ZMQConnector
 	var client *ONSConnector
 
+	port := fmt.Sprintf("inproc:///ons-%s", uuid.NewV4())
+
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
-		server = connector.NewZMQConnector("inproc://test")
+		server = connector.NewZMQConnector(port)
+		log.Printf("Connector port: %s", port)
 	})
 
 	t.Run("Test init client", func(t *testing.T) {
 		client = NewONSConnector()
-		client.Init("inproc://test", clientAddress)
+		err := client.Init(port, clientAddress)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+			t.Skip()
+		}
 	})
 
 	t.Run("Client sends registration packet", func(t *testing.T) {
@@ -122,7 +134,7 @@ func TestLibONS(t *testing.T) {
 
 	t.Run("Client can request cca", func(t *testing.T) {
 
-		respond := func(value bool) {
+		respond := func(name string, value bool) {
 			select {
 			case msg, ok := <-server.OutputChan:
 				if !ok {
@@ -132,13 +144,20 @@ func TestLibONS(t *testing.T) {
 					resp := messages.NewMessage(messages.CCAResp, msg.GetAddress(), []byte{})
 					resp.SetCCA(value)
 
+					log.Printf("Response (instance %s) writing %+v", name, resp)
+
 					server.InputChan <- resp
 				}
 			}
 		}
 
+		timer := time.AfterFunc(time.Second, func() {
+			t.Errorf("Timeout")
+			t.FailNow()
+		})
+
 		log.Printf("CCA Check 1")
-		go respond(false)
+		go respond("check-1", false)
 		time.Sleep(100)
 
 		cca, err := client.GetCCA()
@@ -150,7 +169,7 @@ func TestLibONS(t *testing.T) {
 		}
 
 		log.Printf("CCA Check 2")
-		go respond(true)
+		go respond("check-2", true)
 		time.Sleep(100)
 
 		cca, err = client.GetCCA()
@@ -160,6 +179,8 @@ func TestLibONS(t *testing.T) {
 		if cca != true {
 			t.Errorf("CCA error")
 		}
+
+		timer.Stop()
 	})
 
 	t.Run("Exit client", func(t *testing.T) {

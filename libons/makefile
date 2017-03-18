@@ -8,12 +8,13 @@ CC=gcc
 AR=ar
 CFLAGS=-c -Wall -pedantic
 LFLAGS=-lpthread -lczmq -lzmq
+IFLAGS=-I./
 
 # Map source files to objects
 OBJECTS=$(SOURCES:src/%.c=$(OUTDIR)/%.o)
 
 # Helper to set default action
-all: libs util
+all: libs client
 
 # Helper to create output dir
 dir:
@@ -21,29 +22,32 @@ dir:
 
 # Generic compilation rule
 $(OUTDIR)/%.o: src/%.c dir
-	@$(CC) $(INCLUDES) $(CFLAGS) $< -o $@
+	$(CC) $(IFLAGS) $(CFLAGS) $< -o $@
 
 # Library helper
 libs: $(OUTDIR)/$(LIB).a $(OUTDIR)/$(LIB).so
 
 # Create static library
 $(OUTDIR)/$(LIB).a: $(OBJECTS)
-	@$(AR) rcs $@ $^
+	$(AR) rcs $@ $^
 
 # Create shared library
 $(OUTDIR)/$(LIB).so: $(OBJECTS)
-	@$(CC) -shared $(LFLAGS) $^ -o $@ 
+	$(CC) -shared $(LFLAGS) $^ -o $@ 
 
 # Client helper
 client: $(OUTDIR)/$(TARGET)
 
 # Build and link example client
 $(OUTDIR)/$(TARGET): $(OUTDIR)/main.o $(OUTDIR)/$(LIB).a
-	@$(CC) $^ $(LFLAGS) -o $@
+	$(CC) $^ $(LFLAGS) -o $@
 
 # Run the example client
 run:
 	./$(TARGET) "ipc:///tmp/ons" "testClient"
+
+test: libs
+	go test -v -p 1 -timeout 10s ./
 
 # Cleanup build files
 clean:

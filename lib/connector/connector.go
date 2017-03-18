@@ -72,6 +72,8 @@ func (c *ZMQConnector) Run() {
 				break
 			}
 
+			log.Printf("RX from client: %+v", p)
+
 			c.handleClientReceive(p)
 
 		// Handle control messages from other components
@@ -80,6 +82,8 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
+
+			log.Printf("RX from server: %+v", p)
 
 			c.handleMessageReceive(p)
 		}
