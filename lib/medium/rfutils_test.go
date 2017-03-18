@@ -124,7 +124,7 @@ func TestRFUtils(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = CheckFloat(zone, 56.0)
+		err = CheckFloat(zone, 55.88)
 		if err != nil {
 			t.Error(err)
 		}

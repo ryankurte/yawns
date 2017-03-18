@@ -65,14 +65,16 @@ func FreeSpaceAttenuationDB(freq, distance float64) float64 {
 // Note that distances must be much greater than wavelengths
 // https://en.wikipedia.org/wiki/Fresnel_zone#Fresnel_zone_clearance
 
-const FresnelMinDistanceFreqRadio = 0.1
+// FresnelMinDistanceWavelengthRadio is the minimum ratio of distance:wavelength for viable calculations
+// This is used as a programattic sanity check for distance >> wavelength
+const FresnelMinDistanceWavelengthRadio = 0.1
 
 // FresnelPoint calculates the fresnel zone radius d for a given wavelength
 // and order at a point P between endpoints
 func FresnelPoint(d1, d2, freq float64, order int64) (float64, error) {
 	wavelength := FrequencyToWavelength(freq)
 
-	if ((d1 * FresnelMinDistanceFreqRadio) < wavelength) || ((d2 * FresnelMinDistanceFreqRadio) < wavelength) {
+	if ((d1 * FresnelMinDistanceWavelengthRadio) < wavelength) || ((d2 * FresnelMinDistanceWavelengthRadio) < wavelength) {
 		return 0, fmt.Errorf("Fresnel calculation valid only for distances >> wavelength (d1: %.2fm d2: %.2fm wavelength %.2fm)", d1, d2, wavelength)
 	}
 
@@ -83,9 +85,11 @@ func FresnelPoint(d1, d2, freq float64, order int64) (float64, error) {
 func FresnelFirstZoneMax(freq, dist float64) (float64, error) {
 
 	wavelength := FrequencyToWavelength(freq)
-	if (dist * FresnelMinDistanceFreqRadio) < wavelength {
+	if (dist * FresnelMinDistanceWavelengthRadio) < wavelength {
 		return 0, fmt.Errorf("Fresnel calculation valid only for distance >> wavelength (distance: %.2fm wavelength %.2fm)", dist, wavelength)
 	}
 
+	// TODO: Super confused about why distance has to be scaled to Km
+	// It's not apparent from the equation, but everyone else does it...
 	return 0.5 * math.Sqrt((C * dist / 1000 / freq)), nil
 }
