@@ -101,7 +101,7 @@ int ONS_get_received(struct ons_s *ons, uint16_t max_len, uint8_t* data, uint16_
     }
 
     *len = (ons->receive_length > max_len) ? max_len : ons->receive_length;
-    memcpy(data, ons->receive_data, *len);
+    memcpy(data, (const void *)ons->receive_data, *len);
 
     ons->receive_length = 0;
 
@@ -113,7 +113,6 @@ int ONS_get_received(struct ons_s *ons, uint16_t max_len, uint8_t* data, uint16_
 int ONS_get_cca(struct ons_s *ons)
 {
     int res;
-    struct timespec ts;
     uint8_t data[1];
 
     ONS_DEBUG_PRINT("[ONCS] get cca\n");
@@ -214,11 +213,11 @@ void *ons_handle_receive(void* ctx)
             if (type == ONS_MSG_PACKET) {
 
                 pthread_mutex_lock(&ons->rx_mutex);
-                memcpy(ons->receive_data, zdata, max_size);
+                memcpy((void *)ons->receive_data, zdata, max_size);
                 ons->receive_length = max_size;
+                ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
                 pthread_mutex_unlock(&ons->rx_mutex);
 
-                ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
 
             } else if (type == ONS_MSG_CCA_RESP) {
                 if (zsize != 1) {
