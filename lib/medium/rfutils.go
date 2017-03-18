@@ -15,12 +15,15 @@
 package medium
 
 import (
+	"fmt"
 	"math"
 )
 
 const (
 	//C is the speed of light in air in meters per second
-	C = 2.99792458e+8
+	C                       = 2.998e+8
+	FresnelObstructionOK    = 0.4
+	FresnelObstructionIdeal = 0.2
 )
 
 // Basic RF calculations
@@ -59,17 +62,30 @@ func FreeSpaceAttenuationDB(freq, distance float64) float64 {
 }
 
 // Freznel zone calculations
+// Note that distances must be much greater than wavelengths
 // https://en.wikipedia.org/wiki/Fresnel_zone#Fresnel_zone_clearance
+
+const FresnelMinDistanceFreqRadio = 0.1
 
 // FresnelPoint calculates the fresnel zone radius d for a given wavelength
 // and order at a point P between endpoints
-func FresnelPoint(d1, d2, freq float64, order int64) float64 {
+func FresnelPoint(d1, d2, freq float64, order int64) (float64, error) {
 	wavelength := FrequencyToWavelength(freq)
-	return math.Sqrt((float64(order) * wavelength * d1 * d2) / (d1 + d2))
+
+	if ((d1 * FresnelMinDistanceFreqRadio) < wavelength) || ((d2 * FresnelMinDistanceFreqRadio) < wavelength) {
+		return 0, fmt.Errorf("Fresnel calculation valid only for distances >> wavelength (d1: %.2fm d2: %.2fm wavelength %.2fm)", d1, d2, wavelength)
+	}
+
+	return math.Sqrt((float64(order) * wavelength * d1 * d2) / (d1 + d2)), nil
 }
 
-// FresnelMax calculates the maximum fresnel zone radius for a given wavelength and order
-func FresnelMax(freq float64, order int64) float64 {
+// FresnelFirstZoneMax calculates the maximum fresnel zone radius for a given frequency
+func FresnelFirstZoneMax(freq, dist float64) (float64, error) {
+
 	wavelength := FrequencyToWavelength(freq)
-	return math.Sqrt((float64(order) * wavelength) / 2)
+	if (dist * FresnelMinDistanceFreqRadio) < wavelength {
+		return 0, fmt.Errorf("Fresnel calculation valid only for distance >> wavelength (distance: %.2fm wavelength %.2fm)", dist, wavelength)
+	}
+
+	return 0.5 * math.Sqrt((C * dist / 1000 / freq)), nil
 }

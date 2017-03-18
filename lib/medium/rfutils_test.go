@@ -10,7 +10,7 @@ const allowedError = 0.001
 
 func CheckFloat(actual, expected float64) error {
 	if err := math.Abs(actual-expected) / math.Abs(actual); err > allowedError {
-		return fmt.Errorf("Expected %f, received %f", expected, actual)
+		return fmt.Errorf("Actual: %f Expected: %f", actual, expected)
 	}
 	return nil
 }
@@ -107,6 +107,20 @@ func TestRFUtils(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	})
+
+	t.Run("Can calculate fresnel points", func(t *testing.T) {
+
+		zone, err := FresnelFirstZoneMax(2.4e+6, 10e+3)
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = CheckFloat(zone, 17.671776)
+		if err != nil {
+			t.Error(err)
+		}
+
 	})
 
 }
