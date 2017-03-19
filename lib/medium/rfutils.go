@@ -21,13 +21,22 @@ import (
 
 const (
 	//C is the speed of light in air in meters per second
-	C                       = 2.998e+8
-	FresnelObstructionOK    = 0.4
+	C = 2.998e+8
+
+	// FresnelObstructionOK is the largets acceptable proportion of fresnel zone impingement
+	FresnelObstructionOK = 0.4
+	// FresnelObstructionIdeal is the largest ideal proportion of fresnel zone impingement
 	FresnelObstructionIdeal = 0.2
-	Hz                      = 1
-	KHz                     = Hz * 1000
-	MHz                     = KHz * 1000
-	GHz                     = MHz * 1000
+
+	Hz  = 1
+	KHz = Hz * 1000
+	MHz = KHz * 1000
+	GHz = MHz * 1000
+
+	// R is the (average) radius of the earth
+	R = 6.371e6
+
+	π = math.Pi
 )
 
 // Basic RF calculations
@@ -94,4 +103,61 @@ func FresnelFirstZoneMax(freq, dist float64) (float64, error) {
 	}
 
 	return 0.5 * math.Sqrt((C * dist / freq)), nil
+}
+
+// CalculateDistance calculates the distance between two latitude and longitudes
+// Using the haversine (flat earth) formula
+// See: http://www.movable-type.co.uk/scripts/latlong.html
+func CalculateDistance(lat1, lng1, lat2, lng2, radius float64) float64 {
+
+	φ1, λ1 := lat1/180*π, lng1/180*π
+	φ2, λ2 := lat2/180*π, lng2/180*π
+	Δφ := math.Abs(φ2 - φ1)
+	Δλ := math.Abs(λ2 - λ1)
+
+	a := math.Pow(math.Sin(Δφ/2), 2) + math.Cos(φ1)*math.Cos(φ2)*math.Pow(math.Sin(Δλ/2), 2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	d := radius * c
+
+	return d
+}
+
+// CalculateDistanceLOS calculates the approximate Line of Sight distance between two lat/lon/alt points
+// This achieves this by wrapping the haversine formula with a flat-earth approximation for height
+// difference. This will be very inaccurate with larger distances.
+// TODO: surely there is a better (ie. not written by me) algorithm for this
+func CalculateDistanceLOS(lat1, lng1, alt1, lat2, lng2, alt2 float64) float64 {
+
+	// Calculate average and delta heights (wrt. earth radius)
+	h := R + (alt1+alt2)/2
+	Δh := math.Abs(alt2 - alt1)
+
+	// Compute distance at average of altitudes
+	d := CalculateDistance(lat1, lng1, lat2, lng2, h)
+
+	// Apply transformation for altitude difference
+	los := math.Sqrt(math.Pow(d, 2) + math.Pow(Δh, 2))
+
+	return los
+}
+
+// CalculateFoliageLoss calculates path loss in dB due to foliage based on the Weissberger model
+// https://en.wikipedia.org/wiki/Weissberger%27s_model
+func CalculateFoliageLoss(freq, depth float64) (float64, error) {
+	if freq < 230e6 || freq > 95e9 {
+		return 0, fmt.Errorf("Frequency %.2f is not between 230MHz and 95GHz as required by the Weissberger model", freq)
+	}
+
+	if depth > 400 || depth < 0 {
+		return 0, fmt.Errorf("Depth %.2f is not between 0 and 400m as required by the Weissberger model", depth)
+	}
+
+	fading := 0.0
+	if depth > 00.0 && depth <= 14.0 {
+		fading = 0.45 * math.Pow(freq, 0.284) * depth
+	} else if depth > 14.0 && depth <= 400.0 {
+		fading = 1.33 * math.Pow(freq, 0.284) * math.Pow(depth, 0.588)
+	}
+
+	return fading, nil
 }

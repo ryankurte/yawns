@@ -14,11 +14,12 @@ import (
 
 // Medium is the wireless medium simulation instance
 type Medium struct {
+	config config.Medium
 }
 
 // NewMedum creates a new medium instance
-func NewMedum() *Medium {
-	m := Medium{}
+func NewMedum(c *config.Config) *Medium {
+	m := Medium{c.Medium}
 
 	return &m
 }

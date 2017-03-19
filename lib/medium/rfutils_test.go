@@ -96,6 +96,19 @@ func TestRFUtils(t *testing.T) {
 		}
 	})
 
+	t.Run("Can calculate the distance between two lat/lon locations", func(t *testing.T) {
+		lat1, lon1 := -36.8485, 174.7633
+		lat2, lon2 := -41.2865, 174.7762
+
+		d := CalculateDistance(lat1, lon1, lat2, lon2, R)
+
+		err := CheckFloat(d, 493.4e+3)
+		if err != nil {
+			t.Error(err)
+		}
+
+	})
+
 	t.Run("Can calculate fresnel points", func(t *testing.T) {
 
 		// Magic Numbers from: http://www.wirelessconnections.net/calcs/FresnelZone.asp

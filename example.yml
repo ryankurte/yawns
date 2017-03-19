@@ -2,9 +2,17 @@
 # OpenNetworkSim (ONS) Example Configuration
 
 # Top Level Simulation Configuration
-name: Example Config
+name: Example Simulation
 endtime: 2s
 tickrate: 500ms
+
+# Wireless Medium Configuration
+medium:
+  frequency: 433e6
+  linkbudget: 160
+  channels: 
+    count: 32
+    spacing: 200kHz
 
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)

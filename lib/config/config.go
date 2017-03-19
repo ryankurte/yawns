@@ -14,7 +14,11 @@ type Config struct {
 	// End time in ms
 	EndTime time.Duration
 
+	// Simulator update tick rate / time in ms
 	TickRate time.Duration
+
+	// Medium configuration
+	Medium Medium
 
 	// Defaults defines default settings for each node
 	Defaults Node
