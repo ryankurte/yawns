@@ -14,6 +14,9 @@ type Node struct {
 	// Location is the physical location of the node
 	Location Location
 
+	// Gain is the receive and transmit gain of a specific node in dB
+	Gain float64
+
 	// Executable is the command to be called by the runner
 	Executable string
 	// Command is the command to be passed to the executable by the runner (if provided)

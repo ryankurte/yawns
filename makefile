@@ -2,8 +2,10 @@ default: build client
 
 # Install dependencies
 install:
-	go get -u github.com/golang/lint/golint
 	go get ./...
+
+install-tools:
+	go get -u github.com/golang/lint/golint
 
 # Build backend and frontend components
 build:
@@ -29,8 +31,7 @@ run: build
 
 # Test application
 test: libons
-	go test -v -p=1 ./lib/...
-	go test -v -p=1 -timeout=10s ./libons
+	go test -p=1 -timeout=10s ./...
 
 # Utilities
 

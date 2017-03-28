@@ -44,6 +44,7 @@ func NewMessage(messageType Type, address string, data []byte) *Message {
 // GetType fetches the type of the message
 func (message *Message) GetType() Type { return message.messageType }
 
+
 // GetAddress fetches the address of the origin/destination of the message
 func (message *Message) GetAddress() string { return message.address }
 

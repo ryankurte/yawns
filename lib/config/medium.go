@@ -12,10 +12,12 @@ type Channels struct {
 type Medium struct {
 	// Radio Frequency in Hz
 	Frequency float64
-	// Fading constant (in dB)
+	// Standard deviation of gaussian fading in dB
 	Fading float64
 	// Link Budget in dB
 	LinkBudget float64
+	// Packet Error Rate
+	ErrorRate float64
 	// Channel information
 	Channels Channels
 }

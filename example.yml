@@ -6,13 +6,16 @@ name: Example Simulation
 endtime: 2s
 tickrate: 500ms
 
+test: 100 MHz
+
 # Wireless Medium Configuration
 medium:
-  frequency: 433e6
-  linkbudget: 160
+  frequency: 433e+6
+  linkbudget: 90
+  fading: 6
   channels: 
     count: 32
-    spacing: 200kHz
+    spacing: 200e+3
 
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
@@ -31,6 +34,18 @@ nodes:
     location: 
       lat: -36.840376
       lng: 174.783203
+  - address: 0x0003
+    location: 
+      lat: -36.830389
+      lng: 174.784686
+  - address: 0x0004
+    location: 
+      lat: -36.828514
+      lng: 174.773170
+  - address: 0x0005
+    location:
+      lat: -36.845286
+      lng: 174.816868
 
 # Event definitions
 # These define changes to the simulation and environment at a given point in time
