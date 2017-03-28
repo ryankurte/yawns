@@ -12,10 +12,10 @@ before_install:
   - docker pull ryankurte/docker-native-dev
 
 install:
-  - docker run --rm -it -v`pwd`:/root ryankurte/docker-native-dev /bin/bash -c "make install && make"
+  - docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make install && make"
 
 script:
-  - docker run --rm -it -v`pwd`:/root ryankurte/docker-native-dev /bin/bash -c "make test"
+  - docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make test"
 
 notifications:
   email: false
