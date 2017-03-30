@@ -1,21 +1,34 @@
 language: go
 
 go:
-  - 1.8
+- 1.8
 
 sudo: required
 
-services: 
-  - docker
+services:
+- docker
 
 before_install:
-  - docker pull ryankurte/docker-native-dev
-
-install:
-  - docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make install && make"
+- docker pull ryankurte/docker-native-dev
 
 script:
-  - docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make test"
+- docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev
+  /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make install && make test"
+
+after_success:
+- mkdir -p release
+- cp ./ons ./libons/build/libons.a ./libons/build/ons-client release/
+- tar -cvf ./ons.tgz release/*
 
 notifications:
   email: false
+
+deploy:
+  provider: releases
+  api_key:
+    secure: eBO3E7nZ/xL155sRfe5SC17uSL3PN3A1scGvFeIVFvHsmkeuDY/9xQIaaMXnKdwYMNs1skUgOwWEGBPw5NaE/P2oob2Eo6Slh16o5Xx3AUu3NELgjvG0kvmVekEn63ipHpV+JWe3EbPoQH/Ao5Tx0ksJJTu6MdejkejRpbWNl8G7EUAGmFBWa1fUPtB6jSVg0gcUoJ8KekhXUZgXNFs1BBn9xs163YMnoRUpgY0o8gIYehzj/tGJbWEBBwm1eyEPdwyOdN7jfIuEEStsMIsKbNiXyFBeJrHzR9ZOzI6qW00aaxr3qD3dd45mziYwzeO0Yfl6PeXSMTgEr/zEMOZ3FAsLp6WxP3VF4wYtMc3jN7Ywbem6zq+rYIuhir1xVs1SE6q2fPa4CQEcKlfPydxb5VrbeTrO6fvegzFeRw120CqnRhvAgtMVAWPUX3NIFQ6hWmJJ6osepiDa8OAMTmyDLquGAY2avCbCTRSETTQryaG7fHTJyRMDzY7EHIMS0gohINTjhdLoY3Vy/UjZ1AZs34wWZFFy3XnJCxCgSSvvpHwdHQwVXyNax1r+kI2YoXBpPhmG+nKYXUaJ8nlrDd+J/U5ejYHITADBJ08FndlZeHsebTl5ZHyKum4hKT9OrQq+h+xY2m7oLv0AGSasGZR81bhBaVGptdKVbo0hqLR3qFw=
+  file: ons.tgz
+  skip_cleanup: true
+  on:
+    repo: ryankurte/ons
+    tags: true

@@ -1,14 +1,16 @@
 default: build client
 
 # Install dependencies
-install:
-	go get ./...
+install: lib
+	go get -t ./...
 
 install-tools:
 	go get -u github.com/golang/lint/golint
 
+all: ons lib client
+
 # Build backend and frontend components
-build:
+ons:
 	go build ./cmd/ons/
 
 build-linux-x64:
@@ -18,19 +20,19 @@ build-osx-x64:
 	GOOS=darwin GOARCH=amd64 go build ./cmd/ons/
 
 # Build libons C library
-libons:
+lib:
 	/bin/bash -c "cd ./libons && make libs"
 
 # Build libons example client
-client:
-	/bin/bash -c "cd ./libons && make client;"
+client: lib
+	/bin/bash -c "cd ./libons && make client"
 
 # Run application
 run: build
 	./ons
 
 # Test application
-test: libons
+test: ons lib
 	go test -p=1 -timeout=10s ./...
 
 # Utilities

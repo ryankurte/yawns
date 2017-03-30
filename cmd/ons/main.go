@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/ryankurte/ons/lib/simulator"
-	"log"
 )
 
 func main() {
