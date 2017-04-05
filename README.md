@@ -10,7 +10,7 @@ This project consists of two parts. The core simulator (ons) that manages client
 
 [![Documentation](https://img.shields.io/badge/docs-godoc-blue.svg)](https://godoc.org/github.com/ryankurte/ons)
 [![GitHub tag](https://img.shields.io/github/tag/ryankurte/ons.svg)](https://github.com/ryankurte/ons)
-[![Build Status](https://travis-ci.com/ryankurte/ons.svg?token=s4CML2iJ2hd54vvqz5FP&branch=master)](https://travis-ci.com/ryankurte/ons)
+[![Build Status](https://travis-ci.com/ryankurte/ons.svg?token=s4CML2iJ2hd54vvqz5FP&branch=master)](https://travis-ci.com/ryankurte/ons/branches)
 
 Very early prototype
 
@@ -39,7 +39,6 @@ Very early prototype
 OSX dependencies can be installed with `brew install libsodium czmq go`, though you may prefer to use the more up-to-date official go package from [golang.org/](https://golang.org/dl/).
 
 
-
 ## Usage
 
 ONS is designed to be platform and network agnostic. To simulate a given platform
@@ -51,6 +50,7 @@ ONS is designed to be platform and network agnostic. To simulate a given platfor
 
 ## Layout
 
+- [cmd](/cmd) contains simulation commands
 - [lib](/lib) contains simulation libraries
 - [lib/simulator](/lib/simulator) links the simulation components
 - [lib/config](/lib/config) defines and parses simulation configurations

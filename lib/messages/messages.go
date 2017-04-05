@@ -16,6 +16,8 @@ const (
 	Connected Type = "connected"
 	// Packet Packet message type
 	Packet Type = "packet"
+	// PacketSent Packet sent message type
+	PacketSent = "packet-sent"
 	// CCAReq CCA request type
 	CCAReq Type = "cca-request"
 	// CCAResp CCA response type
@@ -44,18 +46,11 @@ func NewMessage(messageType Type, address string, data []byte) *Message {
 // GetType fetches the type of the message
 func (message *Message) GetType() Type { return message.messageType }
 
-
 // GetAddress fetches the address of the origin/destination of the message
 func (message *Message) GetAddress() string { return message.address }
 
 // GetData fetches message data
 func (message *Message) GetData() []byte { return message.data }
-
-// MessageCCA is a CCA message
-type MessageCCA struct {
-	*Message
-	cca bool
-}
 
 // GetCCA Fetch Clear Channel Acknowledgement from a CCA message
 func (message *Message) GetCCA() bool { return message.cca }

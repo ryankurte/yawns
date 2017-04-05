@@ -1,11 +1,9 @@
 package config
 
 import (
-	"errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -15,8 +13,6 @@ type Config struct {
 	Name string
 	// End time in ms
 	EndTime time.Duration
-
-	Test Frequency
 
 	// Simulator update tick rate / time in ms
 	TickRate time.Duration
@@ -38,26 +34,6 @@ const (
 	defaultEndTime  = 1 * time.Second
 	defaultTickRate = 100 * time.Millisecond
 )
-
-type Frequency float64
-
-func (f *Frequency) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	freq := ""
-
-	err := unmarshal(&freq)
-	if err != nil {
-		return err
-	}
-
-	s := strings.Split(freq, " ")
-	if len(s) != 2 {
-		return errors.New("Frequency YAML must be in the form VALUE UNIT (ie: '100 Mhz')")
-	}
-
-	log.Printf("Unmarshalled freq: '%s'", freq)
-
-	return nil
-}
 
 // LoadConfig parses a configuration object and initialises defaults
 func loadConfig(c *Config) *Config {

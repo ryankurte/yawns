@@ -5,17 +5,21 @@ type Channels struct {
 	// Number of channels
 	Count uint64
 	// Channel Spacing in Hz
-	Spacing float64
+	Spacing Frequency
 }
 
 // Medium defines the simulator configuration for the medium module
 type Medium struct {
 	// Radio Frequency in Hz
-	Frequency float64
+	Frequency Frequency
+	// Baud rate in bps
+	Baud Baud
+	// Packet overhead in bytes
+	Overhead int
 	// Standard deviation of gaussian fading in dB
-	Fading float64
+	Fading Attenuation
 	// Link Budget in dB
-	LinkBudget float64
+	LinkBudget Attenuation
 	// Packet Error Rate
 	ErrorRate float64
 	// Channel information

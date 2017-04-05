@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"time"
 
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/messages"
@@ -134,24 +135,52 @@ func (m *Medium) handleMessage(message *messages.Message) {
 
 func (m *Medium) sendPacket(from string, data []byte) {
 
-	// Evaluate each link
+	// Set timeout for packet sent response
+	packetTime := float64((len(data) + m.config.Overhead)) / m.config.Baud
+	if node, ok := m.nodes[from]; ok {
+		node.Transmitting = true
+	}
+
+	// Build a list of viable links
+	links := make([]string, 0)
 	for _, l := range m.Links {
+
+		// Skip irrelevant links
+		if l.From != from && l.To != from {
+			continue
+		}
 
 		// Calculate fading (Free space + random)
 		// TODO: this should one day include fresnel zone impingement
+		// Perhaps this could be implemented as fading layers..?
 		fading := l.Fading + GetRandomFading(m.config.Fading)
-		if fading > m.config.LinkBudget {
 
-			// Send the message if link budget is met
-			if l.From == from {
-				m.outCh <- messages.NewMessage(messages.Packet, l.To, data)
-			} else if l.To == from {
-				m.outCh <- messages.NewMessage(messages.Packet, l.From, data)
-			} else {
-				continue
-			}
+		// Drop links where fading is greater than the link budget
+		if fading > m.config.LinkBudget {
+			continue
+		}
+
+		// Add viable links to array
+		if l.From == from {
+			links = append(links, l.To)
+		} else if l.To == from {
+			links = append(links, l.From)
 		}
 	}
+
+	// Run callback after packet send has completed
+	time.AfterFunc(time.Duration(packetTime)*time.Second, func() {
+		// Send packet-sent message to application
+		if node, ok := m.nodes[from]; ok {
+			node.Transmitting = false
+			m.outCh <- messages.NewMessage(messages.PacketSent, from, []byte{})
+		}
+
+		// Send message to viable links
+		for _, l := range links {
+			m.outCh <- messages.NewMessage(messages.Packet, l, data)
+		}
+	})
 }
 
 func (m *Medium) addNode(node *Node) {

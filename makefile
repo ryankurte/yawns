@@ -1,4 +1,4 @@
-default: build client
+default: ons
 
 # Install dependencies
 install: lib
@@ -11,7 +11,7 @@ all: ons lib client
 
 # Build backend and frontend components
 ons:
-	go build ./cmd/ons/
+	go build ./cmd/ons/ -a
 
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/ons/
@@ -33,7 +33,7 @@ run: build
 
 # Test application
 test: ons lib
-	go test -p=1 -timeout=10s ./...
+	go test -p=1 -timeout=10s -ldflags -s ./...
 
 # Utilities
 

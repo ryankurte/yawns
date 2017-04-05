@@ -6,16 +6,16 @@ name: Example Simulation
 endtime: 2s
 tickrate: 500ms
 
-test: 100 MHz
-
 # Wireless Medium Configuration
 medium:
-  frequency: 433e+6
-  linkbudget: 90
-  fading: 6
+  frequency: 433MHz
+  baud: 10kbps
+  overhead: 12
+  linkbudget: 90dB
+  fading: 6dB
   channels: 
     count: 32
-    spacing: 200e+3
+    spacing: 200KHz
 
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)

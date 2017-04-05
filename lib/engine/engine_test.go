@@ -35,6 +35,10 @@ func TestEngine(t *testing.T) {
 		e.BindConnectorChannels(connector.OutputChan, connector.InputChan)
 
 		e.LoadConfig(&cfg)
+
+		e.Setup(false)
+
+		go e.Run()
 	})
 
 	t.Run("Handles location Events", func(t *testing.T) {
