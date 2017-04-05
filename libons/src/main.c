@@ -38,6 +38,8 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, interrupt_handler);
 
+    int count = 0;
+
     while(running) {
         int res = ONS_check_receive(&ons);
         if (res > 0) {
@@ -45,6 +47,15 @@ int main(int argc, char** argv) {
             ONS_print_arr("Received", data, len);
             ONS_send(&ons, data, len);
         }
+
+        data[0] = count ++;
+
+        res = ONS_send(&ons, data, 1);
+        if (res <= 0) {
+            printf("ONS send error: %d\n", res);
+        }
+
+        sleep(30);
     }
 
     printf("Exiting\n");

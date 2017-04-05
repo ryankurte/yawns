@@ -136,7 +136,7 @@ func (m *Medium) handleMessage(message *messages.Message) {
 func (m *Medium) sendPacket(from string, data []byte) {
 
 	// Set timeout for packet sent response
-	packetTime := float64((len(data) + m.config.Overhead)) / m.config.Baud
+	packetTime := float64((len(data) + m.config.Overhead)) / float64(m.config.Baud)
 	if node, ok := m.nodes[from]; ok {
 		node.Transmitting = true
 	}
@@ -153,10 +153,10 @@ func (m *Medium) sendPacket(from string, data []byte) {
 		// Calculate fading (Free space + random)
 		// TODO: this should one day include fresnel zone impingement
 		// Perhaps this could be implemented as fading layers..?
-		fading := l.Fading + GetRandomFading(m.config.Fading)
+		fading := l.Fading + GetRandomFading(float64(m.config.Fading))
 
 		// Drop links where fading is greater than the link budget
-		if fading > m.config.LinkBudget {
+		if fading > float64(m.config.LinkBudget) {
 			continue
 		}
 
@@ -167,6 +167,8 @@ func (m *Medium) sendPacket(from string, data []byte) {
 			links = append(links, l.From)
 		}
 	}
+
+	fmt.Printf("Viable links: %+v", links)
 
 	// Run callback after packet send has completed
 	time.AfterFunc(time.Duration(packetTime)*time.Second, func() {

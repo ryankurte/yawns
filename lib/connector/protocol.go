@@ -56,14 +56,13 @@ func (c *ZMQConnector) handleClientReceive(data [][]byte) error {
 		// Bind address to ID lookup for sending
 		address := string(body)
 		_, ok := c.clients[address]
-		if !ok {
+		if ok {
 
 			// Save to list
 			c.clients[address] = clientID
 
 			// Send connected event
 			c.OutputChan <- messages.NewMessage(messages.Connected, address, []byte{})
-
 		}
 
 	case onsMessageIDPacket:

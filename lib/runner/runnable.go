@@ -81,9 +81,10 @@ func (runnable *Runnable) Start() error {
 	}
 
 	// Create channels
-	runnable.Cmd.InputChan = make(chan string, 128)
-	runnable.Cmd.OutputChan = make(chan string, 128)
-	runnable.Cmd.ShowOutput = true
+	runnable.Cmd.InputChan = make(chan string)
+	runnable.Cmd.OutputChan = make(chan string, 1024)
+	runnable.Cmd.ShowOutput = false
+	//runnable.Cmd.OutputPrefix = "TEST"
 
 	// Launch command
 	err = runnable.Cmd.Start()

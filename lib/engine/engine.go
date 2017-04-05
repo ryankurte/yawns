@@ -33,9 +33,11 @@ type Engine struct {
 }
 
 // NewEngine creates a new engine instance
-func NewEngine() *Engine {
+func NewEngine(c *config.Config) *Engine {
 	// Create engine object
 	e := Engine{}
+
+	e.loadConfig(c)
 
 	e.pluginManager = plugins.NewPluginManager()
 
@@ -52,7 +54,7 @@ func (e *Engine) BindRunnerChannel(logCh chan string) {
 }
 
 // LoadConfig Loads a simulation config
-func (e *Engine) LoadConfig(c *config.Config) {
+func (e *Engine) loadConfig(c *config.Config) {
 
 	// Load settings
 	e.tickRate = c.TickRate
@@ -149,8 +151,30 @@ setup:
 		}
 
 		select {
+		// Loop / recheck
+		case <-time.After(1 * time.Second):
+			continue
+
+		// Connector inputs
+		case message, ok := <-e.connectorReadCh:
+			if !ok {
+				log.Printf("Connector channel error")
+				break setup
+			}
+			e.HandleConnectorMessage(message)
+
+		// Runner log inputs
+		case line, ok := <-e.runnerLogCh:
+			if !ok {
+				log.Printf("Runner channel error")
+				break setup
+			}
+			log.Printf("Runner: %s", line)
+
+		// Interrupt channel
 		case <-ch:
 			return fmt.Errorf("Engine interrupted awaiting node connections")
+		// Timeout channel
 		case <-time.After(1 * time.Minute):
 			return fmt.Errorf("Engine timeout awaiting node connections")
 		}

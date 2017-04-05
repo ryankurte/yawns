@@ -12,7 +12,7 @@ func TestRunner(t *testing.T) {
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
 
-		var runner = NewRunner()
+		var runner = NewRunner(nil, make(map[string]string))
 		runner.NewRunnable("testOne", "echo", "{{.arg1}} {{.arg2}}", args)
 		runner.NewRunnable("testTwo", "echo", "{{.arg1}} {{.arg2}}", args)
 

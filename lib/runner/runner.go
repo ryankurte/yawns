@@ -27,15 +27,23 @@ type Runner struct {
 }
 
 // NewRunner Creates a new Runner instance
-func NewRunner() *Runner {
-	return &Runner{
+func NewRunner(c *config.Config, args map[string]string) *Runner {
+	r := Runner{
 		OutputChan: make(chan string, 128),
 		clients:    make(map[string]*Runnable),
 	}
+
+	r.loadConfig(c, args)
+
+	return &r
 }
 
 // LoadConfig loads clients from a provided configuration
-func (runner *Runner) LoadConfig(c *config.Config, args map[string]string) {
+func (runner *Runner) loadConfig(c *config.Config, args map[string]string) {
+	if c == nil {
+		return
+	}
+
 	for _, n := range c.Nodes {
 		if n.Address != "" && n.Executable != "" && n.Command != "" {
 			runner.NewRunnable(n.Address, n.Executable, n.Command, args)
@@ -111,6 +119,7 @@ func collect(address string, in chan string, out chan string) {
 		select {
 		case d, ok := <-in:
 			if !ok {
+				log.Printf("Runner.collect error channel closed")
 				return
 			}
 			out <- fmt.Sprintf("[CLIENT %s] %s", address, d)

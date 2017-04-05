@@ -11,8 +11,8 @@ medium:
   frequency: 433MHz
   baud: 10kbps
   overhead: 12
-  linkbudget: 90dB
-  fading: 6dB
+  linkbudget: 92dB
+  fading: 0dB
   channels: 
     count: 32
     spacing: 200KHz

@@ -31,10 +31,8 @@ func TestEngine(t *testing.T) {
 		node := config.Node{Address: "TestAddress", Location: config.Location{Lat: 0.0, Lng: 0.0}}
 		cfg.Nodes = append(cfg.Nodes, node)
 
-		e = NewEngine()
+		e = NewEngine(&cfg)
 		e.BindConnectorChannels(connector.OutputChan, connector.InputChan)
-
-		e.LoadConfig(&cfg)
 
 		e.Setup(false)
 

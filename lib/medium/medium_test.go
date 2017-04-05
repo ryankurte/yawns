@@ -7,6 +7,7 @@ import (
 import (
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/messages"
+	"time"
 )
 
 func TestMedium(t *testing.T) {
@@ -45,14 +46,30 @@ func TestMedium(t *testing.T) {
 		message := messages.NewMessage(messages.Packet, "0x0001", []byte("test"))
 		m.inCh <- message
 
-		// Responses should be in order
+		time.Sleep(100 * time.Millisecond)
+
+		// First message will be send complete
 		resp := <-m.outCh
+		if addr := "0x0001"; resp.GetAddress() != addr {
+			t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
+		}
+		if messageType := messages.PacketSent; resp.GetType() != messageType {
+			t.Errorf("Incorrect message type (actual: %s expected: %s)", resp.GetType(), messageType)
+		}
+
+		// Responses should be in order
+		resp = <-m.outCh
+		if addr := "0x0002"; resp.GetAddress() != addr {
+			t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
+		}
+
+		resp = <-m.outCh
 		if addr := "0x0003"; resp.GetAddress() != addr {
 			t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
 		}
 
 		resp = <-m.outCh
-		if addr := "0x0005"; resp.GetAddress() != addr {
+		if addr := "0x0004"; resp.GetAddress() != addr {
 			t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
 		}
 

@@ -6,7 +6,6 @@ import (
 	"github.com/ryankurte/ons/lib/engine"
 	"github.com/ryankurte/ons/lib/runner"
 	"log"
-	"time"
 )
 
 // Simulator instance
@@ -18,32 +17,28 @@ type Simulator struct {
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
-	// Create the underlying engine
-	e := engine.NewEngine()
-
-	// Load and bind connector
-	c := connector.NewZMQConnector(o.BindAddr)
-	e.BindConnectorChannels(c.OutputChan, c.InputChan)
-
-	// Create and bind client runner
-	r := runner.NewRunner()
-	e.BindRunnerChannel(r.OutputChan)
-
 	// Load configuration file
 	config, err := config.LoadConfigFile(o.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
 
+	// Create the underlying engine
+	e := engine.NewEngine(config)
+
+	// Load and bind connector
+	c := connector.NewZMQConnector(o.BindAddr)
+	e.BindConnectorChannels(c.OutputChan, c.InputChan)
+
 	// Add client address to args
 	args := make(map[string]string)
 	args["server"] = o.ClientAddr
 
-	// Load configuration into engine
-	e.LoadConfig(config)
+	// Create and bind client runner
+	r := runner.NewRunner(config, args)
+	e.BindRunnerChannel(r.OutputChan)
 
-	// Load configuration into runner
-	r.LoadConfig(config, args)
+	log.Printf("Starting runnable clients")
 
 	// Launch clients via runner
 	err = r.Start()
@@ -51,11 +46,14 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
-	time.Sleep(100 * time.Millisecond)
+	log.Printf("Configuring simulation engine")
 
 	// Run engine setup
-	err = e.Setup(false)
+	err = e.Setup(true)
 	if err != nil {
+		// Stop runnables
+		r.Stop()
+
 		return nil, err
 	}
 
@@ -86,5 +84,4 @@ func (s *Simulator) Run() error {
 func (s *Simulator) Close() {
 
 	s.runner.Stop()
-
 }

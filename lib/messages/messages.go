@@ -17,7 +17,7 @@ const (
 	// Packet Packet message type
 	Packet Type = "packet"
 	// PacketSent Packet sent message type
-	PacketSent = "packet-sent"
+	PacketSent Type = "packet-sent"
 	// CCAReq CCA request type
 	CCAReq Type = "cca-request"
 	// CCAResp CCA response type

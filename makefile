@@ -11,7 +11,7 @@ all: ons lib client
 
 # Build backend and frontend components
 ons:
-	go build ./cmd/ons/ -a
+	go build -ldflags -s ./cmd/ons/
 
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/ons/
@@ -48,4 +48,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: build run test lint format coverage libons
+.PHONY: ons lib run test lint format coverage

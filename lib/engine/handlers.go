@@ -26,12 +26,15 @@ func (e *Engine) HandleConnectorMessage(message *messages.Message) {
 
 // OnConnected called when a node connects
 func (e *Engine) OnConnected(address string) {
-	n, ok := e.nodes[address]
+	log.Printf("OnConnected called")
+	node, ok := e.nodes[address]
 	if !ok {
+		log.Printf("Node registration not found")
 		return
 	}
 	log.Printf("Node %s connected", address)
-	n.connected = true
+	node.connected = true
+	e.nodes[address] = node
 
 	// Call connected plugins
 	e.pluginManager.OnConnected(address)
@@ -40,6 +43,8 @@ func (e *Engine) OnConnected(address string) {
 
 // OnReceived called when a packet is received from the connector
 func (e *Engine) OnReceived(address string, data []byte) {
+	log.Printf("OnReceived called")
+
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
@@ -55,6 +60,8 @@ func (e *Engine) OnReceived(address string, data []byte) {
 
 // OnSend called when a packet is sent to the connector
 func (e *Engine) OnSend(address string, data []byte) {
+	log.Printf("OnSend called")
+
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
