@@ -17,7 +17,7 @@ import (
 
 // Engine is the base simulation engine
 type Engine struct {
-	nodes         map[string]Node
+	nodes         map[string]*Node
 	Events        []*Event
 	pluginManager *plugins.PluginManager
 
@@ -61,7 +61,7 @@ func (e *Engine) loadConfig(c *config.Config) {
 	e.endTime = c.EndTime
 
 	// Create map of nodes
-	e.nodes = make(map[string]Node)
+	e.nodes = make(map[string]*Node)
 	for _, n := range c.Nodes {
 		node := Node{
 			Node:      &n,
@@ -69,7 +69,7 @@ func (e *Engine) loadConfig(c *config.Config) {
 			received:  0,
 			sent:      0,
 		}
-		e.nodes[n.Address] = node
+		e.nodes[n.Address] = &node
 	}
 
 	// Create Event array
@@ -111,7 +111,7 @@ func (e *Engine) handleNodeEvent(address string, action config.EventAction, data
 	var err error
 	switch action {
 	case config.EventSetLocation:
-		err = HandleSetLocationEvent(&node, data)
+		err = HandleSetLocationEvent(node, data)
 
 	default:
 		return fmt.Errorf("handleEvent error, unrecognised action (%s)", action)
@@ -125,7 +125,7 @@ func (e *Engine) handleNodeEvent(address string, action config.EventAction, data
 
 func (e *Engine) getNode(address string) (*Node, error) {
 	if node, ok := e.nodes[address]; ok {
-		return &node, nil
+		return node, nil
 	}
 	return nil, fmt.Errorf("Node %s not found", address)
 }
@@ -141,7 +141,7 @@ func (e *Engine) Setup(wait bool) error {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
 	// Await node connections
-	log.Printf("Awaiting node connections...")
+	log.Printf("Setup: Awaiting node connections...")
 
 setup:
 	for {
@@ -180,7 +180,7 @@ setup:
 		}
 	}
 
-	log.Printf("Connections completed")
+	log.Printf("Setup: All nodes connected")
 
 	return nil
 }
@@ -214,7 +214,7 @@ func (e *Engine) Run() error {
 
 	// Run simulation
 	e.startTime = time.Now()
-	log.Printf("Starting simulation")
+	log.Printf("Simulation: starting")
 
 	var lastTime time.Duration
 
@@ -224,7 +224,7 @@ running:
 		// Simulation Event ticks
 		case <-time.After(lastTime + e.tickRate):
 			lastTime += e.tickRate
-			log.Printf("Simulation tick: %s", lastTime)
+			log.Printf("Simulation: tick: %s", lastTime)
 			e.handleEvents(lastTime)
 
 		// Connector inputs
@@ -245,12 +245,12 @@ running:
 
 		// Handle command line interrupts
 		case <-interruptCh:
-			log.Printf("Interrupting simulation after %s", time.Now().Sub(e.startTime))
+			log.Printf("Simulation: interrupted after %s", time.Now().Sub(e.startTime))
 			break running
 
 		// Exit once endtime has occurred
 		case <-time.After(e.endTime):
-			log.Printf("Simulation complete")
+			log.Printf("Simulation: completed")
 			break running
 		}
 	}

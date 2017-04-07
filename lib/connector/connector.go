@@ -72,7 +72,7 @@ func (c *ZMQConnector) Run() {
 				break
 			}
 
-			log.Printf("RX from client: %+v", p)
+			//log.Printf("RX from client: %+v", p)
 
 			c.handleClientReceive(p)
 
@@ -83,7 +83,7 @@ func (c *ZMQConnector) Run() {
 				break
 			}
 
-			log.Printf("RX from server: %+v", p)
+			//log.Printf("RX from server: %+v", p)
 
 			c.handleMessageReceive(p)
 		}

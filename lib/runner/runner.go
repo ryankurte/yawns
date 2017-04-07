@@ -14,9 +14,7 @@ package runner
 import (
 	"fmt"
 	"log"
-)
 
-import (
 	"github.com/ryankurte/ons/lib/config"
 )
 
@@ -29,7 +27,7 @@ type Runner struct {
 // NewRunner Creates a new Runner instance
 func NewRunner(c *config.Config, args map[string]string) *Runner {
 	r := Runner{
-		OutputChan: make(chan string, 128),
+		OutputChan: make(chan string, 1024),
 		clients:    make(map[string]*Runnable),
 	}
 
@@ -66,8 +64,8 @@ func (runner *Runner) NewRunnable(address, executable, command string, args map[
 func (runner *Runner) Start() error {
 
 	// Launch clients
-	for name, runner := range runner.clients {
-		log.Printf("Runner.Start starting client %s", name)
+	for _, runner := range runner.clients {
+		//log.Printf("Runner.Start starting client %s", name)
 		err := runner.Start()
 		if err != nil {
 			return err
@@ -80,6 +78,10 @@ func (runner *Runner) Start() error {
 	}
 
 	return nil
+}
+
+func (runner *Runner) Close() {
+
 }
 
 // Info prints info about the runner
@@ -99,11 +101,9 @@ func (runner *Runner) Write(address, line string) {
 
 // Stop exits all child clients
 func (runner *Runner) Stop() error {
-
 	errors := make(map[string]error)
 
 	for name, runner := range runner.clients {
-		log.Printf("Runner.Stop exiting client %s", name)
 		err := runner.Exit()
 		if err != nil {
 			errors[name] = err
@@ -122,6 +122,7 @@ func collect(address string, in chan string, out chan string) {
 				log.Printf("Runner.collect error channel closed")
 				return
 			}
+			log.Printf("[CLIENT %s] %s", address, d)
 			out <- fmt.Sprintf("[CLIENT %s] %s", address, d)
 		}
 	}

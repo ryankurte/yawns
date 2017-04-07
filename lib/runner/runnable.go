@@ -13,9 +13,7 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-)
 
-import (
 	"gopkg.in/ryankurte/go-async-cmd.v1"
 )
 
@@ -29,27 +27,32 @@ type Runnable struct {
 
 // NewRunnable Create a new runnable instance
 func NewRunnable(executable string, command string, args map[string]string) *Runnable {
-	runnable := new(Runnable)
+	runnable := Runnable{
+		executable: executable,
+		command:    command,
+		args:       make(map[string]string),
+	}
 
-	runnable.executable = executable
-	runnable.command = command
-	runnable.args = args
+	// Arguments must be copied otherwise reference array will change
+	for k, v := range args {
+		runnable.args[k] = v
+	}
 
-	return runnable
+	return &runnable
 }
 
-func (runnable *Runnable) generateArgs() (string, error) {
+func generateArgs(command string, args map[string]string) (string, error) {
 	// Parse supplied template
-	tmpl, err := template.New("runner").Parse(runnable.command)
+	tmpl, err := template.New("runner").Parse(command)
 	if err != nil {
-		return "", fmt.Errorf("Runner.Run error parsing template (%s)", err)
+		return "", fmt.Errorf("Runnable.generateArgs error parsing template (%s)", err)
 	}
 
 	// Generate command string from template
 	var runCmd bytes.Buffer
-	err = tmpl.Execute(&runCmd, runnable.args)
+	err = tmpl.Execute(&runCmd, args)
 	if err != nil {
-		return "", fmt.Errorf("Runner.Run error generating run command (%s)", err)
+		return "", fmt.Errorf("Runnable.generateArgs error generating run command (%s)", err)
 	}
 
 	return runCmd.String(), nil
@@ -65,23 +68,20 @@ func (runnable *Runnable) Start() error {
 	var err error
 
 	// Generate command args
-	var args string
-	if runnable.args != nil {
-		args, err = runnable.generateArgs()
-		if err != nil {
-			return err
-		}
+	args, err := generateArgs(runnable.command, runnable.args)
+	if err != nil {
+		return err
 	}
 
 	// Create command
-	if runnable.args != nil {
+	if args != "" {
 		runnable.Cmd = gocmd.Command(runnable.executable, strings.Split(args, " ")...)
 	} else {
 		runnable.Cmd = gocmd.Command(runnable.executable)
 	}
 
 	// Create channels
-	runnable.Cmd.InputChan = make(chan string)
+	runnable.Cmd.InputChan = make(chan string, 1024)
 	runnable.Cmd.OutputChan = make(chan string, 1024)
 	runnable.Cmd.ShowOutput = false
 	//runnable.Cmd.OutputPrefix = "TEST"

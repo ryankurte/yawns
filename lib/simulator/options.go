@@ -21,6 +21,8 @@ func DefaultOptions() Options {
 		BindAddr:   "tcp://*:10109",
 		PCAPFile:   "",
 		PCAPStream: "",
+		ReportFile: "",
+		LogDir:     "",
 		ClientAddr: "tcp://localhost:10109",
 	}
 }

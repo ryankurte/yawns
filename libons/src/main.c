@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         data[0] = count ++;
 
         res = ONS_send(&ons, data, 1);
-        if (res <= 0) {
+        if (res < 0) {
             printf("ONS send error: %d\n", res);
         }
 
