@@ -15,6 +15,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/ryankurte/go-rf"
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/messages"
 	"gopkg.in/yaml.v2"
