@@ -4,16 +4,19 @@ import (
 	"math/rand"
 
 	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/types"
 )
 
+// Random models random fading based on a normal distribution
 type Random struct {
-	distribution float64
 }
 
-func NewRandom(distribution float64) *Random {
-	return &Random{distribution}
+// NewRandom creates a random fading layer
+func NewRandom() *Random {
+	return &Random{}
 }
 
-func (r *Random) CalculateFading(freq float64, p1, p2 config.Location) float64 {
-	return rand.NormFloat64() * r.distribution
+// CalculateFading calculates random fading based on an independent normal distribution
+func (r *Random) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
+	return rand.NormFloat64() * float64(band.RandomDeviation)
 }

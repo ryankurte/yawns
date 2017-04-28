@@ -10,5 +10,6 @@ type Node struct {
 	Command    string            // Command is the command to be passed to the executable by the runner (if provided)
 	Arguments  map[string]string // Arguments is a map of the arguments to be provided to the node instance by the runner
 
-	sent, received uint32 // Sent and Received packet count
+	Sent, Received uint32 // Sent and Received packet count
+	Transmitting   bool
 }

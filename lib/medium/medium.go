@@ -10,15 +10,13 @@ package medium
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"math"
 	"time"
 
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/medium/layers"
 	"github.com/ryankurte/ons/lib/messages"
-	"gopkg.in/yaml.v2"
+	"github.com/ryankurte/ons/lib/types"
 )
 
 // Link encapsulates a link between two nodes
@@ -28,17 +26,10 @@ type Link struct {
 	Fading   float64
 }
 
-type Node struct {
-	config.Node
-	Transmitting bool
-	Receiving    bool
-}
-
 // Medium is the wireless medium simulation instance
 type Medium struct {
 	config *config.Medium
-	nodes  *[]Node
-	Links  []Link
+	nodes  *[]types.Node
 
 	layerManager *layers.LayerManager
 
@@ -47,66 +38,49 @@ type Medium struct {
 }
 
 // NewMedium creates a new medium instance
-func NewMedium(c *config.Medium) *Medium {
+func NewMedium(c *config.Medium, nodes *[]types.Node) *Medium {
 	// Create base medium object
 	m := Medium{
 		config:       c,
 		inCh:         make(chan *messages.Message, 128),
 		outCh:        make(chan *messages.Message, 128),
 		layerManager: layers.NewLayerManager(),
+		nodes:        nodes,
 	}
 
 	// Load medium simulation layers
 	m.layerManager.BindLayer(layers.NewFreeSpace())
-	m.layerManager.BindLayer(layers.NewRandom(float64(c.Medium.RandomDeviation)))
-
-	// Load nodes from configuration
-	// Note this is iterated to maintain config file order
-	for _, a := range c.Nodes {
-		for _, b := range c.Nodes {
-			if a.Address != b.Address {
-				if link := m.findLink(b.Address, a.Address); link != nil {
-					continue
-				}
-
-				log.Printf("Creating link from %s to %s", a.Address, b.Address)
-				m.createLink(m.nodes[a.Address], m.nodes[b.Address])
-			}
-		}
-	}
-
-	log.Printf("Links: %+v", m.Links)
+	m.layerManager.BindLayer(layers.NewRandom())
 
 	return &m
 }
 
-func (m *Medium) WriteYML(file string) error {
-	data, err := yaml.Marshal(m)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(file, data, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+// GetPointToPointFading fetches the (instantaneous) fading between two nodes at a given frequency
+func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.Attenuation {
+	return types.Attenuation(m.layerManager.CalculateFading(band, n1.Location, n2.Location))
 }
 
-func (m *Medium) GetVisible(from string) []string {
-	visible := make([]string, 0)
+// GetVisible fetches a list of visible nodes for a provided source node
+func (m *Medium) GetVisible(source types.Node, band config.Band) ([]*types.Node, []float64, error) {
+	visible := make([]*types.Node, 0)
+	attenuation := make([]float64, 0)
 
-	for _, link := range m.Links {
-		if link.From == from {
-			visible = append(visible, link.To)
+	// Iterate through node array
+	for _, node := range *m.nodes {
+		// Skip source node
+		if node.Address == source.Address {
+			continue
 		}
-		if link.To == from {
-			visible = append(visible, link.From)
+
+		// Calculate fading and add links where appropriate
+		fading := m.GetPointToPointFading(band, source, node)
+		if band.LinkBudget > fading {
+			visible = append(visible, &node)
+			attenuation = append(attenuation, float64(fading))
 		}
 	}
 
-	return visible
+	return visible, attenuation, nil
 }
 
 func (m *Medium) Run() {
@@ -129,70 +103,62 @@ running:
 func (m *Medium) handleMessage(message *messages.Message) {
 	switch message.GetType() {
 	case messages.Packet:
-		m.sendPacket(message.GetAddress(), message.GetData())
+		//m.sendPacket(message.GetAddress(), message.GetData())
 	default:
 		log.Printf("Medium unhandled message: %+v", message)
 	}
 
 }
 
-// CalculateFading calculates the fading between two points using the available layers
-func (m *Medium) CalculateFading(freq float64, p1, p2 config.Location) float64 {
-	fading := 0.0
-	for _, layer := range m.layers {
-		fading += layer.CalculateFading(freq, p1, p2)
-	}
-	return fading
-}
+func (m *Medium) sendPacket(fromAddr string, bandName string, data []byte) error {
 
-func (m *Medium) sendPacket(from string, data []byte) {
+	// Locate source node
+	source, err := m.getNodeByAddr(fromAddr)
+	if err != nil {
+		return err
+	}
+
+	// Locate matching band
+	band, ok := m.config.Bands[bandName]
+	if !ok {
+		return fmt.Errorf("Medium error: no matching band (%s)", bandName)
+	}
 
 	// Set timeout for packet sent response
-	packetTime := float64((len(data) + m.config.Overhead)) / float64(m.config.Baud)
-	if node, ok := m.nodes[from]; ok {
-		node.Transmitting = true
-	}
+	packetTime := float64((len(data) + band.PacketOverhead)) / float64(band.Baud)
+	source.Transmitting = true
 
 	// Build a list of viable links
-	links := make([]string, 0)
-	for _, l := range m.Links {
-
-		// Skip irrelevant links
-		if l.From != from && l.To != from {
-			continue
-		}
-
-		// Calculate fading (Free space + random)
-		// TODO: this should one day include fresnel zone impingement
-		// Perhaps this could be implemented as fading layers..?
-		fading := l.Fading + GetRandomFading(float64(m.config.Fading))
-
-		// Drop links where fading is greater than the link budget
-		if fading > float64(m.config.LinkBudget) {
-			continue
-		}
-
-		// Add viable links to array
-		if l.From == from {
-			links = append(links, l.To)
-		} else if l.To == from {
-			links = append(links, l.From)
-		}
-	}
+	links, _, err := m.GetVisible(*source, band)
 
 	fmt.Printf("Viable links: %+v", links)
 
 	// Run callback after packet send has completed
 	time.AfterFunc(time.Duration(packetTime)*time.Second, func() {
 		// Send packet-sent message to application
-		if node, ok := m.nodes[from]; ok {
-			node.Transmitting = false
-			m.outCh <- messages.NewMessage(messages.PacketSent, from, []byte{})
-		}
+		source.Transmitting = false
+		m.outCh <- messages.NewMessage(messages.PacketSent, source.Address, []byte{})
 
 		// Send message to viable links
-		for _, l := range links {
-			m.outCh <- messages.NewMessage(messages.Packet, l, data)
+		for _, node := range links {
+			m.outCh <- messages.NewMessage(messages.Packet, node.Address, data)
 		}
 	})
+
+	return nil
+}
+
+func (m *Medium) getNodeByAddr(addr string) (*types.Node, error) {
+	var found *types.Node
+	for _, node := range *m.nodes {
+		if node.Address == addr {
+			found = &node
+			break
+		}
+	}
+	if found == nil {
+		return nil, fmt.Errorf("no node found matching the provided address (%s)", addr)
+	}
+
+	return found, nil
 }

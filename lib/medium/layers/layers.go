@@ -13,11 +13,12 @@ import (
 	"fmt"
 
 	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/types"
 )
 
 // FadingLayer interface for layers implementing fading calculations
 type FadingLayer interface {
-	CalculateFading(freq float64, p1, p2 config.Location) float64
+	CalculateFading(band config.Band, p1, p2 types.Location) float64
 }
 
 // InfoLayer allows layers to return arbitrary info structures
@@ -70,10 +71,10 @@ func (lm *LayerManager) BindLayer(layer interface{}) error {
 }
 
 // CalculateFading calculates the overall fading using the provided layers
-func (lm *LayerManager) CalculateFading(freq float64, p1, p2 config.Location) float64 {
+func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
 	fading := 0.0
 	for _, layer := range lm.fadingLayers {
-		fading += layer.CalculateFading(freq, p1, p2)
+		fading += layer.CalculateFading(band, p1, p2)
 	}
 	return fading
 }

@@ -23,5 +23,5 @@ type Band struct {
 
 // Medium defines the simulator configuration for the medium module
 type Medium struct {
-	Bands []Band // Frequency bands in simulation
+	Bands map[string]Band // Frequency bands in simulation
 }

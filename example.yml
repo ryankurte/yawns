@@ -10,7 +10,7 @@ tickrate: 500ms
 # This defines the communication bands to be simulated
 medium:
   bands:
-    - name: Sub1GHz
+    Sub1GHz:
       frequency: 433MHz
       baud: 10kbps
       overhead: 12
@@ -19,7 +19,7 @@ medium:
       channels: 
         count: 32
         spacing: 200KHz
-    - name: IEEE802.15.4-2.4GHz
+    IEEE802.15.4-2.4GHz:
       frequency: 2.45GHz
       baud: 250kbps
       packetoverhead: 12
