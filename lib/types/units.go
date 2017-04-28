@@ -1,5 +1,6 @@
-package config
+package types
 
+// Frequency type for parsing/rendering
 type Frequency float64
 
 func (f *Frequency) MarshalText() ([]byte, error) {
@@ -15,6 +16,7 @@ func (f *Frequency) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// Distance type for parsing/rendering
 type Distance float64
 
 func (d *Distance) MarshalText() ([]byte, error) {
@@ -30,6 +32,7 @@ func (d *Distance) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// Attenuation type for parsing/rendering
 type Attenuation float64
 
 func (a *Attenuation) MarshalText() ([]byte, error) {
@@ -45,6 +48,7 @@ func (a *Attenuation) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// Baud type for parsing/rendering
 type Baud float64
 
 func (b *Baud) MarshalText() ([]byte, error) {

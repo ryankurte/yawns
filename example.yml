@@ -7,15 +7,27 @@ endtime: 2s
 tickrate: 500ms
 
 # Wireless Medium Configuration
+# This defines the communication bands to be simulated
 medium:
-  frequency: 433MHz
-  baud: 10kbps
-  overhead: 12
-  linkbudget: 92dB
-  randomdeviation: 0dB
-  channels: 
-    count: 32
-    spacing: 200KHz
+  bands:
+    - name: Sub1GHz
+      frequency: 433MHz
+      baud: 10kbps
+      overhead: 12
+      linkbudget: 92dB
+      randomdeviation: 0dB
+      channels: 
+        count: 32
+        spacing: 200KHz
+    - name: IEEE802.15.4-2.4GHz
+      frequency: 2.45GHz
+      baud: 250kbps
+      packetoverhead: 12
+      linkbudget: 70dB
+      randomdeviation: 0dB
+      channels: 
+        count: 16
+        spacing: 200KHz
 
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
@@ -49,10 +61,10 @@ nodes:
 
 # Event definitions
 # These define changes to the simulation and environment at a given point in time
-Events:
-  - timestamp: 1s
+events:
+  - action: "set-location"
+    timestamp: 1s
     nodes: [0x0001]
-    action: "set-location"
     comment: Event the location of node 0x001 at 30s into the simulation
     data:
       lat: -36.845214

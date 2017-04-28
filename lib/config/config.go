@@ -1,10 +1,12 @@
 package config
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"time"
+
+	"github.com/ryankurte/ons/lib/types"
+	"gopkg.in/yaml.v2"
 )
 
 // Config Engine configuration
@@ -21,10 +23,10 @@ type Config struct {
 	Medium Medium
 
 	// Defaults defines default settings for each node
-	Defaults Node
+	Defaults types.Node
 
 	// Nodes definitions for the engine
-	Nodes []Node
+	Nodes []types.Node
 
 	// Event actions to execute when running
 	Events []Event

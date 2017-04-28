@@ -36,8 +36,8 @@ type Node struct {
 
 // Medium is the wireless medium simulation instance
 type Medium struct {
-	config config.Medium
-	nodes  map[string]Node
+	config *config.Medium
+	nodes  *[]Node
 	Links  []Link
 
 	layerManager *layers.LayerManager
@@ -47,20 +47,13 @@ type Medium struct {
 }
 
 // NewMedium creates a new medium instance
-func NewMedium(c *config.Config) *Medium {
+func NewMedium(c *config.Medium) *Medium {
 	// Create base medium object
 	m := Medium{
-		config:       c.Medium,
+		config:       c,
 		inCh:         make(chan *messages.Message, 128),
 		outCh:        make(chan *messages.Message, 128),
 		layerManager: layers.NewLayerManager(),
-		Links:        make([]Link, 0),
-	}
-
-	// Create array of nodes
-	m.nodes = make(map[string]Node)
-	for _, node := range c.Nodes {
-		m.nodes[node.Address] = Node{node, false, false}
 	}
 
 	// Load medium simulation layers
@@ -202,51 +195,4 @@ func (m *Medium) sendPacket(from string, data []byte) {
 			m.outCh <- messages.NewMessage(messages.Packet, l, data)
 		}
 	})
-}
-
-func (m *Medium) addNode(node *Node) {
-	m.nodes[node.Address] = *node
-
-	for addr, n := range m.nodes {
-		if addr != node.Address {
-			m.createLink(*node, n)
-		}
-	}
-}
-
-func (m *Medium) findLink(from, to string) *Link {
-	for _, l := range m.Links {
-		if l.From == from && l.To == to {
-			return &l
-		}
-	}
-	return nil
-}
-
-func (m *Medium) updateLink(link *Link) (*Link, error) {
-	to, ok := m.nodes[link.To]
-	if !ok {
-		return nil, fmt.Errorf("Node not found (%s)", link.To)
-	}
-	from, ok := m.nodes[link.From]
-	if !ok {
-		return nil, fmt.Errorf("Node not found (%s)", link.From)
-	}
-
-	link.Distance = math.Floor(GetDistance(&from.Location, &to.Location))
-	link.Fading = FreeSpaceAttenuationDB(Frequency(m.config.Frequency), Distance(link.Distance))
-
-	return link, nil
-}
-
-func (m *Medium) createLink(a, b Node) {
-	link := &Link{
-		From: a.Address,
-		To:   b.Address,
-	}
-
-	link, _ = m.updateLink(link)
-
-	m.Links = append(m.Links, *link)
-
 }

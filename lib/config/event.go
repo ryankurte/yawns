@@ -16,8 +16,6 @@ const (
 type Event struct {
 	// Simulation time at which the Event action should be executed
 	TimeStamp time.Duration
-	// Module to pass Event to
-	//Module string
 	// Node address for Event to be applied
 	Nodes []string
 	// Event action to be executed

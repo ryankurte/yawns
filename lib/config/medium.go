@@ -1,18 +1,27 @@
 package config
 
+import (
+	"github.com/ryankurte/ons/lib/types"
+)
+
 // Channels defines channel information for the medium
 type Channels struct {
-	Count   uint64    // Number of channels
-	Spacing Frequency // Channel Spacing in Hz
+	Count   uint64          // Number of channels
+	Spacing types.Frequency // Channel Spacing in Hz
+}
+
+// Band is a simulated frequency band
+type Band struct {
+	Frequency       types.Frequency   // Radio Frequency in Hz
+	Baud            types.Baud        // Baud rate in bps
+	PacketOverhead  int               // Packet overhead in bytes
+	RandomDeviation types.Attenuation // Standard deviation of gaussian fading in dB
+	LinkBudget      types.Attenuation // Link Budget in dB
+	ErrorRate       float64           // Packet Error Rate
+	Channels        Channels          // Channel information
 }
 
 // Medium defines the simulator configuration for the medium module
 type Medium struct {
-	Frequency       Frequency   // Radio Frequency in Hz
-	Baud            Baud        // Baud rate in bps
-	Overhead        int         // Packet overhead in bytes
-	RandomDeviation Attenuation // Standard deviation of gaussian fading in dB
-	LinkBudget      Attenuation // Link Budget in dB
-	ErrorRate       float64     // Packet Error Rate
-	Channels        Channels    // Channel information
+	Bands []Band // Frequency bands in simulation
 }
