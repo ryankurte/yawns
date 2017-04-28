@@ -15,8 +15,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/ryankurte/go-rf"
 	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/medium/layers"
 	"github.com/ryankurte/ons/lib/messages"
 	"gopkg.in/yaml.v2"
 )
@@ -40,26 +40,35 @@ type Medium struct {
 	nodes  map[string]Node
 	Links  []Link
 
+	layerManager *layers.LayerManager
+
 	inCh  chan *messages.Message
 	outCh chan *messages.Message
 }
 
 // NewMedium creates a new medium instance
 func NewMedium(c *config.Config) *Medium {
+	// Create base medium object
 	m := Medium{
-		config: c.Medium,
-		inCh:   make(chan *messages.Message, 128),
-		outCh:  make(chan *messages.Message, 128),
+		config:       c.Medium,
+		inCh:         make(chan *messages.Message, 128),
+		outCh:        make(chan *messages.Message, 128),
+		layerManager: layers.NewLayerManager(),
+		Links:        make([]Link, 0),
 	}
 
+	// Create array of nodes
 	m.nodes = make(map[string]Node)
 	for _, node := range c.Nodes {
 		m.nodes[node.Address] = Node{node, false, false}
 	}
 
-	m.Links = make([]Link, 0)
+	// Load medium simulation layers
+	m.layerManager.BindLayer(layers.NewFreeSpace())
+	m.layerManager.BindLayer(layers.NewRandom(float64(c.Medium.RandomDeviation)))
 
-	// Iterate over nodes from config to ensure order is maintained
+	// Load nodes from configuration
+	// Note this is iterated to maintain config file order
 	for _, a := range c.Nodes {
 		for _, b := range c.Nodes {
 			if a.Address != b.Address {
@@ -132,6 +141,15 @@ func (m *Medium) handleMessage(message *messages.Message) {
 		log.Printf("Medium unhandled message: %+v", message)
 	}
 
+}
+
+// CalculateFading calculates the fading between two points using the available layers
+func (m *Medium) CalculateFading(freq float64, p1, p2 config.Location) float64 {
+	fading := 0.0
+	for _, layer := range m.layers {
+		fading += layer.CalculateFading(freq, p1, p2)
+	}
+	return fading
 }
 
 func (m *Medium) sendPacket(from string, data []byte) {

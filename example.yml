@@ -12,7 +12,7 @@ medium:
   baud: 10kbps
   overhead: 12
   linkbudget: 92dB
-  fading: 0dB
+  randomdeviation: 0dB
   channels: 
     count: 32
     spacing: 200KHz
