@@ -33,10 +33,12 @@ Very early prototype
 - sodium
 - czmq
 - go
+- protoc
+- protobuf-c
 
 ### OSX
 
-OSX dependencies can be installed with `brew install libsodium czmq go`, though you may prefer to use the more up-to-date official go package from [golang.org/](https://golang.org/dl/).
+OSX dependencies can be installed with `brew install libsodium czmq go protobuf-c`, though you may prefer to use the more up-to-date official go package from [golang.org/](https://golang.org/dl/).
 
 
 ## Usage

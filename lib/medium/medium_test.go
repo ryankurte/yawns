@@ -18,6 +18,8 @@ func TestMedium(t *testing.T) {
 
 	var c config.Config
 
+	// TODO: test currently depends on the example config file
+	// Which might not be ideal, but simple to manage for now
 	data, err := ioutil.ReadFile("../../example.yml")
 	assert.Nil(t, err)
 

@@ -6,11 +6,17 @@ install: lib
 
 install-tools:
 	go get -u github.com/golang/lint/golint
+	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
 
 all: ons lib client
 
-# Build backend and frontend components
-ons:
+# Build protocol
+protocol: protocol/*.proto
+	protoc --go_out=import_path=protocol:. protocol/*.proto
+	protoc-c --c_out=. protocol/*.proto
+
+# Build ons server
+ons: protocol
 	go build -ldflags -s ./cmd/ons/
 
 build-linux-x64:
@@ -20,7 +26,7 @@ build-osx-x64:
 	GOOS=darwin GOARCH=amd64 go build ./cmd/ons/
 
 # Build libons C library
-lib:
+lib: protocol
 	/bin/bash -c "cd ./libons && make libs"
 
 # Build libons example client

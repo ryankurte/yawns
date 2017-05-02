@@ -1,0 +1,42 @@
+// Protocol definitions for communication with ONS
+
+syntax = "proto3";
+
+// Sent on ONS first connection
+message Connect {
+    string address = 1;
+}
+
+// Sent on ONS connector close
+message Disconnect {
+
+}
+
+// Packet to be sent
+message Packet {
+    bytes data      = 1;    // Data payload
+    string band     = 2;    // Band must match a named band in the ONS config
+    int32 channel   = 3;    // Channel number
+}
+
+// Indicates that a message send has completed
+message SendComplete {
+
+}
+
+// Event used to log events on a node back to the ONS server
+message Event {
+    string data = 1;
+}
+
+// Base / common message
+// This is the on-the-wire communication type
+message Base {
+    oneof message_oneof {
+        Connect         connect         = 1;
+        Disconnect      disconnect      = 2;
+        Packet          packet          = 3;
+        SendComplete    sendComplete    = 4;
+        Event           event           = 5;
+    }
+}
