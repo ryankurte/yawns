@@ -12,7 +12,7 @@ all: ons lib client
 
 # Build protocol
 protocol: protocol/*.proto
-	protoc --go_out=import_path=protocol:. protocol/*.proto
+	protoc --go_out=import_path=protocol:lib/ protocol/*.proto
 	protoc-c --c_out=. protocol/*.proto
 
 # Build ons server
@@ -27,11 +27,11 @@ build-osx-x64:
 
 # Build libons C library
 lib: protocol
-	/bin/bash -c "cd ./libons && make libs"
+	/bin/bash -c "cd ./cons && make libs"
 
 # Build libons example client
 client: lib
-	/bin/bash -c "cd ./libons && make client"
+	/bin/bash -c "cd ./cons && make client"
 
 # Run application
 run: build

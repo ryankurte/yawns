@@ -24,6 +24,8 @@ const (
 	CCAResp Type = "cca-response"
 	//SetMode sets the radio mode for the medium
 	SetMode Type = "set-mode"
+
+	Event Type = "event"
 )
 
 // Message type used for communication with connector module

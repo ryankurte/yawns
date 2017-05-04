@@ -10,19 +10,18 @@
 package libons
 
 import (
+	"fmt"
 	"log"
 	"testing"
 	"time"
-	"fmt"
 )
 
 import (
-"github.com/satori/go.uuid"
 	"github.com/ryankurte/ons/lib/connector"
 	"github.com/ryankurte/ons/lib/messages"
+	"github.com/ryankurte/ons/lib/protocol"
+	"github.com/satori/go.uuid"
 )
-
-
 
 func TestLibONS(t *testing.T) {
 
