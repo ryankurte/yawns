@@ -1,17 +1,14 @@
 package connector
 
 import (
-	"fmt"
-	"gopkg.in/zeromq/goczmq.v4"
 	"log"
 	"reflect"
-)
 
-import (
-	"github.com/ryankurte/ons/lib/messages"
+	"gopkg.in/zeromq/goczmq.v4"
 )
 
 const (
+	//DefaultIPCAddress default address for IPC communication
 	DefaultIPCAddress = "ipc:///ons"
 )
 
@@ -19,8 +16,8 @@ const (
 type ZMQConnector struct {
 	ch         *goczmq.Channeler
 	clients    map[string][]byte
-	InputChan  chan *messages.Message
-	OutputChan chan *messages.Message
+	InputChan  chan interface{}
+	OutputChan chan interface{}
 }
 
 // NewZMQConnector creates a new ZMQ based connector instance and binds a connector instance and handler to the provided address
@@ -28,8 +25,8 @@ func NewZMQConnector(bindAddress string) *ZMQConnector {
 	c := ZMQConnector{}
 
 	c.clients = make(map[string][]byte)
-	c.InputChan = make(chan *messages.Message, 1024)
-	c.OutputChan = make(chan *messages.Message, 1024)
+	c.InputChan = make(chan interface{}, 1024)
+	c.OutputChan = make(chan interface{}, 1024)
 
 	c.ch = goczmq.NewRouterChanneler(bindAddress)
 
@@ -38,27 +35,17 @@ func NewZMQConnector(bindAddress string) *ZMQConnector {
 	return &c
 }
 
-// Send a data message to the provided address
-// This wraps SendMsg as a convenience for other modules
-func (c *ZMQConnector) Send(address string, data []byte) {
-	c.SendMsg(address, onsMessageIDPacket, data)
-}
-
-// SendMsg sends an ONS message to the provided client by address
+// sendMsg sends an ONS message to the provided client by address
 // Note that address lookup is not available until the server has received a message from each client
-func (c *ZMQConnector) SendMsg(address string, msgType int, data []byte) {
+func (c *ZMQConnector) sendMsg(address string, data []byte) {
 	// Lookup ZMQ ID by address
 	id, ok := c.clients[address]
 	if !ok {
 		return
 	}
 
-	// Create packet type
-	// Weirdly these seem to be sent as strings by ZMQ :-/
-	t := []byte(fmt.Sprintf("%d", msgType))
-
 	// Send message via channel
-	c.ch.SendChan <- [][]byte{id, t, data}
+	c.ch.SendChan <- [][]byte{id, data}
 }
 
 // Run the ZMQ connector
@@ -71,10 +58,8 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
-
 			//log.Printf("RX from client: %+v", p)
-
-			c.handleClientReceive(p)
+			c.handleIncoming(p)
 
 		// Handle control messages from other components
 		case p, ok := <-c.InputChan:
@@ -82,10 +67,8 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
-
 			//log.Printf("RX from server: %+v", p)
-
-			c.handleMessageReceive(p)
+			c.handleOutgoing(p)
 		}
 	}
 }

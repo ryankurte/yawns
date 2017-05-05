@@ -8,54 +8,85 @@
 
 package messages
 
+import ()
+
 // Type defines the type of message being passed
 type Type string
 
 const (
-	// Connected message indicates a node has connected
-	Connected Type = "connected"
+	// ConnectedID message indicates a node has connected
+	ConnectedID Type = "connected"
 	// Packet Packet message type
-	Packet Type = "packet"
-	// PacketSent Packet sent message type
-	PacketSent Type = "packet-sent"
-	// CCAReq CCA request type
-	CCAReq Type = "cca-request"
-	// CCAResp CCA response type
-	CCAResp Type = "cca-response"
-	//SetMode sets the radio mode for the medium
-	SetMode Type = "set-mode"
-
-	Event Type = "event"
+	PacketID Type = "packet"
+	// PacketSentID Packet sent message type
+	PacketSentID Type = "packet-sent"
+	// CCAReqID CCA request type
+	CCAReqID Type = "cca-request"
+	// CCARespID CCA response type
+	CCARespID Type = "cca-response"
+	// SetModeID sets the radio mode for the medium
+	SetModeID Type = "set-mode"
+	// EventID is a node event message (used for central logging)
+	EventID Type = "event"
 )
 
-// Message type used for communication with connector module
+// Message base type used for internal communication
 type Message struct {
-	messageType Type
-	address     string
-	data        []byte
-	cca         bool
+	Address string
 }
 
-// NewMessage creates a message
-func NewMessage(messageType Type, address string, data []byte) *Message {
-	return &Message{
-		messageType: messageType,
-		address:     address,
-		data:        data,
-	}
+type RFInfo struct {
+	Band    string
+	Channel int32
 }
 
-// GetType fetches the type of the message
-func (message *Message) GetType() Type { return message.messageType }
+func NewRFInfo(band string, channel int32) RFInfo {
+	return RFInfo{band, channel}
+}
+
+type Register struct {
+	Message
+}
+
+type Deregister struct {
+	Message
+}
+
+type Packet struct {
+	Message
+	RFInfo
+	Data []byte
+}
+
+type RSSIRequest struct {
+	Message
+	RFInfo
+}
+
+type RSSIResponse struct {
+	Message
+	RFInfo
+	RSSI float32
+}
+
+type SendComplete struct {
+	Message
+}
+
+type StartReceive struct {
+	Message
+	RFInfo
+}
+
+type StopReceive struct {
+	Message
+	RFInfo
+}
+
+type Event struct {
+	Message
+	Data string
+}
 
 // GetAddress fetches the address of the origin/destination of the message
-func (message *Message) GetAddress() string { return message.address }
-
-// GetData fetches message data
-func (message *Message) GetData() []byte { return message.data }
-
-// GetCCA Fetch Clear Channel Acknowledgement from a CCA message
-func (message *Message) GetCCA() bool { return message.cca }
-
-// SetCCA Set Clear Channel Acknowledgement for a CCA message
-func (message *Message) SetCCA(cca bool) { message.cca = cca }
+func (message *Message) GetAddress() string { return message.Address }

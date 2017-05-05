@@ -21,6 +21,7 @@ import (
 )
 
 // handleIncoming handles incoming messages from external sources (ie. from nodes to ONS)
+// This maps from Protobuf to ONS messages
 func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
 	if len(data) != 3 {
@@ -46,7 +47,9 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			// Save to list
 			c.clients[address] = clientID
 			// Send connected event
-			c.OutputChan <- messages.NewMessage(messages.Connected, address, []byte{})
+			c.OutputChan <- &messages.Register{
+				Message: messages.Message{Address: address},
+			}
 		}
 
 		return nil
@@ -62,21 +65,42 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	switch m := message.GetMessage().(type) {
 	case *protocol.Base_Deregister:
 
+	// Receive a packet from a device
 	case *protocol.Base_Packet:
-		c.OutputChan <- messages.NewMessage(messages.Packet, address, m.Packet.Data)
+		c.OutputChan <- &messages.Packet{
+			Message: messages.Message{Address: address},
+			Data:    m.Packet.Data,
+		}
 
-	case *protocol.Base_SendComplete:
-		//c.OutputChan <- messages.NewMessage(messages.SendComplete, address, m.Packet.Data)
-
+	// Signal that a device has entered receive mode
 	case *protocol.Base_StartReceive:
+		c.OutputChan <- &messages.StartReceive{
+			Message: messages.Message{Address: address},
+			RFInfo: messages.RFInfo{
+				Band:    m.StartReceive.Info.Band,
+				Channel: m.StartReceive.Info.Channel,
+			},
+		}
 
 	case *protocol.Base_StopReceive:
+		c.OutputChan <- &messages.StopReceive{
+			Message: messages.Message{Address: address},
+		}
 
 	case *protocol.Base_Event:
-		c.OutputChan <- messages.NewMessage(messages.Event, address, []byte(m.Event.Data))
+		c.OutputChan <- &messages.Event{
+			Message: messages.Message{Address: address},
+			Data:    m.Event.Data,
+		}
 
 	case *protocol.Base_RssiReq:
-		c.OutputChan <- messages.NewMessage(messages.CCAReq, address, []byte{})
+		c.OutputChan <- &messages.RSSIRequest{
+			Message: messages.Message{Address: address},
+			RFInfo: messages.RFInfo{
+				Band:    m.RssiReq.Info.Band,
+				Channel: m.RssiReq.Info.Channel,
+			},
+		}
 
 	default:
 		return fmt.Errorf("Received unhandled message type (%t)", m)
@@ -86,22 +110,45 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 }
 
 // handleOutgoing handles outgoing messages (ie. from ONS to nodes)
-func (c *ZMQConnector) handleOutgoing(message *messages.Message) error {
+// This maps from ONS messages to protobufs for external use
+func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 
-	switch message.GetType() {
-	case messages.CCAResp:
-		// Build and write CCA response packet
-		dataOut := make([]byte, 1)
-		if message.GetCCA() {
-			dataOut[0] = 1
-		} else {
-			dataOut[0] = 0
+	base := protocol.Base{}
+	m, ok := message.(*messages.Message)
+	if !ok {
+		return fmt.Errorf("Connector error: message must be of base type messages.Message")
+	}
+	address := m.Address
+
+	switch m := message.(type) {
+	case messages.Packet:
+		base.Message = &protocol.Base_Packet{
+			Packet: &protocol.Packet{
+				Data: m.Data,
+			},
 		}
-		c.SendMsg(message.GetAddress(), onsMessageIDCCAResp, dataOut)
+
+	case messages.RSSIResponse:
+		base.Message = &protocol.Base_RssiResp{
+			RssiResp: &protocol.RSSIResp{
+				Rssi: m.RSSI,
+			},
+		}
+	case messages.SendComplete:
+		base.Message = &protocol.Base_SendComplete{
+			SendComplete: &protocol.SendComplete{},
+		}
 
 	default:
-
+		return fmt.Errorf("Connector error: unsupported derived message type: %t", message)
 	}
+
+	data, err := proto.Marshal(&base)
+	if err != nil {
+		return err
+	}
+
+	c.sendMsg(address, data)
 
 	return nil
 }
