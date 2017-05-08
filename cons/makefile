@@ -1,14 +1,15 @@
+# C-ONS Example / Library Makefile
 
 TARGET=ons-client
 LIB=libons
-SOURCES=src/ons.c
+SOURCES=src/ons.c src/protocol.c src/protocol/ons.pb-c.c
 OUTDIR=build
 
 CC=gcc
 AR=ar
 CFLAGS=-c -Wall -pedantic
-LFLAGS=-lpthread -lczmq -lzmq
-IFLAGS=-I./
+LFLAGS=-lpthread -lczmq -lzmq -lprotobuf-c
+IFLAGS=-I./ -I./src
 
 # Map source files to objects
 OBJECTS=$(SOURCES:src/%.c=$(OUTDIR)/%.o)
@@ -18,7 +19,7 @@ all: libs client
 
 # Helper to create output dir
 dir:
-	@mkdir -p $(OUTDIR)
+	@mkdir -p $(OUTDIR)/protocol
 
 # Generic compilation rule
 $(OUTDIR)/%.o: src/%.c dir

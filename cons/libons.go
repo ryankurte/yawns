@@ -11,7 +11,7 @@ package libons
 /*
 #include <stdint.h>
 #include "ons/ons.h"
-#cgo LDFLAGS: -L./build/ -L./libons/build/ -lons -lzmq -lczmq -lpthread
+#cgo LDFLAGS: -L./build/ -L./libons/build/ -lons -lzmq -lczmq -lpthread -lprotobuf-c
 */
 import "C"
 
@@ -103,16 +103,19 @@ func (c *ONSConnector) GetReceived() ([]byte, error) {
 	return safeData, nil
 }
 
-// GetCCA Check fetches CCA for the device
-func (c *ONSConnector) GetCCA() (bool, error) {
-	res := C.ONS_get_cca(&c.ons)
+// GetRSSI Check fetches RSSI for the device
+func (c *ONSConnector) GetRSSI() (float32, error) {
+	rssi := C.float(0.0)
+	rssiPtr := (*C.float)(unsafe.Pointer(&rssi))
+
+	res := C.ONS_get_rssi(&c.ons, rssiPtr)
 	if res < 0 {
-		return false, fmt.Errorf("GetCCA error %d", res)
+		return float32(rssi), fmt.Errorf("GetRSSI error %d", res)
 	}
 	if res == 0 {
-		return false, nil
+		return float32(rssi), nil
 	}
-	return true, nil
+	return float32(rssi), nil
 }
 
 // Close the ONS connector

@@ -1,5 +1,5 @@
 /**
- * OpenNetworkSim CZMQ Radio Driver Library
+ * OpenNetworkSim CZMQ/Protobuf Radio Driver Library
  * https://github.com/ryankurte/ons
  * Copyright 2017 Ryan Kurte
  */
@@ -13,16 +13,8 @@
 #include <czmq.h>
 #include <semaphore.h>
 
-#define CCA_SEM "/ons-cca-sem"
-
-// ONS message enum
-// Types must match go connector
-enum ons_msg_e {
-    ONS_MSG_REGISTER = 1,
-    ONS_MSG_PACKET = 2,
-    ONS_MSG_CCA_REQ = 3,
-    ONS_MSG_CCA_RESP = 4
-};
+#include "ons/protocol.h"
+#include "protocol/ons.pb-c.h"
 
 
 #define ONS_DEBUG
@@ -56,7 +48,7 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     // Create ZMQ socket
     ons->sock = zsock_new_dealer(ons_address);
 
-    pthread_mutex_init(&ons->cca_mutex, NULL);
+    pthread_mutex_init(&ons->rssi_mutex, NULL);
     pthread_mutex_init(&ons->rx_mutex, NULL);
 
     // Start listener thread
@@ -64,23 +56,20 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
     // Send message to register with server
-    ons_send_msg(ons, ONS_MSG_REGISTER, ons->local_address, strlen((char*)ons->local_address));
+    ons_send_register(ons, ons->local_address);
 
     return 0;
 }
 
-
 int ONS_send(struct ons_s *ons, uint8_t *data, uint16_t length)
-{
-    ONS_print_arr("[ONSC] Send: ", data, length);
-    return ons_send_msg(ons, ONS_MSG_PACKET, data, length);
+{   
+    return ons_send_packet(ons, data, length);
 }
 
 int ONS_check_send(struct ons_s *ons)
 {
     return 1;
 }
-
 
 int ONS_check_receive(struct ons_s *ons)
 {
@@ -110,44 +99,43 @@ int ONS_get_received(struct ons_s *ons, uint16_t max_len, uint8_t* data, uint16_
     return 1;
 }
 
-int ONS_get_cca(struct ons_s *ons)
+int ONS_get_rssi(struct ons_s *ons, float* rssi)
 {
     int res;
-    uint8_t data[1];
 
-    ONS_DEBUG_PRINT("[ONCS] get cca\n");
+    ONS_DEBUG_PRINT("[ONCS] get rssi\n");
 
-    ons->cca_received = false;
+    ons->rssi_received = false;
 
     // TryLock in case mutex already locked
-    pthread_mutex_trylock(&ons->cca_mutex);
+    pthread_mutex_trylock(&ons->rssi_mutex);
 
     // Send get CCA message
-    ons_send_msg(ons, ONS_MSG_CCA_REQ, data, sizeof(data));
+    ons_send_rssi_req(ons, "", 0);
 
     // Await cca mutex unlock from onsc thread
-    res = pthread_mutex_lock(&ons->cca_mutex);
+    res = pthread_mutex_lock(&ons->rssi_mutex);
     if (res < 0) {
-        perror("[ONSC] mutex lock error");
+        perror("[ONSC] rssi mutex lock error");
         return -1;
     }
 
     // Copy CCA
-    bool cca = ons->cca;
-    bool cca_received = ons->cca_received;
+    *rssi = ons->rssi;
+    bool rssi_received = ons->rssi_received;
 
     // Return mutex to unlocked state
-    pthread_mutex_unlock(&ons->cca_mutex);
+    pthread_mutex_unlock(&ons->rssi_mutex);
 
     // Check a CCA message was received
-    if (cca_received != true) {
-        ONS_DEBUG_PRINT("[ONCS] no cca response received\n");
+    if (rssi_received != true) {
+        ONS_DEBUG_PRINT("[ONCS] no rssi response received\n");
         return -2;
     }
 
-    ONS_DEBUG_PRINT("[ONCS] got cca value OK (%d)\n", ons->cca);
+    ONS_DEBUG_PRINT("[ONCS] got rssi value OK (%.2f)\n", *rssi);
 
-    return cca;
+    return 0;
 }
 
 int ONS_close(struct ons_s *ons)
@@ -160,7 +148,7 @@ int ONS_close(struct ons_s *ons)
 
     pthread_join(ons->thread, NULL);
 
-    pthread_mutex_destroy(&ons->cca_mutex);
+    pthread_mutex_destroy(&ons->rssi_mutex);
     pthread_mutex_destroy(&ons->rx_mutex);
 
     zsock_destroy(&ons->sock);
@@ -202,39 +190,52 @@ void *ons_handle_receive(void* ctx)
 
     while (ons->running) {
 
-        res = zsock_recv(ons->sock, "1b", &type, &zdata, &zsize);
+        res = zsock_recv(ons->sock, "b", &zdata, &zsize);
         if (res == 0) {
 
-            ONS_DEBUG_PRINT("[ONCS THREAD] Received message type %u\n", type);
-            ONS_print_arr("[ONSC THREAD] Raw Data", zdata, zsize);
+            ONS_print_arr("[ONSC THREAD] Received Data", zdata, zsize);
 
-            int max_size = (zsize > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1 : zsize;
+            Base *base = base__unpack(NULL, zsize, zdata);
 
-            if (type == ONS_MSG_PACKET) {
+            switch(base->message_case) {
+                case BASE__MESSAGE_PACKET:
 
+                // Check received packet is valid
+                if((base->packet == NULL) || (base->packet->has_data == 0)) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid packet\n");
+                    break;
+                }
+
+                // Copy data into local buffer
+                int max_size = (base->packet->data.len > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1 : base->packet->data.len;
                 pthread_mutex_lock(&ons->rx_mutex);
-                memcpy((void *)ons->receive_data, zdata, max_size);
+                memcpy((void *)ons->receive_data, base->packet->data.data, max_size);
                 ons->receive_length = max_size;
                 ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
                 pthread_mutex_unlock(&ons->rx_mutex);
 
+                break;
 
-            } else if (type == ONS_MSG_CCA_RESP) {
-                if (zsize != 1) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] cca_resp invalid length\n");
+                case BASE__MESSAGE_RSSI_RESP:
+
+                // Check RSSI packet is valid
+                if((base->rssiresp == NULL) || (base->rssiresp->has_rssi == 0)) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response\n");
                     break;
                 }
 
-                ONS_DEBUG_PRINT("[ONCS THREAD] got cca response %u\n", ons->cca);
-                ons->cca = zdata[0];
-                ons->cca_received = true;
-                //res = sem_post(ons->cca_sem);
-                pthread_mutex_unlock(&ons->cca_mutex);
+                // Copy RSSI data and signal receipt
+                ons->rssi = base->rssiresp->rssi;
+                ons->rssi_received = true;
+                ONS_DEBUG_PRINT("[ONCS THREAD] got rssi response %.2f\n", ons->rssi);
+                pthread_mutex_unlock(&ons->rssi_mutex);
+                break;
 
-            } else {
-                ONS_DEBUG_PRINT("[ONCS THREAD] unrecognised type\n");
+                default:
+                ONS_DEBUG_PRINT("[ONCS THREAD] unrecognised type %d\n", base->message_case);
             }
 
+            base__free_unpacked(base,NULL);
             free(zdata);
         }
     }
@@ -244,8 +245,3 @@ void *ons_handle_receive(void* ctx)
     return NULL;
 }
 
-// Send an ONS message with the specified type
-int ons_send_msg(struct ons_s *ons, uint32_t type, uint8_t *data, uint16_t length)
-{
-    return zsock_send(ons->sock, "1b", type, data, length);
-}

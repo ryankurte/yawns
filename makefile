@@ -13,7 +13,7 @@ all: ons lib client
 # Build protocol
 protocol: protocol/*.proto
 	protoc --go_out=import_path=protocol:lib/ protocol/*.proto
-	protoc-c --c_out=. protocol/*.proto
+	protoc-c --c_out=cons/src protocol/*.proto
 
 # Build ons server
 ons: protocol
@@ -54,4 +54,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: ons lib run test lint format coverage
+.PHONY: ons lib run test lint format coverage protocol

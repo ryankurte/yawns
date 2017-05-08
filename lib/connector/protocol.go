@@ -24,8 +24,8 @@ import (
 // This maps from Protobuf to ONS messages
 func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
-	if len(data) != 3 {
-		return fmt.Errorf("Error parsing message, required 3 parts")
+	if len(data) != 2 {
+		return fmt.Errorf("Error parsing message, required 2 parts")
 	}
 
 	// Fetch ZMQ client ID
@@ -37,6 +37,8 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	if err != nil {
 		return fmt.Errorf("Error parsing protobuf message (%s)", err)
 	}
+
+	fmt.Printf("Message: %+v\n", message.GetMessage())
 
 	// Register message is a special case as no address is available for lookup
 	if m, ok := message.GetMessage().(*protocol.Base_Register); ok {
@@ -114,14 +116,11 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 
 	base := protocol.Base{}
-	m, ok := message.(*messages.Message)
-	if !ok {
-		return fmt.Errorf("Connector error: message must be of base type messages.Message")
-	}
-	address := m.Address
+	address := ""
 
 	switch m := message.(type) {
 	case messages.Packet:
+		address = m.Address
 		base.Message = &protocol.Base_Packet{
 			Packet: &protocol.Packet{
 				Data: m.Data,
@@ -129,12 +128,14 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		}
 
 	case messages.RSSIResponse:
+		address = m.Address
 		base.Message = &protocol.Base_RssiResp{
 			RssiResp: &protocol.RSSIResp{
 				Rssi: m.RSSI,
 			},
 		}
 	case messages.SendComplete:
+		address = m.Address
 		base.Message = &protocol.Base_SendComplete{
 			SendComplete: &protocol.SendComplete{},
 		}

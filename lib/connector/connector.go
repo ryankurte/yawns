@@ -58,8 +58,11 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
-			//log.Printf("RX from client: %+v", p)
-			c.handleIncoming(p)
+			log.Printf("RX from client: %+v", p)
+			err := c.handleIncoming(p)
+			if err != nil {
+				log.Printf("Parsing error: %s", err)
+			}
 
 		// Handle control messages from other components
 		case p, ok := <-c.InputChan:
@@ -67,8 +70,11 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
-			//log.Printf("RX from server: %+v", p)
-			c.handleOutgoing(p)
+			log.Printf("RX from server: %+v", p)
+			err := c.handleOutgoing(p)
+			if err != nil {
+				log.Printf("Parsing error: %s", err)
+			}
 		}
 	}
 }

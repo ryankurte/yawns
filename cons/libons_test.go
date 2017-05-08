@@ -14,13 +14,13 @@ import (
 	"log"
 	"testing"
 	"time"
-)
 
-import (
+	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ryankurte/ons/lib/connector"
 	"github.com/ryankurte/ons/lib/messages"
-	"github.com/ryankurte/ons/lib/protocol"
-	"github.com/satori/go.uuid"
+	//	"github.com/ryankurte/ons/lib/protocol"
 )
 
 func TestLibONS(t *testing.T) {
@@ -30,14 +30,15 @@ func TestLibONS(t *testing.T) {
 	var server *connector.ZMQConnector
 	var client *ONSConnector
 
+	timeout := 1 * time.Second
 	port := fmt.Sprintf("inproc:///ons-%s", uuid.NewV4())
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
 		server = connector.NewZMQConnector(port)
-		log.Printf("Connector port: %s", port)
+		log.Printf("Bound to port: %s", port)
 	})
 
-	t.Run("Test init client", func(t *testing.T) {
+	t.Run("Init client", func(t *testing.T) {
 		client = NewONSConnector()
 		err := client.Init(port, clientAddress)
 		if err != nil {
@@ -48,25 +49,16 @@ func TestLibONS(t *testing.T) {
 	})
 
 	t.Run("Client sends registration packet", func(t *testing.T) {
+		select {
+		case msg := <-server.OutputChan:
+			reg, ok := msg.(*messages.Register)
+			assert.True(t, ok)
+			assert.EqualValues(t, clientAddress, reg.Address)
 
-		timer := time.AfterFunc(time.Second, func() {
+		case <-time.After(timeout):
 			t.Errorf("Timeout")
 			t.FailNow()
-		})
-
-		msg := <-server.OutputChan
-
-		log.Printf("Message %+v", msg)
-
-		if msg.GetAddress() != clientAddress {
-			t.Errorf("Received address mismatch (expected '%s' received '%s')", clientAddress, msg.GetAddress())
 		}
-
-		if msg.GetType() != messages.Connected {
-			t.Errorf("OnConnected message type mismatch (expected '%s' received '%s')", messages.Connected, msg.GetType())
-		}
-
-		timer.Stop()
 	})
 
 	t.Run("Client can message server", func(t *testing.T) {
@@ -75,29 +67,17 @@ func TestLibONS(t *testing.T) {
 		client.Send([]byte(data))
 
 		time.Sleep(100 * time.Millisecond)
+		select {
+		case msg := <-server.OutputChan:
+			packet, ok := msg.(*messages.Packet)
+			assert.True(t, ok)
+			assert.EqualValues(t, clientAddress, packet.Address)
+			assert.EqualValues(t, data, packet.Data)
 
-		timer := time.AfterFunc(time.Second, func() {
+		case <-time.After(timeout):
 			t.Errorf("Timeout")
 			t.FailNow()
-		})
-
-		msg := <-server.OutputChan
-
-		log.Printf("Message %+v", msg)
-
-		if msg.GetAddress() != clientAddress {
-			t.Errorf("Received address mismatch (expected '%s' received '%s')", clientAddress, msg.GetAddress())
 		}
-
-		if string(msg.GetData()) != data {
-			t.Errorf("Data mismatch (expected '%s' received '%s')", data, string(msg.GetData()))
-		}
-
-		if msg.GetType() != messages.Packet {
-			t.Errorf("OnConnected message type mismatch (expected '%s' received '%s')", messages.Packet, msg.GetType())
-		}
-
-		timer.Stop()
 	})
 
 	t.Run("Client starts with no messages", func(t *testing.T) {
@@ -110,7 +90,9 @@ func TestLibONS(t *testing.T) {
 	t.Run("Server can message client", func(t *testing.T) {
 
 		data := "Test Server Data String"
-		server.Send(clientAddress, []byte(data))
+
+		packet := messages.Packet{Message: messages.Message{Address: clientAddress}, Data: []byte(data)}
+		server.InputChan <- packet
 
 		time.Sleep(100 * time.Millisecond)
 
@@ -120,10 +102,7 @@ func TestLibONS(t *testing.T) {
 		}
 
 		message, err := client.GetReceived()
-		if err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
+		assert.Nil(t, err)
 
 		if string(message) != data {
 			t.Errorf("Data mismatch (expected '%s' received '%s')", data, message)
@@ -131,22 +110,21 @@ func TestLibONS(t *testing.T) {
 
 	})
 
-	t.Run("Client can request cca", func(t *testing.T) {
+	t.Run("Client can request rssi", func(t *testing.T) {
 
-		respond := func(name string, value bool) {
+		respond := func(t *testing.T, value float32) {
 			select {
 			case msg, ok := <-server.OutputChan:
-				if !ok {
-					return
-				}
-				if msg.GetType() == messages.CCAReq {
-					resp := messages.NewMessage(messages.CCAResp, msg.GetAddress(), []byte{})
-					resp.SetCCA(value)
+				assert.True(t, ok)
+				req, ok := msg.(*messages.RSSIRequest)
+				assert.True(t, ok)
 
-					log.Printf("Response (instance %s) writing %+v", name, resp)
+				resp := messages.RSSIResponse{Message: messages.Message{Address: req.Address}, RSSI: value}
+				server.InputChan <- resp
 
-					server.InputChan <- resp
-				}
+			case <-time.After(timeout):
+				t.Errorf("Timeout")
+				t.FailNow()
 			}
 		}
 
@@ -156,28 +134,20 @@ func TestLibONS(t *testing.T) {
 		})
 
 		log.Printf("CCA Check 1")
-		go respond("check-1", false)
+		go respond(t, 10.0)
 		time.Sleep(100)
 
-		cca, err := client.GetCCA()
-		if err != nil {
-			t.Error(err)
-		}
-		if cca != false {
-			t.Errorf("CCA error")
-		}
+		rssi, err := client.GetRSSI()
+		assert.Nil(t, err)
+		assert.InDelta(t, 10, rssi, 0.01)
 
 		log.Printf("CCA Check 2")
-		go respond("check-2", true)
+		go respond(t, 76.5)
 		time.Sleep(100)
 
-		cca, err = client.GetCCA()
-		if err != nil {
-			t.Error(err)
-		}
-		if cca != true {
-			t.Errorf("CCA error")
-		}
+		rssi, err = client.GetRSSI()
+		assert.Nil(t, err)
+		assert.InDelta(t, 76.5, rssi, 0.01)
 
 		timer.Stop()
 	})

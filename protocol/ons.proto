@@ -15,7 +15,7 @@ message Register {
 
 // Sent on ONS connector close
 message Deregister {
-
+    string address = 1;     // Address is the network address of the device
 }
 
 // Packet to be sent
@@ -36,7 +36,7 @@ message StartReceive {
 
 // Indicates a device has left the receive state
 message StopReceive {
-
+    RFInfo info = 1;        // Receive channel information
 }
 
 // Request RSSI for a provided channel
