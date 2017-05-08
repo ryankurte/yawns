@@ -42,14 +42,17 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     strncpy((char*)ons->ons_address, ons_address, ONS_STRING_LENGTH);
     strncpy((char*)ons->local_address, local_address, ONS_STRING_LENGTH);
 
-    ONS_DEBUG_PRINT("[ONSC] Init\n");
+    ONS_DEBUG_PRINT("[ONSC] Connector init\n");
     ONS_DEBUG_PRINT("[ONSC] Connecting to '%s' as '%s'\n", ons_address, local_address);
 
     // Create ZMQ socket
     ons->sock = zsock_new_dealer(ons_address);
 
-    pthread_mutex_init(&ons->rssi_mutex, NULL);
-    pthread_mutex_init(&ons->rx_mutex, NULL);
+    // Initialise radio list
+    pthread_mutex_init(&ons->radios_mutex, NULL);
+    for (int i=0; i<ONS_MAX_RADIOS; i++) {
+        ons->radios[i] = NULL;
+    }
 
     // Start listener thread
     ons->running = 1;
@@ -57,6 +60,36 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
 
     // Send message to register with server
     ons_send_register(ons, ons->local_address);
+
+    return 0;
+}
+
+int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
+{
+    radio->connector = NULL;
+    strncpy(radio->band, band, sizeof(radio->band)-1);
+
+    // Init mutexes
+    pthread_mutex_init(&radio->rssi_mutex, NULL);
+    pthread_mutex_init(&radio->rx_mutex, NULL);
+    pthread_mutex_init(&radio->tx_mutex, NULL);
+
+    // Attach radio instance to connector
+    pthread_mutex_lock(&ons->radios_mutex);
+
+    for (int i=0; i<ONS_MAX_RADIOS; i++) {
+        if (ons->radios[i] == NULL) {
+            ons->radios[i] = radio;
+            radio->connector = ons;
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&ons->radios_mutex);
+
+    if (radio->connector == NULL) {
+        return -1;
+    }
 
     return 0;
 }
