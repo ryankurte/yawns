@@ -16,6 +16,7 @@ void interrupt_handler(int x) {
 }
 
 int main(int argc, char** argv) {
+    int res;
 
     printf("ONS Example Client\n");
 
@@ -31,7 +32,18 @@ int main(int argc, char** argv) {
     printf("Local Address: %s\n", local_address);
 
     struct ons_s ons;
-    ONS_init(&ons, server_address, local_address);
+    res = ONS_init(&ons, server_address, local_address);
+    if (res < 0) {
+        printf("Error %d creating ONS connector\n", res);
+        return -1;
+    }
+
+    struct ons_radio_s radio;
+    res = ONS_radio_init(&ons, &radio, "ISM-433MHz");
+    if (res < 0) {
+        printf("Error %d creating ONS connector\n", res);
+        return -1;
+    }
 
     uint8_t data[256];
     uint16_t len;
@@ -41,16 +53,16 @@ int main(int argc, char** argv) {
     int count = 0;
 
     while(running) {
-        int res = ONS_check_receive(&ons);
+        int res = ONS_radio_check_receive(&radio);
         if (res > 0) {
-            ONS_get_received(&ons, sizeof(data), data, &len);
+            ONS_radio_get_received(&radio, sizeof(data), data, &len);
             ONS_print_arr("Received", data, len);
-            ONS_send(&ons, data, len);
+            ONS_radio_send(&radio, data, len);
         }
 
         data[0] = count ++;
 
-        res = ONS_send(&ons, data, 1);
+        res = ONS_radio_send(&radio, data, 1);
         if (res < 0) {
             printf("ONS send error: %d\n", res);
         }
@@ -59,6 +71,8 @@ int main(int argc, char** argv) {
     }
 
     printf("Exiting\n");
+
+    ONS_radio_close(&ons, &radio);
 
     ONS_close(&ons);
 

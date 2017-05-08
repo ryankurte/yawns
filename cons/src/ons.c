@@ -133,7 +133,7 @@ int ONS_close(struct ons_s *ons)
 int ONS_radio_send(struct ons_radio_s *radio, uint8_t *data, uint16_t length)
 {   
     radio->tx_complete = false;
-    return ons_send_packet(radio.connector, data, length);
+    return ons_send_packet(radio->connector, data, length);
 }
 
 int ONS_radio_check_send(struct ons_radio_s *radio)
@@ -225,9 +225,9 @@ void ONS_print_arr(char* name, uint8_t* data, uint16_t length)
 void exit_handler(int x) {}
 
 // Find a radio instance by band
-ons_radio_s* ons_get_radio(struct ons_s* ons, char* band) {
+struct ons_radio_s* ons_get_radio(struct ons_s* ons, char* band) {
     for(int i=0; i<ONS_MAX_RADIOS; i++) {
-        if(strcmp(band, ons->radios[i].band) == 0) {
+        if(strcmp(band, ons->radios[i]->band) == 0) {
             return ons->radios[i];
         }
     }
@@ -257,6 +257,7 @@ void *ons_handle_receive(void* ctx)
             ONS_print_arr("[ONSC THREAD] Received Data", zdata, zsize);
 
             Base *base = base__unpack(NULL, zsize, zdata);
+            struct ons_radio_s* radio = NULL;
 
             pthread_mutex_lock(&ons->radios_mutex);
 
@@ -264,18 +265,25 @@ void *ons_handle_receive(void* ctx)
                 case BASE__MESSAGE_PACKET:
 
                 // Check received packet is valid
-                if((base->packet == NULL) || (base->packet->has_data == 0) || (base->packet->RFInfo == NULL)) {
+                if((base->packet == NULL) || (base->packet->has_data == 0) || (base->packet->info == NULL)) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] invalid packet\n");
+                    break;
+                }
+
+                // Find matching radio instance
+                radio = ons_get_radio(ons, base->packet->info->band);
+                if (radio == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] no radio found matching packet\n");
                     break;
                 }
 
                 // Copy data into local buffer
                 int max_size = (base->packet->data.len > ONS_BUFFER_LENGTH) ? ONS_BUFFER_LENGTH - 1 : base->packet->data.len;
-                pthread_mutex_lock(&ons->rx_mutex);
-                memcpy((void *)ons->receive_data, base->packet->data.data, max_size);
-                ons->receive_length = max_size;
-                ONS_print_arr("[ONSC THREAD] Received packet", ons->receive_data, ons->receive_length);
-                pthread_mutex_unlock(&ons->rx_mutex);
+                pthread_mutex_lock(&radio->rx_mutex);
+                memcpy((void *)radio->receive_data, base->packet->data.data, max_size);
+                radio->receive_length = max_size;
+                ONS_print_arr("[ONSC THREAD] Received packet", radio->receive_data, radio->receive_length);
+                pthread_mutex_unlock(&radio->rx_mutex);
 
                 break;
 
@@ -287,11 +295,18 @@ void *ons_handle_receive(void* ctx)
                     break;
                 }
 
+                // Find matching radio instance
+                radio = ons_get_radio(ons, base->rssireq->info->band);
+                if (radio == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] no radio found matching rssi response\n");
+                    break;
+                }
+
                 // Copy RSSI data and signal receipt
-                ons->rssi = base->rssiresp->rssi;
-                ons->rssi_received = true;
-                ONS_DEBUG_PRINT("[ONCS THREAD] got rssi response %.2f\n", ons->rssi);
-                pthread_mutex_unlock(&ons->rssi_mutex);
+                radio->rssi = base->rssiresp->rssi;
+                radio->rssi_received = true;
+                ONS_DEBUG_PRINT("[ONCS THREAD] got rssi response %.2f\n", radio->rssi);
+                pthread_mutex_unlock(&radio->rssi_mutex);
                 break;
 
                 default:
