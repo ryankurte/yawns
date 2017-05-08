@@ -76,7 +76,6 @@ int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
 
     // Attach radio instance to connector
     pthread_mutex_lock(&ons->radios_mutex);
-
     for (int i=0; i<ONS_MAX_RADIOS; i++) {
         if (ons->radios[i] == NULL) {
             ons->radios[i] = radio;
@@ -84,7 +83,6 @@ int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
             break;
         }
     }
-
     pthread_mutex_unlock(&ons->radios_mutex);
 
     if (radio->connector == NULL) {
@@ -94,71 +92,110 @@ int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
     return 0;
 }
 
-int ONS_send(struct ons_s *ons, uint8_t *data, uint16_t length)
-{   
-    return ons_send_packet(ons, data, length);
+int ONS_radio_close(struct ons_s *ons, struct ons_radio_s *radio) {
+    ONS_DEBUG_PRINT("[ONSC] Closing radio\n");
+
+    // Remove from radio list
+    pthread_mutex_lock(&ons->radios_mutex);
+    for (int i=0; i<ONS_MAX_RADIOS; i++) {
+        if (ons->radios[i] == radio) {
+            ons->radios[i] = NULL;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&ons->radios_mutex);
+
+    // Remove radio mutexes
+    pthread_mutex_destroy(&ons->rssi_mutex);
+    pthread_mutex_destroy(&ons->rx_mutex);
+
+    return 0;
 }
 
-int ONS_check_send(struct ons_s *ons)
+
+int ONS_close(struct ons_s *ons)
+{
+    ONS_DEBUG_PRINT("[ONSC] Closing connector\n");
+
+    ons->running = false;
+
+    pthread_kill(ons->thread, SIGINT);
+
+    pthread_join(ons->thread, NULL);
+
+    zsock_destroy(&ons->sock);
+
+    ONS_DEBUG_PRINT("[ONSC] Closed\n");
+
+    return 0;
+}
+
+int ONS_radio_send(struct ons_radio_s *radio, uint8_t *data, uint16_t length)
+{   
+    radio->tx_complete = false;
+    return ons_send_packet(radio.connector, data, length);
+}
+
+int ONS_radio_check_send(struct ons_radio_s *radio)
 {
     return 1;
 }
 
-int ONS_check_receive(struct ons_s *ons)
+int ONS_radio_check_receive(struct ons_radio_s *radio)
 {
-    if (ons->receive_length > 0) {
+    if (radio->receive_length > 0) {
         return 1;
     }
     return 0;
 }
 
-int ONS_get_received(struct ons_s *ons, uint16_t max_len, uint8_t* data, uint16_t* len)
+int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t* data, uint16_t* len)
 {
 
-    pthread_mutex_lock(&ons->rx_mutex);
+    pthread_mutex_lock(&radio->rx_mutex);
 
-    if (ons->receive_length == 0) {
-        pthread_mutex_unlock(&ons->rx_mutex);
+    if (radio->receive_length == 0) {
+        pthread_mutex_unlock(&radio->rx_mutex);
         return 0;
     }
 
-    *len = (ons->receive_length > max_len) ? max_len : ons->receive_length;
-    memcpy(data, (const void *)ons->receive_data, *len);
+    *len = (radio->receive_length > max_len) ? max_len : radio->receive_length;
+    memcpy(data, (const void *)radio->receive_data, *len);
 
-    ons->receive_length = 0;
+    radio->receive_length = 0;
 
-    pthread_mutex_unlock(&ons->rx_mutex);
+    pthread_mutex_unlock(&radio->rx_mutex);
 
     return 1;
 }
 
-int ONS_get_rssi(struct ons_s *ons, float* rssi)
+int ONS_get_rssi(struct ons_radio_s *radio, float* rssi)
 {
     int res;
 
     ONS_DEBUG_PRINT("[ONCS] get rssi\n");
 
-    ons->rssi_received = false;
+    radio->rssi_received = false;
 
     // TryLock in case mutex already locked
-    pthread_mutex_trylock(&ons->rssi_mutex);
+    pthread_mutex_trylock(&radio->rssi_mutex);
 
     // Send get CCA message
-    ons_send_rssi_req(ons, "", 0);
+    ons_send_rssi_req(radio, "", 0);
 
     // Await cca mutex unlock from onsc thread
-    res = pthread_mutex_lock(&ons->rssi_mutex);
+    res = pthread_mutex_lock(&radio->rssi_mutex);
     if (res < 0) {
         perror("[ONSC] rssi mutex lock error");
         return -1;
     }
 
     // Copy CCA
-    *rssi = ons->rssi;
-    bool rssi_received = ons->rssi_received;
+    *rssi = radio->rssi;
+    bool rssi_received = radio->rssi_received;
 
     // Return mutex to unlocked state
-    pthread_mutex_unlock(&ons->rssi_mutex);
+    pthread_mutex_unlock(&radio->rssi_mutex);
 
     // Check a CCA message was received
     if (rssi_received != true) {
@@ -171,25 +208,6 @@ int ONS_get_rssi(struct ons_s *ons, float* rssi)
     return 0;
 }
 
-int ONS_close(struct ons_s *ons)
-{
-    ONS_DEBUG_PRINT("[ONSC] Closing connector\n");
-
-    ons->running = false;
-
-    pthread_kill(ons->thread, SIGINT);
-
-    pthread_join(ons->thread, NULL);
-
-    pthread_mutex_destroy(&ons->rssi_mutex);
-    pthread_mutex_destroy(&ons->rx_mutex);
-
-    zsock_destroy(&ons->sock);
-
-    ONS_DEBUG_PRINT("[ONSC] Closed\n");
-
-    return 0;
-}
 
 void ONS_print_arr(char* name, uint8_t* data, uint16_t length)
 {
