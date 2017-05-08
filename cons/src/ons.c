@@ -106,8 +106,8 @@ int ONS_radio_close(struct ons_s *ons, struct ons_radio_s *radio) {
     pthread_mutex_unlock(&ons->radios_mutex);
 
     // Remove radio mutexes
-    pthread_mutex_destroy(&ons->rssi_mutex);
-    pthread_mutex_destroy(&ons->rx_mutex);
+    pthread_mutex_destroy(&radio->rssi_mutex);
+    pthread_mutex_destroy(&radio->rx_mutex);
 
     return 0;
 }
@@ -224,6 +224,16 @@ void ONS_print_arr(char* name, uint8_t* data, uint16_t length)
 // Stub exit handler for signal binding
 void exit_handler(int x) {}
 
+// Find a radio instance by band
+ons_radio_s* ons_get_radio(struct ons_s* ons, char* band) {
+    for(int i=0; i<ONS_MAX_RADIOS; i++) {
+        if(strcmp(band, ons->radios[i].band) == 0) {
+            return ons->radios[i];
+        }
+    }
+    return NULL;
+}
+
 // ONS receiver thread
 // The thread can be exited by setting ons->running = 0 then passing a SIGINT
 void *ons_handle_receive(void* ctx)
@@ -248,11 +258,13 @@ void *ons_handle_receive(void* ctx)
 
             Base *base = base__unpack(NULL, zsize, zdata);
 
+            pthread_mutex_lock(&ons->radios_mutex);
+
             switch(base->message_case) {
                 case BASE__MESSAGE_PACKET:
 
                 // Check received packet is valid
-                if((base->packet == NULL) || (base->packet->has_data == 0)) {
+                if((base->packet == NULL) || (base->packet->has_data == 0) || (base->packet->RFInfo == NULL)) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] invalid packet\n");
                     break;
                 }
@@ -285,6 +297,8 @@ void *ons_handle_receive(void* ctx)
                 default:
                 ONS_DEBUG_PRINT("[ONCS THREAD] unrecognised type %d\n", base->message_case);
             }
+
+            pthread_mutex_unlock(&ons->radios_mutex);
 
             base__free_unpacked(base,NULL);
             free(zdata);
