@@ -11,7 +11,7 @@ package medium
 import (
 	"fmt"
 	"log"
-	"time"
+	//"time"
 
 	"github.com/ryankurte/ons/lib/config"
 	"github.com/ryankurte/ons/lib/medium/layers"
@@ -26,10 +26,29 @@ type Link struct {
 	Fading   float64
 }
 
+// TransceiverState is the state of a virtual transceiver
+type TransceiverState string
+
+// Allowed transceiver states
+const (
+	TransceiverStateIdle         TransceiverState = "idle"
+	TransceiverStateReceive      TransceiverState = "receive"
+	TransceiverStateReceiving    TransceiverState = "receiving"
+	TransceiverStateTransmitting TransceiverState = "transmitting"
+)
+
+// BandInfo is rf band information for a given node
+type BandInfo struct {
+	Name  string
+	State TransceiverState
+	Gain  float64
+}
+
 // Medium is the wireless medium simulation instance
 type Medium struct {
 	config *config.Medium
 	nodes  *[]types.Node
+	bands  [][]BandInfo
 
 	layerManager *layers.LayerManager
 
@@ -44,8 +63,22 @@ func NewMedium(c *config.Medium, nodes *[]types.Node) *Medium {
 		config:       c,
 		inCh:         make(chan *messages.Message, 128),
 		outCh:        make(chan *messages.Message, 128),
+		bands:        make([][]BandInfo, len(*nodes)),
 		layerManager: layers.NewLayerManager(),
 		nodes:        nodes,
+	}
+
+	// Create BandInfo for each node and band
+	for i := 0; i < len(*nodes); i++ {
+		m.bands[i] = make([]BandInfo, len(c.Bands))
+		j := 0
+		for k := range c.Bands {
+			m.bands[i][j] = BandInfo{
+				Name:  k,
+				State: TransceiverStateIdle,
+			}
+			j++
+		}
 	}
 
 	// Load medium simulation layers
@@ -100,20 +133,20 @@ running:
 	log.Printf("Medium exited")
 }
 
-func (m *Medium) handleMessage(message *messages.Message) {
-	switch message.GetType() {
+func (m *Medium) handleMessage(message interface{}) {
+	switch m := message.(type) {
 	case messages.Packet:
+		log.Printf("Received packet: %+v", m)
 		//m.sendPacket(message.GetAddress(), message.GetData())
 	default:
 		log.Printf("Medium unhandled message: %+v", message)
 	}
-
 }
 
 func (m *Medium) sendPacket(fromAddr string, bandName string, data []byte) error {
 
-	// Locate source node
-	source, err := m.getNodeByAddr(fromAddr)
+	// Locate source node and source band info
+	source, sourceInfo, err := m.getNodeAndBandInfo(fromAddr, bandName)
 	if err != nil {
 		return err
 	}
@@ -121,44 +154,73 @@ func (m *Medium) sendPacket(fromAddr string, bandName string, data []byte) error
 	// Locate matching band
 	band, ok := m.config.Bands[bandName]
 	if !ok {
-		return fmt.Errorf("Medium error: no matching band (%s)", bandName)
+		return fmt.Errorf("Medium error: no matching band configured (%s)", bandName)
 	}
 
+	// Set transmitting state
+	sourceInfo.State = TransceiverStateTransmitting
+
 	// Set timeout for packet sent response
-	packetTime := float64((len(data) + band.PacketOverhead)) / float64(band.Baud)
+	//packetTime := float64((len(data) + band.PacketOverhead)) / float64(band.Baud)
 	source.Transmitting = true
 
 	// Build a list of viable links
 	links, _, err := m.GetVisible(*source, band)
 
 	fmt.Printf("Viable links: %+v", links)
+	/*
+		// Run callback after packet send has completed
+		time.AfterFunc(time.Duration(packetTime)*time.Second, func() {
+			// Send packet-sent message to application
+			source.Transmitting = false
+			m.outCh <- messages.Packet(messages.PacketSent, source.Address, []byte{})
 
-	// Run callback after packet send has completed
-	time.AfterFunc(time.Duration(packetTime)*time.Second, func() {
-		// Send packet-sent message to application
-		source.Transmitting = false
-		m.outCh <- messages.NewMessage(messages.PacketSent, source.Address, []byte{})
-
-		// Send message to viable links
-		for _, node := range links {
-			m.outCh <- messages.NewMessage(messages.Packet, node.Address, data)
-		}
-	})
-
+			// Send message to viable links
+			for _, node := range links {
+				m.outCh <- messages.NewMessage(messages.Packet, node.Address, data)
+			}
+		})
+	*/
 	return nil
 }
 
 func (m *Medium) getNodeByAddr(addr string) (*types.Node, error) {
-	var found *types.Node
-	for _, node := range *m.nodes {
-		if node.Address == addr {
-			found = &node
+	var node *types.Node
+	for _, n := range *m.nodes {
+		if n.Address == addr {
+			node = &n
 			break
 		}
 	}
-	if found == nil {
+	if node == nil {
 		return nil, fmt.Errorf("no node found matching the provided address (%s)", addr)
 	}
 
-	return found, nil
+	return node, nil
+}
+
+func (m *Medium) getNodeAndBandInfo(address, band string) (*types.Node, *BandInfo, error) {
+	nodeIndex := -1
+	for i, n := range *m.nodes {
+		if n.Address == address {
+			nodeIndex = i
+			break
+		}
+	}
+	if nodeIndex < 0 {
+		return nil, nil, fmt.Errorf("no node found matching the provided address (%s)", address)
+	}
+
+	bandIndex := -1
+	for i, b := range m.bands[nodeIndex] {
+		if b.Name == band {
+			bandIndex = i
+			break
+		}
+	}
+	if bandIndex < 0 {
+		return nil, nil, fmt.Errorf("no band found matching the provided address and band (%s:%s)", address, band)
+	}
+
+	return &(*m.nodes)[nodeIndex], &m.bands[nodeIndex][bandIndex], nil
 }
