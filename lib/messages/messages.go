@@ -38,10 +38,11 @@ type Message struct {
 type RFInfo struct {
 	Band    string
 	Channel int32
+	Power   float64
 }
 
 func NewRFInfo(band string, channel int32) RFInfo {
-	return RFInfo{band, channel}
+	return RFInfo{band, channel, 0.0}
 }
 
 type Register struct {
@@ -71,6 +72,7 @@ type RSSIResponse struct {
 
 type SendComplete struct {
 	Message
+	RFInfo
 }
 
 type StartReceive struct {

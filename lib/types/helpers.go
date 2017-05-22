@@ -10,6 +10,7 @@ import (
 
 var prefixes = []string{"", "K", "M", "G", "T"}
 
+// MarshalUnit is a helper for common (SI) unit serialisation/marshalling
 func MarshalUnit(unit string, value float64) ([]byte, error) {
 	order := 0
 	var divided float64
@@ -28,6 +29,7 @@ func MarshalUnit(unit string, value float64) ([]byte, error) {
 
 var unitRegex = regexp.MustCompile(`^([0-9\.]+)[ ]{0,1}([a-zA-Z]+)$`)
 
+// UnmarshalUnit is a helper for common (SI) unit deserialisation/unmarshalling
 func UnmarshalUnit(unit string, text []byte) (float64, error) {
 
 	matches := unitRegex.FindStringSubmatch(string(text))
