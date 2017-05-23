@@ -19,6 +19,7 @@ import (
 // FadingLayer interface for layers implementing fading calculations
 type FadingLayer interface {
 	CalculateFading(band config.Band, p1, p2 types.Location) float64
+	//CalculateFadingBounds(band config.Band, p1, p2 types.Location) (float64, float64)
 }
 
 // InfoLayer allows layers to return arbitrary info structures

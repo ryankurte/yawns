@@ -13,7 +13,7 @@ medium:
     Sub1GHz:
       frequency: 433MHz
       baud: 10kbps
-      overhead: 12
+      packetoverhead: 12B
       linkbudget: 92dB
       randomdeviation: 0dB
       channels: 

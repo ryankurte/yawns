@@ -14,7 +14,7 @@ type Channels struct {
 type Band struct {
 	Frequency       types.Frequency   // Radio Frequency in Hz
 	Baud            types.Baud        // Baud rate in bps
-	PacketOverhead  int               // Packet overhead in bytes
+	PacketOverhead  types.SizeBytes   // Packet overhead in bytes
 	RandomDeviation types.Attenuation // Standard deviation of gaussian fading in dB
 	LinkBudget      types.Attenuation // Link Budget in dB
 	ErrorRate       float64           // Packet Error Rate

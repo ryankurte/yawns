@@ -1,14 +1,15 @@
 package medium
 
 import (
+	"fmt"
 	"testing"
-	//"time"
+	"time"
 
 	"io/ioutil"
 
 	"github.com/ryankurte/ons/lib/config"
-	//"github.com/ryankurte/ons/lib/messages"
-	//"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/ons/lib/messages"
+	"github.com/ryankurte/ons/lib/types"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
@@ -26,9 +27,11 @@ func TestMedium(t *testing.T) {
 	err = yaml.Unmarshal(data, &c)
 	assert.Nil(t, err)
 
-	m := NewMedium(&c.Medium, &c.Nodes)
+	m := NewMedium(&c.Medium, time.Millisecond/10, &c.Nodes)
 
-	go m.Run()
+	go func() {
+		m.Run()
+	}()
 
 	t.Run("Maps nodes in config files", func(t *testing.T) {
 		if len(*m.nodes) != len(c.Nodes) {
@@ -49,6 +52,59 @@ func TestMedium(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, 3, len(linkedNodes))
+	})
+
+	t.Run("Can create transmission instances", func(t *testing.T) {
+		msg := messages.Packet{
+			Message: messages.Message{Address: "0x0001"},
+			RFInfo:  messages.NewRFInfo("Sub1GHz", 1),
+			Data:    []byte("test data"),
+		}
+
+		now := time.Now()
+
+		band := c.Medium.Bands[msg.Band]
+		transmission := NewTransmission(now, &(*m.nodes)[0], &band, msg)
+
+		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
+		assert.EqualValues(t, msg.Band, transmission.Band)
+		assert.EqualValues(t, msg.Channel, transmission.Channel)
+		assert.EqualValues(t, msg.Data, transmission.Data)
+
+		packetTime := time.Duration(float64(len(msg.Data)+int(band.PacketOverhead)) * 8 / float64(band.Baud) * float64(time.Second))
+		t.Logf("Packet length %d baud: %s time: %s", len(msg.Data)+int(band.PacketOverhead), band.Baud, packetTime)
+
+		assert.EqualValues(t, now, transmission.StartTime, "Sets start time to now")
+		assert.EqualValues(t, packetTime, transmission.PacketTime, "Calculates packet time")
+		assert.EqualValues(t, now.Add(packetTime), transmission.EndTime, "Sets end time to now + packet time")
+	})
+
+	t.Run("Handles packet transmission", func(t *testing.T) {
+		nodeIndex := 0
+		node := (*m.nodes)[nodeIndex]
+		bandName := "Sub1GHz"
+
+		msg := messages.Packet{
+			Message: messages.Message{Address: node.Address},
+			RFInfo:  messages.NewRFInfo(bandName, 1),
+			Data:    []byte("test data"),
+		}
+
+		now := time.Now()
+		m.sendPacket(now, msg)
+
+		assert.EqualValues(t, types.TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName], "Sets transceiver state for node")
+		assert.EqualValues(t, 1, len(m.transmissions), "Stores transmission instance")
+
+		fmt.Printf("Medium 2: %+v\n", &m)
+
+		transmission := m.transmissions[0]
+
+		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
+
+		now = transmission.EndTime.Add(time.Microsecond)
+		m.update(now)
+
 	})
 
 	/*

@@ -63,3 +63,28 @@ func (b *Baud) UnmarshalText(text []byte) error {
 	*b = Baud(val)
 	return nil
 }
+
+func (b *Baud) String() string {
+	val, _ := MarshalUnit("B", float64(*b))
+	return string(val)
+}
+
+type SizeBytes uint32
+
+func (b *SizeBytes) MarshalText() ([]byte, error) {
+	return MarshalUnit("B", float64(*b))
+}
+
+func (b *SizeBytes) UnmarshalText(text []byte) error {
+	val, err := UnmarshalUnit("B", text)
+	if err != nil {
+		return err
+	}
+	*b = SizeBytes(val)
+	return nil
+}
+
+func (b *SizeBytes) String() string {
+	val, _ := MarshalUnit("B", float64(*b))
+	return string(val)
+}
