@@ -198,6 +198,7 @@ func TestMedium(t *testing.T) {
 
 	t.Run("Handles packet collisions", func(t *testing.T) {
 
+		// Create two packets
 		msg1 := messages.Packet{
 			Message: messages.Message{Address: m.nodes[1].Address},
 			RFInfo:  messages.NewRFInfo(bandName, 1),
@@ -209,35 +210,70 @@ func TestMedium(t *testing.T) {
 			Data:    []byte("test data 2"),
 		}
 
-		// Send packet
+		// Send packets
 		now := time.Now()
-
 		m.sendPacket(now, msg1)
 		m.sendPacket(now, msg2)
 
 		packetTime := m.transmissions[0].PacketTime
 
+		// Update a couple of times to calculate links
+		now = now.Add(packetTime / 2)
+		m.update(now)
 		now = now.Add(packetTime / 2)
 		m.update(now)
 
-		// Cause an update
-		now = now.Add(packetTime / 2)
-		m.update(now)
-
+		// At this instant collisions have been detected and transmissions not yet removed
 		assert.EqualValues(t, []bool{false, false, true, false, false}, m.transmissions[0].SendOK)
 		assert.EqualValues(t, []bool{false, true, false, false, false}, m.transmissions[1].SendOK)
 
+		// Next instant causes transmission to be finalised
 		now = now.Add(time.Microsecond)
 		m.update(now)
 
-		// Sends SendComplete packet to origin
-		select {
-		case <-m.outCh:
-		case <-time.After(time.Second):
-			t.Errorf("Timeout waiting for send complete output")
-		}
+		// Sends SendComplete packet to msg1 origin
+		sendComplete := messages.NewSendComplete(msg1.Address, msg1.Band, msg1.Channel)
+		resp := ChannelGet(t, m.outCh, time.Millisecond)
+		assert.IsType(t, &messages.SendComplete{}, resp)
+		assert.EqualValues(t, sendComplete, resp)
 
+		// Forwards msg1 to node 2
+		forwardedPacket := messages.NewPacket(m.nodes[2].Address, msg1.Data, msg1.RFInfo)
+		resp = ChannelGet(t, m.outCh, time.Millisecond)
+		assert.IsType(t, &messages.Packet{}, resp)
+		forwardedPacket.RSSI = resp.(*messages.Packet).RSSI
+		assert.EqualValues(t, forwardedPacket, resp)
+
+		// Sends SendComplete packet to msg2 origin
+		sendComplete = messages.NewSendComplete(msg2.Address, msg2.Band, msg2.Channel)
+		resp = ChannelGet(t, m.outCh, time.Millisecond)
+		assert.IsType(t, &messages.SendComplete{}, resp)
+		assert.EqualValues(t, sendComplete, resp)
+
+		// Forwards msg2 to node 2
+		forwardedPacket = messages.NewPacket(m.nodes[1].Address, msg2.Data, msg2.RFInfo)
+		resp = ChannelGet(t, m.outCh, time.Millisecond)
+		assert.IsType(t, &messages.Packet{}, resp)
+		forwardedPacket.RSSI = resp.(*messages.Packet).RSSI
+		assert.EqualValues(t, forwardedPacket, resp)
+
+		// Clears transmissions
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")
 	})
 
+}
+
+func ChannelGet(t assert.TestingT, ch chan interface{}, timeout time.Duration, msgAndArgs ...interface{}) interface{} {
+	select {
+	case o, ok := <-ch:
+		if !ok {
+			assert.Fail(t, "Channel closed", msgAndArgs...)
+			return nil
+		}
+		return o
+
+	case <-time.After(time.Second):
+		assert.Fail(t, "Channel timeout", msgAndArgs...)
+	}
+	return nil
 }
