@@ -38,7 +38,7 @@ type Message struct {
 type RFInfo struct {
 	Band    string
 	Channel int32
-	Power   float64
+	RSSI    float64
 }
 
 func NewRFInfo(band string, channel int32) RFInfo {
@@ -59,6 +59,16 @@ type Packet struct {
 	Data []byte
 }
 
+func NewPacket(address string, data []byte, rfInfo RFInfo) *Packet {
+	return &Packet{
+		Message: Message{
+			Address: address,
+		},
+		RFInfo: rfInfo,
+		Data:   data,
+	}
+}
+
 type RSSIRequest struct {
 	Message
 	RFInfo
@@ -73,6 +83,15 @@ type RSSIResponse struct {
 type SendComplete struct {
 	Message
 	RFInfo
+}
+
+func NewSendComplete(address, bandName string, channel int32) *SendComplete {
+	return &SendComplete{
+		Message: Message{
+			Address: address,
+		},
+		RFInfo: NewRFInfo(bandName, channel),
+	}
 }
 
 type StartReceive struct {

@@ -30,8 +30,8 @@ type Link struct {
 // Medium is the wireless medium simulation instance
 type Medium struct {
 	config        *config.Medium
-	nodes         *[]types.Node
-	transmissions []Transmission
+	nodes         []*types.Node
+	transmissions []*Transmission
 	transceivers  []map[string]types.TransceiverState
 	rate          time.Duration
 
@@ -42,21 +42,21 @@ type Medium struct {
 }
 
 // NewMedium creates a new medium instance
-func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) *Medium {
+func NewMedium(c *config.Medium, rate time.Duration, nodes []*types.Node) *Medium {
 	// Create base medium object
 	m := Medium{
 		config:        c,
 		rate:          rate,
 		inCh:          make(chan interface{}, 128),
 		outCh:         make(chan interface{}, 128),
-		transmissions: make([]Transmission, 0),
-		transceivers:  make([]map[string]types.TransceiverState, len(*nodes)),
+		transmissions: make([]*Transmission, 0),
+		transceivers:  make([]map[string]types.TransceiverState, len(nodes)),
 		layerManager:  layers.NewLayerManager(),
 		nodes:         nodes,
 	}
 
 	// Initialise TransceiverState for each node and band
-	for i := range *nodes {
+	for i := range nodes {
 		m.transceivers[i] = make(map[string]types.TransceiverState)
 		for j := range c.Bands {
 			m.transceivers[i][j] = types.TransceiverStateIdle
@@ -81,16 +81,16 @@ func (m *Medium) GetVisible(source types.Node, band config.Band) ([]*types.Node,
 	attenuation := make([]float64, 0)
 
 	// Iterate through node array
-	for _, node := range *m.nodes {
+	for _, node := range m.nodes {
 		// Skip source node
 		if node.Address == source.Address {
 			continue
 		}
 
 		// Calculate fading and add links where appropriate
-		fading := m.GetPointToPointFading(band, source, node)
+		fading := m.GetPointToPointFading(band, source, *node)
 		if band.LinkBudget > fading {
-			visible = append(visible, &node)
+			visible = append(visible, node)
 			attenuation = append(attenuation, float64(fading))
 		}
 	}
@@ -142,7 +142,7 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 	if err != nil {
 		return err
 	}
-	source := &(*m.nodes)[nodeIndex]
+	source := m.nodes[nodeIndex]
 
 	// Locate matching band
 	band, ok := m.config.Bands[bandName]
@@ -155,15 +155,18 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 
 	// Create transmission instance
 	t := NewTransmission(now, source, &band, p)
-	t.SendOK = make([]bool, len(*m.nodes))
+	t.SendOK = make([]bool, len(m.nodes))
+	t.RSSIs = make([][]types.Attenuation, len(m.nodes))
 
 	// Calculate initial transmission states for simulated nodes
-	for i, n := range *m.nodes {
+	for i, n := range m.nodes {
 		if n.Address == fromAddress {
 			t.SendOK[i] = false
 			continue
 		}
-		fading := m.GetPointToPointFading(band, *source, n)
+		fading := m.GetPointToPointFading(band, *source, *n)
+		t.RSSIs[i] = make([]types.Attenuation, 1)
+		t.RSSIs[i][0] = fading
 		if fading > band.LinkBudget {
 			t.SendOK[i] = false
 		} else {
@@ -178,60 +181,49 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 }
 
 func (m *Medium) update(now time.Time) {
-
+	// Update in flight transmissions
 	for i, t := range m.transmissions {
 		sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
 
-		// Locate matching band
-		band := m.config.Bands[t.Band]
-
 		// Update receive states
-		for i, n := range *m.nodes {
+		band := m.config.Bands[t.Band]
+		for j, n := range m.nodes {
 			if n.Address == t.Origin.Address {
 				continue
 			}
-			fading := m.GetPointToPointFading(band, *t.Origin, n)
-			if fading > band.LinkBudget {
-				t.SendOK[i] = false
+			fading := m.GetPointToPointFading(band, *t.Origin, *n)
+			m.transmissions[i].RSSIs[j] = append(t.RSSIs[j], fading)
+			if t.SendOK[j] && fading > band.LinkBudget {
+				log.Printf("Updating failed state for node %d (%s)", j, n.Address)
+				m.transmissions[i].SendOK[j] = false
 			}
 		}
 
 		// Complete sending after timeout
-		if t.EndTime.After(now) {
+		if now.After(t.EndTime) {
 			// Update origin transmitting state
 			m.transceivers[sourceIndex][t.Band] = types.TransceiverStateTransmitting
-			m.outCh <- &messages.SendComplete{
-				Message: messages.Message{
-					Address: t.Origin.Address,
-				},
-				RFInfo: messages.NewRFInfo(t.Band, t.Channel),
-			}
+			m.outCh <- messages.NewSendComplete(t.Origin.Address, t.Band, t.Channel)
 
 			// Distribute to receivers
-			for i, n := range *m.nodes {
+			for i, n := range m.nodes {
 				if t.SendOK[i] {
-					m.outCh <- &messages.Packet{
-						Message: messages.Message{
-							Address: n.Address,
-						},
-						Data: t.Data,
-						RFInfo: messages.RFInfo{
-							Band:    t.Band,
-							Channel: t.Channel,
-						},
-					}
+					m.outCh <- messages.NewPacket(n.Address, t.Data, t.GetRFInfo(i))
 				}
 			}
 
-			// remove from transmission list
+			// Remove from transmission list
 			m.transmissions = append(m.transmissions[:i], m.transmissions[i+1:]...)
 		}
 	}
+}
+
+func (m *Medium) updateTransmissionReceiveStates(t *Transmission) {
 
 }
 
 func (m *Medium) getNodeIndex(addr string) (int, error) {
-	for i, n := range *m.nodes {
+	for i, n := range m.nodes {
 		if n.Address == addr {
 			return i, nil
 		}
@@ -241,9 +233,9 @@ func (m *Medium) getNodeIndex(addr string) (int, error) {
 
 func (m *Medium) getNodeByAddr(addr string) (*types.Node, error) {
 	var node *types.Node
-	for _, n := range *m.nodes {
+	for _, n := range m.nodes {
 		if n.Address == addr {
-			node = &n
+			node = n
 			break
 		}
 	}

@@ -26,14 +26,15 @@ func TestMedium(t *testing.T) {
 	err = yaml.Unmarshal(data, &c)
 	assert.Nil(t, err)
 
-	m := NewMedium(&c.Medium, time.Millisecond/10, &c.Nodes)
+	nodes := make([]*types.Node, len(c.Nodes))
+	for i := range c.Nodes {
+		nodes[i] = &c.Nodes[i]
+	}
 
-	go func() {
-		m.Run()
-	}()
+	m := NewMedium(&c.Medium, time.Millisecond/10, nodes)
 
 	t.Run("Maps nodes in config files", func(t *testing.T) {
-		if len(*m.nodes) != len(c.Nodes) {
+		if len(m.nodes) != len(c.Nodes) {
 			t.Errorf("Expected 4%d nodes from config file", len(c.Nodes))
 		}
 	})
@@ -63,7 +64,7 @@ func TestMedium(t *testing.T) {
 		now := time.Now()
 
 		band := c.Medium.Bands[msg.Band]
-		transmission := NewTransmission(now, &(*m.nodes)[0], &band, msg)
+		transmission := NewTransmission(now, m.nodes[0], &band, msg)
 
 		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
 		assert.EqualValues(t, msg.Band, transmission.Band)
@@ -71,7 +72,6 @@ func TestMedium(t *testing.T) {
 		assert.EqualValues(t, msg.Data, transmission.Data)
 
 		packetTime := time.Duration(float64(len(msg.Data)+int(band.PacketOverhead)) * 8 / float64(band.Baud) * float64(time.Second))
-		t.Logf("Packet length %d baud: %s time: %s", len(msg.Data)+int(band.PacketOverhead), band.Baud, packetTime)
 
 		assert.EqualValues(t, now, transmission.StartTime, "Sets start time to now")
 		assert.EqualValues(t, packetTime, transmission.PacketTime, "Calculates packet time")
@@ -80,7 +80,7 @@ func TestMedium(t *testing.T) {
 
 	t.Run("Handles packet transmission", func(t *testing.T) {
 		nodeIndex := 0
-		node := (*m.nodes)[nodeIndex]
+		node := m.nodes[nodeIndex]
 		bandName := "Sub1GHz"
 
 		msg := messages.Packet{
@@ -99,6 +99,7 @@ func TestMedium(t *testing.T) {
 
 		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
 
+		// Cause an update
 		now = transmission.EndTime.Add(time.Microsecond)
 		m.update(now)
 
@@ -121,13 +122,74 @@ func TestMedium(t *testing.T) {
 			case o := <-m.outCh:
 				assert.IsType(t, &messages.Packet{}, o)
 				resp := o.(*messages.Packet)
-				assert.EqualValues(t, (*m.nodes)[i].Address, resp.Address)
+				assert.EqualValues(t, m.nodes[i].Address, resp.Address)
 				assert.EqualValues(t, msg.Band, resp.Band)
 				assert.EqualValues(t, msg.Data, resp.Data)
 
 			case <-time.After(time.Second):
-				t.Errorf("Timeout waiting for output packet for node %s", (*m.nodes)[i].Address)
+				t.Errorf("Timeout waiting for output packet for node %s", m.nodes[i].Address)
 			}
+		}
+
+		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
+	})
+
+	t.Run("Handles node movement during packet transmission", func(t *testing.T) {
+		nodeIndex := 0
+		node := m.nodes[nodeIndex]
+		bandName := "Sub1GHz"
+
+		// Shift node 1 out of range
+		m.nodes[1].Location.Lat += 1.0
+
+		msg := messages.Packet{
+			Message: messages.Message{Address: node.Address},
+			RFInfo:  messages.NewRFInfo(bandName, 1),
+			Data:    []byte("test data"),
+		}
+
+		// Send packet
+		now := time.Now()
+		m.sendPacket(now, msg)
+
+		packetTime := m.transmissions[0].PacketTime
+
+		// Cause an update
+		now = now.Add(packetTime / 2)
+		m.update(now)
+
+		assert.EqualValues(t, []bool{false, false, true, true, false}, m.transmissions[0].SendOK)
+
+		// Shift node 1 into range and 2 out of range
+		m.nodes[1].Location.Lat -= 1.0
+		m.nodes[2].Location.Lat += 1.0
+
+		// Cause another update
+		now = now.Add(packetTime / 2)
+		m.update(now)
+
+		// Check sendOK flags
+		assert.EqualValues(t, []bool{false, false, false, true, false}, m.transmissions[0].SendOK)
+
+		// Cause another update
+		now = now.Add(time.Microsecond)
+		m.update(now)
+
+		// Sends SendComplete packet to origin
+		select {
+		case <-m.outCh:
+		case <-time.After(time.Second):
+			t.Errorf("Timeout waiting for send complete output")
+		}
+
+		// Sends message to OK node (3)
+		select {
+		case o := <-m.outCh:
+			assert.IsType(t, &messages.Packet{}, o)
+			resp := o.(*messages.Packet)
+			assert.EqualValues(t, m.nodes[3].Address, resp.Address)
+		case <-time.After(time.Second):
+			t.Errorf("Timeout waiting for output packet for node %s", m.nodes[3].Address)
 		}
 	})
 

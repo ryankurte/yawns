@@ -1,10 +1,10 @@
 ---
-# OpenNetworkSim (ONS) Example Configuration
+# OpenWirelessNetworkSim (OWNS) Example Configuration
 
 # Top Level Simulation Configuration
 name: Example Simulation
 endtime: 2s
-tickrate: 500ms
+tickrate: 1ms
 
 # Wireless Medium Configuration
 # This defines the communication bands to be simulated
