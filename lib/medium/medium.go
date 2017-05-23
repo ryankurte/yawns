@@ -171,11 +171,8 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 		}
 	}
 
-	fmt.Printf("Created transmission: %+v\n", t)
-
+	// Add to transmission buffer
 	m.transmissions = append(m.transmissions, t)
-
-	fmt.Printf("Medium 1: %+v\n", &m)
 
 	return nil
 }

@@ -1,7 +1,6 @@
 package medium
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -96,8 +95,6 @@ func TestMedium(t *testing.T) {
 		assert.EqualValues(t, types.TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName], "Sets transceiver state for node")
 		assert.EqualValues(t, 1, len(m.transmissions), "Stores transmission instance")
 
-		fmt.Printf("Medium 2: %+v\n", &m)
-
 		transmission := m.transmissions[0]
 
 		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
@@ -105,42 +102,33 @@ func TestMedium(t *testing.T) {
 		now = transmission.EndTime.Add(time.Microsecond)
 		m.update(now)
 
+		// Sends SendComplete packet to origin
+		select {
+		case m := <-m.outCh:
+			assert.IsType(t, &messages.SendComplete{}, m)
+			resp := m.(*messages.SendComplete)
+			assert.EqualValues(t, msg.Address, resp.Address)
+			assert.EqualValues(t, msg.Band, resp.Band)
+
+		case <-time.After(time.Second):
+			t.Errorf("Timeout waiting for SendComplete output")
+		}
+
+		// Distributes messages
+		// Node 0 can communicate with nodes 1, 2 and 3
+		for i := 1; i < 4; i++ {
+			select {
+			case o := <-m.outCh:
+				assert.IsType(t, &messages.Packet{}, o)
+				resp := o.(*messages.Packet)
+				assert.EqualValues(t, (*m.nodes)[i].Address, resp.Address)
+				assert.EqualValues(t, msg.Band, resp.Band)
+				assert.EqualValues(t, msg.Data, resp.Data)
+
+			case <-time.After(time.Second):
+				t.Errorf("Timeout waiting for output packet for node %s", (*m.nodes)[i].Address)
+			}
+		}
 	})
 
-	/*
-		t.Run("Sends messages based on link budgets", func(t *testing.T) {
-
-			// Node 1 can communicate with nodes 3 and 5
-			message := messages.NewMessage(messages.Packet, "0x0001", []byte("test"))
-			m.inCh <- message
-
-			time.Sleep(100 * time.Millisecond)
-
-			// First message will be send complete
-			resp := <-m.outCh
-			if addr := "0x0001"; resp.GetAddress() != addr {
-				t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
-			}
-			if messageType := messages.PacketSent; resp.GetType() != messageType {
-				t.Errorf("Incorrect message type (actual: %s expected: %s)", resp.GetType(), messageType)
-			}
-
-			// Responses should be in order
-			resp = <-m.outCh
-			if addr := "0x0002"; resp.GetAddress() != addr {
-				t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
-			}
-
-			resp = <-m.outCh
-			if addr := "0x0003"; resp.GetAddress() != addr {
-				t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
-			}
-
-			resp = <-m.outCh
-			if addr := "0x0004"; resp.GetAddress() != addr {
-				t.Errorf("Incorrect message address (actual: %s expected: %s)", resp.GetAddress(), addr)
-			}
-
-		})
-	*/
 }
