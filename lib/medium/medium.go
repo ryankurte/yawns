@@ -183,8 +183,6 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 func (m *Medium) update(now time.Time) {
 	// Update in flight transmissions
 	for i, t := range m.transmissions {
-		sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
-
 		// Update receive states
 		band := m.config.Bands[t.Band]
 		for j, n := range m.nodes {
@@ -198,9 +196,42 @@ func (m *Medium) update(now time.Time) {
 				m.transmissions[i].SendOK[j] = false
 			}
 		}
+	}
 
-		// Complete sending after timeout
+	// Calculate collisions for each node
+	for i, n := range m.nodes {
+		// Compare all transmissions
+		for j1, t1 := range m.transmissions {
+			for j2, t2 := range m.transmissions {
+				if j1 == j2 || t1.Band != t2.Band || t1.Channel != t2.Channel ||
+					n.Address == t1.Origin.Address || n.Address == t2.Origin.Address {
+					continue
+				}
+				// Don't worry if both already failed
+				if !t1.SendOK[i] && !t2.SendOK[i] {
+					continue
+				}
+
+				// RSSI difference calculated on last saved RSSI from previous update stage
+				rssiDifference := t1.RSSIs[i][len(t1.RSSIs[i])-1] - t2.RSSIs[i][len(t2.RSSIs[i])-1]
+				band := m.config.Bands[t1.Band]
+
+				// If difference is less than the interference budget, fail at sending both
+				if (rssiDifference > 0 && rssiDifference < band.InterferenceBudget) ||
+					(rssiDifference < 0 && rssiDifference > -band.InterferenceBudget) {
+					m.transmissions[j1].SendOK[i] = false
+					m.transmissions[j2].SendOK[i] = false
+				}
+			}
+		}
+	}
+
+	// Complete sending after timeout
+	toRemove := make([]int, 0)
+	for i, t := range m.transmissions {
 		if now.After(t.EndTime) {
+			sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
+
 			// Update origin transmitting state
 			m.transceivers[sourceIndex][t.Band] = types.TransceiverStateTransmitting
 			m.outCh <- messages.NewSendComplete(t.Origin.Address, t.Band, t.Channel)
@@ -213,13 +244,17 @@ func (m *Medium) update(now time.Time) {
 			}
 
 			// Remove from transmission list
-			m.transmissions = append(m.transmissions[:i], m.transmissions[i+1:]...)
+			toRemove = append(toRemove, i)
 		}
 	}
-}
 
-func (m *Medium) updateTransmissionReceiveStates(t *Transmission) {
-
+	// Remove completed transmissions
+	removedCount := 0
+	for _, v := range toRemove {
+		index := v - removedCount
+		m.transmissions = append(m.transmissions[:index], m.transmissions[index+1:]...)
+		removedCount++
+	}
 }
 
 func (m *Medium) getNodeIndex(addr string) (int, error) {

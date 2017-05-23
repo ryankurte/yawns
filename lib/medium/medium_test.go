@@ -78,10 +78,11 @@ func TestMedium(t *testing.T) {
 		assert.EqualValues(t, now.Add(packetTime), transmission.EndTime, "Sets end time to now + packet time")
 	})
 
+	nodeIndex := 0
+	node := m.nodes[nodeIndex]
+	bandName := "Sub1GHz"
+
 	t.Run("Handles packet transmission", func(t *testing.T) {
-		nodeIndex := 0
-		node := m.nodes[nodeIndex]
-		bandName := "Sub1GHz"
 
 		msg := messages.Packet{
 			Message: messages.Message{Address: node.Address},
@@ -135,9 +136,6 @@ func TestMedium(t *testing.T) {
 	})
 
 	t.Run("Handles node movement during packet transmission", func(t *testing.T) {
-		nodeIndex := 0
-		node := m.nodes[nodeIndex]
-		bandName := "Sub1GHz"
 
 		// Shift node 1 out of range
 		m.nodes[1].Location.Lat += 1.0
@@ -191,6 +189,55 @@ func TestMedium(t *testing.T) {
 		case <-time.After(time.Second):
 			t.Errorf("Timeout waiting for output packet for node %s", m.nodes[3].Address)
 		}
+
+		// Reset node 2 location
+		m.nodes[2].Location.Lat -= 1.0
+
+		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
+	})
+
+	t.Run("Handles packet collisions", func(t *testing.T) {
+
+		msg1 := messages.Packet{
+			Message: messages.Message{Address: m.nodes[1].Address},
+			RFInfo:  messages.NewRFInfo(bandName, 1),
+			Data:    []byte("test data 1"),
+		}
+		msg2 := messages.Packet{
+			Message: messages.Message{Address: m.nodes[2].Address},
+			RFInfo:  messages.NewRFInfo(bandName, 1),
+			Data:    []byte("test data 2"),
+		}
+
+		// Send packet
+		now := time.Now()
+
+		m.sendPacket(now, msg1)
+		m.sendPacket(now, msg2)
+
+		packetTime := m.transmissions[0].PacketTime
+
+		now = now.Add(packetTime / 2)
+		m.update(now)
+
+		// Cause an update
+		now = now.Add(packetTime / 2)
+		m.update(now)
+
+		assert.EqualValues(t, []bool{false, false, true, false, false}, m.transmissions[0].SendOK)
+		assert.EqualValues(t, []bool{false, true, false, false, false}, m.transmissions[1].SendOK)
+
+		now = now.Add(time.Microsecond)
+		m.update(now)
+
+		// Sends SendComplete packet to origin
+		select {
+		case <-m.outCh:
+		case <-time.After(time.Second):
+			t.Errorf("Timeout waiting for send complete output")
+		}
+
+		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")
 	})
 
 }

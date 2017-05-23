@@ -15,6 +15,7 @@ medium:
       baud: 10kbps
       packetoverhead: 12B
       linkbudget: 92dB
+      interferencebudget: 20dB
       randomdeviation: 0dB
       channels: 
         count: 32
@@ -24,6 +25,7 @@ medium:
       baud: 250kbps
       packetoverhead: 12
       linkbudget: 70dB
+      interferencebudget: 20dB
       randomdeviation: 0dB
       channels: 
         count: 16
