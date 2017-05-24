@@ -12,3 +12,27 @@ type Node struct {
 
 	Sent, Received uint32 // Sent and Received packet count
 }
+
+type Link struct {
+	A, B   int
+	Fading float64
+}
+
+func GetNodeBounds(nodes []Node) (Location, Location) {
+	min, max := nodes[0].Location, nodes[0].Location
+	for _, n := range nodes {
+		if n.Location.Lat < min.Lat {
+			min.Lat = n.Location.Lat
+		}
+		if n.Location.Lng < min.Lng {
+			min.Lng = n.Location.Lng
+		}
+		if n.Location.Lat > max.Lat {
+			max.Lat = n.Location.Lat
+		}
+		if n.Location.Lng > max.Lng {
+			max.Lng = n.Location.Lng
+		}
+	}
+	return min, max
+}

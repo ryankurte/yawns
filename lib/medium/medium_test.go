@@ -7,16 +7,20 @@ import (
 	"io/ioutil"
 
 	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/ons/lib/medium/layers"
 	"github.com/ryankurte/ons/lib/messages"
 	"github.com/ryankurte/ons/lib/types"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+	"os"
 )
 
 func TestMedium(t *testing.T) {
 
 	var c config.Config
+
+	token := os.Getenv("MAPBOX_TOKEN")
 
 	// TODO: test currently depends on the example config file
 	// Which might not be ideal, but simple to manage for now
@@ -32,6 +36,13 @@ func TestMedium(t *testing.T) {
 	}
 
 	m := NewMedium(&c.Medium, time.Millisecond/10, nodes)
+
+	l1, l2 := types.GetNodeBounds(c.Nodes)
+	maps, err := layers.NewMap(token, l1, l2, 16)
+	assert.Nil(t, err)
+
+	err = maps.Render("/tmp/ons-test.jpg", c.Nodes, nil)
+	assert.Nil(t, err)
 
 	for i := range m.nodes {
 		for b := range c.Medium.Bands {

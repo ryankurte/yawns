@@ -153,17 +153,13 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 		}
 
 		t.SendOK[i] = true
-		/*
-			// Update radio states
-			state := m.transceivers[i][t.Band]
-			if state == TransceiverStateReceive {
-				// Devices in receive state will enter receiving state
-				m.SetTransceiverState(i, t.Band, TransceiverStateReceiving)
-			} else if state != TransceiverStateReceiving {
-				// If the device is not in the receiving state fail
-				t.SendOK[i] = false
-			}
-		*/
+
+		// Update radio states
+		state := m.transceivers[i][t.Band]
+		if state == TransceiverStateReceive {
+			// Devices in receive state will enter receiving state
+			m.SetTransceiverState(i, t.Band, TransceiverStateReceiving)
+		}
 	}
 
 	// Add to transmission buffer
@@ -203,9 +199,11 @@ func (m *Medium) updateTransmissions(now time.Time) {
 				m.transmissions[i].SendOK[j] = false
 				m.SetTransceiverState(i, t.Band, TransceiverStateReceive)
 			}
+
+			// Reject if radio exits receiving state
+			state := m.transceivers[j][t.Band]
+			log.Printf("Node: %s radio state: %s", n.Address, state)
 			/*
-				// Reject if radio exits receiving state
-				state := m.transceivers[j][t.Band]
 				if t.SendOK[j] && state != TransceiverStateReceiving {
 					// If the device is not in the receiving state fail
 					m.transmissions[i].SendOK[j] = false
@@ -235,6 +233,7 @@ func (m *Medium) updateCollisions(now time.Time) {
 				// If difference is less than the interference budget, fail at sending both
 				if (rssiDifference > 0 && rssiDifference < band.InterferenceBudget) ||
 					(rssiDifference < 0 && rssiDifference > -band.InterferenceBudget) {
+					log.Printf("Updating collision state for node %d (%s)", i, n.Address)
 					m.transmissions[j1].SendOK[i] = false
 					m.transmissions[j2].SendOK[i] = false
 					m.SetTransceiverState(i, t1.Band, TransceiverStateReceive)
