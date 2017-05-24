@@ -30,6 +30,8 @@ type Band struct {
 	ErrorRate float64
 	// Channel information
 	Channels Channels
+	// Disable auto transition from tx to RX state
+	NoAutoTXRXTransition bool
 }
 
 // Medium defines the simulator configuration for the medium module

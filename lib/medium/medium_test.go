@@ -33,6 +33,12 @@ func TestMedium(t *testing.T) {
 
 	m := NewMedium(&c.Medium, time.Millisecond/10, nodes)
 
+	for i := range m.nodes {
+		for b := range c.Medium.Bands {
+			m.SetTransceiverState(i, b, TransceiverStateReceive)
+		}
+	}
+
 	t.Run("Maps nodes in config files", func(t *testing.T) {
 		if len(m.nodes) != len(c.Nodes) {
 			t.Errorf("Expected 4%d nodes from config file", len(c.Nodes))
@@ -45,13 +51,6 @@ func TestMedium(t *testing.T) {
 
 		fading = m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[1], c.Nodes[2])
 		assert.InDelta(t, 86, float64(fading), 1.0)
-	})
-
-	t.Run("Calculates instantaneous connectivity", func(t *testing.T) {
-		linkedNodes, _, err := m.GetVisible(c.Nodes[0], c.Medium.Bands["Sub1GHz"])
-		assert.Nil(t, err)
-
-		assert.EqualValues(t, 3, len(linkedNodes))
 	})
 
 	t.Run("Can create transmission instances", func(t *testing.T) {
@@ -93,7 +92,7 @@ func TestMedium(t *testing.T) {
 		now := time.Now()
 		m.sendPacket(now, msg)
 
-		assert.EqualValues(t, types.TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName], "Sets transceiver state for node")
+		assert.EqualValues(t, TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName], "Sets transceiver state for node")
 		assert.EqualValues(t, 1, len(m.transmissions), "Stores transmission instance")
 
 		transmission := m.transmissions[0]
@@ -214,6 +213,10 @@ func TestMedium(t *testing.T) {
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")
 	})
 
+	t.Run("Only sends to receiving nodes", func(t *testing.T) {
+
+	})
+
 }
 
 func CheckSendComplete(t assert.TestingT, address string, rfInfo messages.RFInfo, ch chan interface{}, msgAndArgs ...interface{}) {
@@ -227,7 +230,9 @@ func CheckPacketForward(t assert.TestingT, address string, data []byte, rfInfo m
 	forwardedPacket := messages.NewPacket(address, data, rfInfo)
 	resp := ChannelGet(t, ch, time.Millisecond, msgAndArgs...)
 	assert.IsType(t, &messages.Packet{}, resp, msgAndArgs...)
-	forwardedPacket.RSSI = resp.(*messages.Packet).RSSI
+	if respPacket, ok := resp.(*messages.Packet); ok {
+		forwardedPacket.RSSI = respPacket.RSSI
+	}
 	assert.EqualValues(t, forwardedPacket, resp, msgAndArgs...)
 }
 

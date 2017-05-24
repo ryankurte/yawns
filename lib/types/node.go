@@ -1,16 +1,5 @@
 package types
 
-// TransceiverState is the state of a virtual transceiver
-type TransceiverState string
-
-// Allowed transceiver states
-const (
-	TransceiverStateIdle         TransceiverState = "idle"
-	TransceiverStateReceive      TransceiverState = "receive"
-	TransceiverStateReceiving    TransceiverState = "receiving"
-	TransceiverStateTransmitting TransceiverState = "transmitting"
-)
-
 // Node is a simulated node
 type Node struct {
 	// Public (loadable) fields
