@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/owns/lib/config"
 )
 
 // Runner instance manages runnable clients

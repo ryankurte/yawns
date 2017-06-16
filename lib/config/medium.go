@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 // Channels defines channel information for the medium
@@ -34,7 +34,20 @@ type Band struct {
 	NoAutoTXRXTransition bool
 }
 
+// Maps configuration for the Medium Map layer
+type Maps struct {
+	// X and Y tile locations
+	X, Y uint64
+	// Map level
+	Level uint64
+	// Satellite map file
+	Satellite string
+	// Terrain map file
+	Terrain string
+}
+
 // Medium defines the simulator configuration for the medium module
 type Medium struct {
+	Maps  Maps
 	Bands map[string]Band // Frequency bands in simulation
 }

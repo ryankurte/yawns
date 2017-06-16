@@ -3,8 +3,8 @@ package layers
 import (
 	"math/rand"
 
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 // Random models random fading based on a normal distribution

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/types"
 	"gopkg.in/yaml.v2"
 )
 

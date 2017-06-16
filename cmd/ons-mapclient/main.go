@@ -10,8 +10,8 @@ import (
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/maps"
 
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 type Options struct {

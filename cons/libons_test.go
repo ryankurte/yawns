@@ -18,9 +18,9 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ryankurte/ons/lib/connector"
-	"github.com/ryankurte/ons/lib/messages"
-	//	"github.com/ryankurte/ons/lib/protocol"
+	"github.com/ryankurte/owns/lib/connector"
+	"github.com/ryankurte/owns/lib/messages"
+	//	"github.com/ryankurte/owns/lib/protocol"
 )
 
 func TestLibONS(t *testing.T) {

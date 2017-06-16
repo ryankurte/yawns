@@ -14,10 +14,10 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/lib/messages"
+	"github.com/ryankurte/owns/lib/messages"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ryankurte/ons/lib/protocol"
+	"github.com/ryankurte/owns/lib/protocol"
 )
 
 // handleIncoming handles incoming messages from external sources (ie. from nodes to ONS)

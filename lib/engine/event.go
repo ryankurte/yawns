@@ -5,8 +5,8 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/helpers"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/helpers"
 )
 
 // Event engine type

@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/ryankurte/ons/lib/simulator"
+	"github.com/ryankurte/owns/lib/simulator"
 )
 
 func main() {

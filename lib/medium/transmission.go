@@ -10,9 +10,9 @@
 package medium
 
 import (
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/messages"
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/messages"
+	"github.com/ryankurte/owns/lib/types"
 	"time"
 )
 
@@ -62,3 +62,4 @@ func (t *Transmission) GetRFInfo(nodeIndex int) messages.RFInfo {
 		RSSI:    t.GetAverageRSSI(nodeIndex),
 	}
 }
+

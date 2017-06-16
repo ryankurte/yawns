@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 func TestConfigLoading(t *testing.T) {

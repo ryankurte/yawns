@@ -10,9 +10,9 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/messages"
-	"github.com/ryankurte/ons/lib/plugins"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/messages"
+	"github.com/ryankurte/owns/lib/plugins"
 )
 
 // Engine is the base simulation engine

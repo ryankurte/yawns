@@ -1,10 +1,10 @@
 package sim
 
 import (
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/connector"
-	"github.com/ryankurte/ons/lib/engine"
-	"github.com/ryankurte/ons/lib/runner"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/connector"
+	"github.com/ryankurte/owns/lib/engine"
+	"github.com/ryankurte/owns/lib/runner"
 	"log"
 )
 

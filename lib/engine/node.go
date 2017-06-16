@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/ryankurte/ons/lib/config"
+	"github.com/ryankurte/owns/lib/config"
 )
 
 // Node base type

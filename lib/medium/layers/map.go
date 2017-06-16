@@ -4,16 +4,17 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/ryankurte/go-mapbox/lib"
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/maps"
-	"github.com/ryankurte/ons/lib/types"
+
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 type Map struct {
-	In       chan RenderCommand
-	mapbox   *mapbox.Mapbox
-	baseTile maps.Tile
+	In        chan RenderCommand
+	satellite maps.Tile
+	terrain   maps.Tile
 }
 
 type RenderCommand struct {
@@ -23,22 +24,26 @@ type RenderCommand struct {
 	Links    []types.Link
 }
 
-func NewMap(token string, a, b types.Location, level int) (*Map, error) {
+func NewMap(c *config.Maps) (*Map, error) {
 	m := Map{
-		mapbox: mapbox.NewMapbox(token),
-		In:     make(chan RenderCommand, 128),
+		In: make(chan RenderCommand, 128),
 	}
-	cache, _ := maps.NewFileCache("/tmp/owns")
-	m.mapbox.Maps.SetCache(cache)
 
-	tiles, err := m.mapbox.Maps.GetEnclosingTiles(maps.MapIDSatellite,
-		onsToMapLoc(&a), onsToMapLoc(&b),
-		uint64(level), maps.MapFormatJpg90, true)
+	satelliteImg, _, err := maps.LoadImage(c.Satellite)
 	if err != nil {
+		log.Printf("Error loading %s", c.Satellite)
 		return nil, err
 	}
+	m.satellite = maps.NewTile(c.X, c.Y, c.Level, 512, satelliteImg)
 
-	m.baseTile = maps.StitchTiles(tiles)
+	terrainImg, _, err := maps.LoadImage(c.Terrain)
+	if err != nil {
+		log.Printf("Error loading %s", c.Terrain)
+		return nil, err
+	}
+	m.terrain = maps.NewTile(c.X, c.Y, c.Level, 512, terrainImg)
+
+	log.Printf("%+v", m)
 
 	return &m, nil
 }
@@ -59,7 +64,7 @@ func (m *Map) Run() {
 }
 
 func (m *Map) Render(fileName string, nodes []types.Node, links []types.Link) error {
-	tile := m.baseTile
+	tile := m.satellite
 
 	for _, l := range links {
 		n1, n2 := nodes[l.A], nodes[l.B]

@@ -9,6 +9,13 @@ tickrate: 1ms
 # Wireless Medium Configuration
 # This defines the communication bands to be simulated
 medium:
+  maps:
+    level: 16
+    x: 64584
+    y: 39988
+    high-res: true
+    satellite: ./mapbox-satellite-16-64584-39988-9x5-512.jpg
+    terrain: ./mapbox-terrain-rgb-16-64584-39988-9x5-512.png
   bands:
     Sub1GHz:
       frequency: 433MHz

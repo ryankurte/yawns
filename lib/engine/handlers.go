@@ -5,7 +5,7 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/lib/messages"
+	"github.com/ryankurte/owns/lib/messages"
 )
 
 // HandleConnectorMessage Handle messages sent to the engine from the connector

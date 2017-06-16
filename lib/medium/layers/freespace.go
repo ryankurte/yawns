@@ -2,8 +2,8 @@ package layers
 
 import (
 	"github.com/ryankurte/go-rf"
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/types"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 // FreeSpace layer models free space fading at a given frequency
@@ -20,5 +20,5 @@ func (fs *FreeSpace) CalculateFading(band config.Band, p1, p2 types.Location) fl
 
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
 
-	return rf.FreeSpaceAttenuationDB(rf.Frequency(band.Frequency), distance)
+	return float64(rf.CalculateFreeSpacePathLoss(rf.Frequency(band.Frequency), distance))
 }

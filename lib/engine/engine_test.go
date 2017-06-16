@@ -7,8 +7,8 @@ import (
 )
 
 import (
-	"github.com/ryankurte/ons/lib/config"
-	"github.com/ryankurte/ons/lib/connector"
+	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/connector"
 )
 
 func FloatEq(a, b float64) bool {
