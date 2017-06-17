@@ -66,6 +66,10 @@ func (m *Map) Run() {
 func (m *Map) Render(fileName string, nodes []types.Node, links []types.Link) error {
 	tile := m.satellite
 
+	for _, n := range nodes {
+		tile.DrawPoint(onsToMapLoc(&n.Location), 16, color.RGBA{255, 0, 0, 255})
+	}
+
 	for _, l := range links {
 		n1, n2 := nodes[l.A], nodes[l.B]
 		tile.DrawLine(onsToMapLoc(&n1.Location), onsToMapLoc(&n2.Location), color.RGBA{255, 0, 0, 255})
