@@ -12,9 +12,8 @@ func TestRunnable(t *testing.T) {
 		args := make(map[string]string)
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
-		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
 
-		argString, err := r.generateArgs()
+		argString, err := generateArgs("{{.arg1}} {{.arg2}}", args)
 		if err != nil {
 			t.Error(err)
 		}

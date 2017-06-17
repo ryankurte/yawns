@@ -11,7 +11,6 @@ import (
 
 import (
 	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/messages"
 	"github.com/ryankurte/owns/lib/plugins"
 )
 
@@ -21,8 +20,8 @@ type Engine struct {
 	Events        []*Event
 	pluginManager *plugins.PluginManager
 
-	connectorReadCh  chan *messages.Message
-	connectorWriteCh chan *messages.Message
+	connectorReadCh  chan interface{}
+	connectorWriteCh chan interface{}
 
 	runnerLogCh chan string
 
@@ -44,7 +43,7 @@ func NewEngine(c *config.Config) *Engine {
 	return &e
 }
 
-func (e *Engine) BindConnectorChannels(read, write chan *messages.Message) {
+func (e *Engine) BindConnectorChannels(read, write chan interface{}) {
 	e.connectorReadCh = read
 	e.connectorWriteCh = write
 }

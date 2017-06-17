@@ -9,6 +9,7 @@ import (
 import (
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/connector"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 func FloatEq(a, b float64) bool {
@@ -28,7 +29,7 @@ func TestEngine(t *testing.T) {
 	t.Run("Create from config", func(t *testing.T) {
 		cfg := config.Config{}
 
-		node := config.Node{Address: "TestAddress", Location: config.Location{Lat: 0.0, Lng: 0.0}}
+		node := types.Node{Address: "TestAddress", Location: types.Location{Lat: 0.0, Lng: 0.0}}
 		cfg.Nodes = append(cfg.Nodes, node)
 
 		e = NewEngine(&cfg)

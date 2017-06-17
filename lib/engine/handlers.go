@@ -9,17 +9,17 @@ import (
 )
 
 // HandleConnectorMessage Handle messages sent to the engine from the connector
-func (e *Engine) HandleConnectorMessage(message *messages.Message) {
+func (e *Engine) HandleConnectorMessage(message interface{}) {
 
-	switch message.GetType() {
-	case messages.Connected:
-		e.OnConnected(message.GetAddress())
+	switch m := message.(type) {
+	case messages.Register:
+		e.OnConnected(m.GetAddress())
 
 	case messages.Packet:
-		e.OnReceived(message.GetAddress(), message.GetData())
+		e.OnReceived(m.GetAddress(), m.Data)
 
 	default:
-		log.Printf("Engine.HandleConnectorMessage error: unhandled message type (%s)", message.GetType())
+		log.Printf("Engine.HandleConnectorMessage error: unhandled message type (%t)", message)
 	}
 
 }
