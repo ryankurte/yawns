@@ -98,6 +98,25 @@ func (r *ONSRadio) CheckSend() bool {
 	return false
 }
 
+// StartReceive Puts the virtual radio into receive mode
+func (r *ONSRadio) StartReceive(channel int) bool {
+	c := C.int32_t(channel)
+	res := C.ONS_radio_start_receive(&r.radio, c)
+	if res > 0 {
+		return true
+	}
+	return false
+}
+
+// StopReceive putsthe virtual radio in idle mode
+func (r *ONSRadio) StopReceive() bool {
+	res := C.ONS_radio_stop_receive(&r.radio)
+	if res > 0 {
+		return true
+	}
+	return false
+}
+
 // CheckReceive Check whether a packet has been received
 func (r *ONSRadio) CheckReceive() bool {
 	res := C.ONS_radio_check_receive(&r.radio)

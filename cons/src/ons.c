@@ -142,6 +142,16 @@ int ONS_radio_check_send(struct ons_radio_s *radio)
     return 1;
 }
 
+int ONS_radio_start_receive(struct ons_radio_s *radio, int32_t channel) 
+{
+    return ons_send_start_receive(radio->connector, radio->band, channel);
+}
+
+int ONS_radio_stop_receive(struct ons_radio_s *radio) 
+{
+    return ons_send_stop_receive(radio->connector, radio->band);
+}
+
 int ONS_radio_check_receive(struct ons_radio_s *radio)
 {
     if (radio->receive_length > 0) {

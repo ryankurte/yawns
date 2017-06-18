@@ -121,11 +121,12 @@ int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_stop_receive(struct ons_s *ons, char* band, int channel) {
+int ons_send_stop_receive(struct ons_s *ons, char* band) {
     Base base = BASE__INIT;
     StopReceive stopreceive = STOP_RECEIVE__INIT;
 
-    RFInfo info = ons_build_rfinfo(band, channel);
+    RFInfo info = RFINFO__INIT;
+    info.band = band;
     stopreceive.info = &info;
 
     base.message_case = BASE__MESSAGE_STOP_RECEIVE;

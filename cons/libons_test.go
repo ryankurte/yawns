@@ -171,6 +171,38 @@ func TestLibONS(t *testing.T) {
 		timer.Stop()
 	})
 
+	t.Run("Client can set radio state", func(t *testing.T) {
+
+		radio.StartReceive(7)
+
+		time.Sleep(100 * time.Millisecond)
+		select {
+		case msg := <-server.OutputChan:
+			packet, ok := msg.(*messages.StartReceive)
+			assert.True(t, ok)
+			assert.EqualValues(t, clientAddress, packet.Address)
+			assert.EqualValues(t, 7, packet.Channel)
+
+		case <-time.After(timeout):
+			t.Errorf("Timeout")
+			t.FailNow()
+		}
+
+		radio.StopReceive()
+
+		time.Sleep(100 * time.Millisecond)
+		select {
+		case msg := <-server.OutputChan:
+			packet, ok := msg.(*messages.StopReceive)
+			assert.True(t, ok)
+			assert.EqualValues(t, clientAddress, packet.Address)
+
+		case <-time.After(timeout):
+			t.Errorf("Timeout")
+			t.FailNow()
+		}
+	})
+
 	t.Run("Exit radio", func(t *testing.T) {
 		client.CloseRadio(radio)
 	})
