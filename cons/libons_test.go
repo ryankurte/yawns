@@ -29,9 +29,11 @@ func TestLibONS(t *testing.T) {
 
 	var server *connector.ZMQConnector
 	var client *ONSConnector
+	var radio *ONSRadio
 
 	timeout := 1 * time.Second
 	port := fmt.Sprintf("inproc:///ons-%s", uuid.NewV4())
+	band := "test-band"
 
 	t.Run("Bind ZMQ Connector", func(t *testing.T) {
 		server = connector.NewZMQConnector(port)
@@ -61,10 +63,20 @@ func TestLibONS(t *testing.T) {
 		}
 	})
 
+	t.Run("Init radio", func(t *testing.T) {
+		r, err := client.RadioInit(band)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+			t.Skip()
+		}
+		radio = r
+	})
+
 	t.Run("Client can message server", func(t *testing.T) {
 
 		data := "Test Client Data String"
-		client.Send([]byte(data))
+		radio.Send([]byte(data))
 
 		time.Sleep(100 * time.Millisecond)
 		select {
@@ -81,7 +93,7 @@ func TestLibONS(t *testing.T) {
 	})
 
 	t.Run("Client starts with no messages", func(t *testing.T) {
-		if client.CheckReceive() {
+		if radio.CheckReceive() {
 			t.Errorf("Client appears to have received message")
 			t.FailNow()
 		}
@@ -91,17 +103,21 @@ func TestLibONS(t *testing.T) {
 
 		data := "Test Server Data String"
 
-		packet := messages.Packet{Message: messages.Message{Address: clientAddress}, Data: []byte(data)}
+		packet := messages.Packet{
+			BaseMessage: messages.BaseMessage{Address: clientAddress},
+			RFInfo:      messages.NewRFInfo(band, 0),
+			Data:        []byte(data),
+		}
 		server.InputChan <- packet
 
 		time.Sleep(100 * time.Millisecond)
 
-		if !client.CheckReceive() {
+		if !radio.CheckReceive() {
 			t.Errorf("Receive callback not called")
 			t.FailNow()
 		}
 
-		message, err := client.GetReceived()
+		message, err := radio.GetReceived()
 		assert.Nil(t, err)
 
 		if string(message) != data {
@@ -119,7 +135,10 @@ func TestLibONS(t *testing.T) {
 				req, ok := msg.(*messages.RSSIRequest)
 				assert.True(t, ok)
 
-				resp := messages.RSSIResponse{Message: messages.Message{Address: req.Address}, RSSI: value}
+				resp := messages.RSSIResponse{
+					BaseMessage: messages.BaseMessage{Address: req.Address},
+					RFInfo:      messages.NewRFInfo(band, 0),
+					RSSI:        value}
 				server.InputChan <- resp
 
 			case <-time.After(timeout):
@@ -137,7 +156,7 @@ func TestLibONS(t *testing.T) {
 		go respond(t, 10.0)
 		time.Sleep(100)
 
-		rssi, err := client.GetRSSI()
+		rssi, err := radio.GetRSSI()
 		assert.Nil(t, err)
 		assert.InDelta(t, 10, rssi, 0.01)
 
@@ -145,11 +164,15 @@ func TestLibONS(t *testing.T) {
 		go respond(t, 76.5)
 		time.Sleep(100)
 
-		rssi, err = client.GetRSSI()
+		rssi, err = radio.GetRSSI()
 		assert.Nil(t, err)
 		assert.InDelta(t, 76.5, rssi, 0.01)
 
 		timer.Stop()
+	})
+
+	t.Run("Exit radio", func(t *testing.T) {
+		client.CloseRadio(radio)
 	})
 
 	t.Run("Exit client", func(t *testing.T) {

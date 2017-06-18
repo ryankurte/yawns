@@ -20,13 +20,13 @@ message Deregister {
 
 // Packet to be sent
 message Packet {
-    bytes data      = 1;    // Data payload
-    RFInfo info     = 2;    // RF information
+    RFInfo info     = 1;    // RF information
+    bytes data      = 2;    // Data payload   
 }
 
 // Indicates that a message send has completed
 message SendComplete {
-
+    RFInfo info = 1;        // Receive channel information
 }
 
 // Indicates a device has entered the receive state
@@ -46,7 +46,8 @@ message RSSIReq {
 
 // RSSI value response
 message RSSIResp {
-    float rssi = 1;         // RSSI value
+    RFInfo info = 1;        // Receive channel information
+    float rssi = 2;         // RSSI value
 }
 
 // Event used to log events on a node back to the ONS server

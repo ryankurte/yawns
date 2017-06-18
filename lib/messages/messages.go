@@ -30,10 +30,18 @@ const (
 	EventID Type = "event"
 )
 
-// Message base type used for internal communication
-type Message struct {
+// Message Generic message interface type to provide slightly more clarity than interface{}
+type Message interface {
+	GetAddress() string
+}
+
+// BaseMessage base type used for internal communication
+type BaseMessage struct {
 	Address string
 }
+
+// GetAddress fetches the address of the origin/destination of the message
+func (message *BaseMessage) GetAddress() string { return message.Address }
 
 type RFInfo struct {
 	Band    string
@@ -46,22 +54,22 @@ func NewRFInfo(band string, channel int32) RFInfo {
 }
 
 type Register struct {
-	Message
+	BaseMessage
 }
 
 type Deregister struct {
-	Message
+	BaseMessage
 }
 
 type Packet struct {
-	Message
+	BaseMessage
 	RFInfo
 	Data []byte
 }
 
 func NewPacket(address string, data []byte, rfInfo RFInfo) *Packet {
 	return &Packet{
-		Message: Message{
+		BaseMessage: BaseMessage{
 			Address: address,
 		},
 		RFInfo: rfInfo,
@@ -70,24 +78,24 @@ func NewPacket(address string, data []byte, rfInfo RFInfo) *Packet {
 }
 
 type RSSIRequest struct {
-	Message
+	BaseMessage
 	RFInfo
 }
 
 type RSSIResponse struct {
-	Message
+	BaseMessage
 	RFInfo
 	RSSI float32
 }
 
 type SendComplete struct {
-	Message
+	BaseMessage
 	RFInfo
 }
 
 func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 	return &SendComplete{
-		Message: Message{
+		BaseMessage: BaseMessage{
 			Address: address,
 		},
 		RFInfo: NewRFInfo(bandName, channel),
@@ -95,19 +103,16 @@ func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 }
 
 type StartReceive struct {
-	Message
+	BaseMessage
 	RFInfo
 }
 
 type StopReceive struct {
-	Message
+	BaseMessage
 	RFInfo
 }
 
 type Event struct {
-	Message
+	BaseMessage
 	Data string
 }
-
-// GetAddress fetches the address of the origin/destination of the message
-func (message *Message) GetAddress() string { return message.Address }

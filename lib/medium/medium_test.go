@@ -48,9 +48,9 @@ func TestMedium(t *testing.T) {
 
 	t.Run("Can create transmission instances", func(t *testing.T) {
 		msg := messages.Packet{
-			Message: messages.Message{Address: "0x0001"},
-			RFInfo:  messages.NewRFInfo("Sub1GHz", 1),
-			Data:    []byte("test data"),
+			BaseMessage: messages.BaseMessage{Address: "0x0001"},
+			RFInfo:      messages.NewRFInfo("Sub1GHz", 1),
+			Data:        []byte("test data"),
 		}
 
 		now := time.Now()
@@ -77,9 +77,9 @@ func TestMedium(t *testing.T) {
 	t.Run("Handles packet transmission", func(t *testing.T) {
 
 		msg := messages.Packet{
-			Message: messages.Message{Address: node.Address},
-			RFInfo:  messages.NewRFInfo(bandName, 1),
-			Data:    []byte("test data"),
+			BaseMessage: messages.BaseMessage{Address: node.Address},
+			RFInfo:      messages.NewRFInfo(bandName, 1),
+			Data:        []byte("test data"),
 		}
 
 		now := time.Now()
@@ -114,9 +114,9 @@ func TestMedium(t *testing.T) {
 		m.nodes[1].Location.Lat += 1.0
 
 		msg := messages.Packet{
-			Message: messages.Message{Address: node.Address},
-			RFInfo:  messages.NewRFInfo(bandName, 1),
-			Data:    []byte("test data"),
+			BaseMessage: messages.BaseMessage{Address: node.Address},
+			RFInfo:      messages.NewRFInfo(bandName, 1),
+			Data:        []byte("test data"),
 		}
 
 		// Send packet
@@ -162,14 +162,14 @@ func TestMedium(t *testing.T) {
 
 		// Create two packets
 		msg1 := messages.Packet{
-			Message: messages.Message{Address: m.nodes[1].Address},
-			RFInfo:  messages.NewRFInfo(bandName, 1),
-			Data:    []byte("test data 1"),
+			BaseMessage: messages.BaseMessage{Address: m.nodes[1].Address},
+			RFInfo:      messages.NewRFInfo(bandName, 1),
+			Data:        []byte("test data 1"),
 		}
 		msg2 := messages.Packet{
-			Message: messages.Message{Address: m.nodes[2].Address},
-			RFInfo:  messages.NewRFInfo(bandName, 1),
-			Data:    []byte("test data 2"),
+			BaseMessage: messages.BaseMessage{Address: m.nodes[2].Address},
+			RFInfo:      messages.NewRFInfo(bandName, 1),
+			Data:        []byte("test data 2"),
 		}
 
 		// Send packets

@@ -8,6 +8,7 @@
 #include "ons/ons.h"
 
 #include <stdint.h>
+#include <assert.h>
 #include <pthread.h>
 #include <signal.h>
 #include <czmq.h>
@@ -169,7 +170,7 @@ int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t*
     return 1;
 }
 
-int ONS_get_rssi(struct ons_radio_s *radio, float* rssi)
+int ONS_radio_get_rssi(struct ons_radio_s *radio, float* rssi)
 {
     int res;
 
@@ -181,7 +182,7 @@ int ONS_get_rssi(struct ons_radio_s *radio, float* rssi)
     pthread_mutex_trylock(&radio->rssi_mutex);
 
     // Send get CCA message
-    ons_send_rssi_req(radio, "", 0);
+    ons_send_rssi_req(radio->connector, radio->band, 0);
 
     // Await cca mutex unlock from onsc thread
     res = pthread_mutex_lock(&radio->rssi_mutex);
@@ -259,6 +260,11 @@ void *ons_handle_receive(void* ctx)
             Base *base = base__unpack(NULL, zsize, zdata);
             struct ons_radio_s* radio = NULL;
 
+            if (base == NULL) {
+                ONS_DEBUG_PRINT("[ONSC THREAD] Error parsing message");
+                continue;
+            }
+
             pthread_mutex_lock(&ons->radios_mutex);
 
             switch(base->message_case) {
@@ -284,14 +290,17 @@ void *ons_handle_receive(void* ctx)
                 radio->receive_length = max_size;
                 ONS_print_arr("[ONSC THREAD] Received packet", radio->receive_data, radio->receive_length);
                 pthread_mutex_unlock(&radio->rx_mutex);
-
                 break;
 
                 case BASE__MESSAGE_RSSI_RESP:
-
                 // Check RSSI packet is valid
                 if((base->rssiresp == NULL) || (base->rssiresp->has_rssi == 0)) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response\n");
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing rssi)\n");
+                    break;
+                }
+
+                if (base == NULL || base->rssireq == NULL || base->rssireq->info == NULL || base->rssireq->info->band == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing info)\n");
                     break;
                 }
 

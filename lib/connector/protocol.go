@@ -11,12 +11,10 @@ package connector
 
 import (
 	"fmt"
-)
-
-import (
-	"github.com/ryankurte/owns/lib/messages"
 
 	"github.com/golang/protobuf/proto"
+
+	"github.com/ryankurte/owns/lib/messages"
 	"github.com/ryankurte/owns/lib/protocol"
 )
 
@@ -50,7 +48,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			c.clients[address] = clientID
 			// Send connected event
 			c.OutputChan <- &messages.Register{
-				Message: messages.Message{Address: address},
+				BaseMessage: messages.BaseMessage{Address: address},
 			}
 		}
 
@@ -70,14 +68,14 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	// Receive a packet from a device
 	case *protocol.Base_Packet:
 		c.OutputChan <- &messages.Packet{
-			Message: messages.Message{Address: address},
-			Data:    m.Packet.Data,
+			BaseMessage: messages.BaseMessage{Address: address},
+			Data:        m.Packet.Data,
 		}
 
 	// Signal that a device has entered receive mode
 	case *protocol.Base_StartReceive:
 		c.OutputChan <- &messages.StartReceive{
-			Message: messages.Message{Address: address},
+			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band:    m.StartReceive.Info.Band,
 				Channel: m.StartReceive.Info.Channel,
@@ -86,18 +84,18 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
 	case *protocol.Base_StopReceive:
 		c.OutputChan <- &messages.StopReceive{
-			Message: messages.Message{Address: address},
+			BaseMessage: messages.BaseMessage{Address: address},
 		}
 
 	case *protocol.Base_Event:
 		c.OutputChan <- &messages.Event{
-			Message: messages.Message{Address: address},
-			Data:    m.Event.Data,
+			BaseMessage: messages.BaseMessage{Address: address},
+			Data:        m.Event.Data,
 		}
 
 	case *protocol.Base_RssiReq:
 		c.OutputChan <- &messages.RSSIRequest{
-			Message: messages.Message{Address: address},
+			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band:    m.RssiReq.Info.Band,
 				Channel: m.RssiReq.Info.Channel,
@@ -123,6 +121,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		address = m.Address
 		base.Message = &protocol.Base_Packet{
 			Packet: &protocol.Packet{
+				Info: &protocol.RFInfo{Band: m.Band},
 				Data: m.Data,
 			},
 		}
@@ -131,6 +130,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		address = m.Address
 		base.Message = &protocol.Base_RssiResp{
 			RssiResp: &protocol.RSSIResp{
+				Info: &protocol.RFInfo{Band: m.Band},
 				Rssi: m.RSSI,
 			},
 		}

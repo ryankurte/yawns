@@ -25,6 +25,10 @@ type ONSConnector struct {
 	ons C.struct_ons_s
 }
 
+type ONSRadio struct {
+	radio C.struct_ons_radio_s
+}
+
 // NewONSConnector creates an ONS connector
 func NewONSConnector() *ONSConnector {
 	return &ONSConnector{C.struct_ons_s{}}
@@ -46,23 +50,47 @@ func (c *ONSConnector) Init(serverAddress string, localAddress string) error {
 	return nil
 }
 
-// Send a data packet using the connector
-func (c *ONSConnector) Send(data []byte) {
+// RadioInit Initialise a virtual radio using the connector
+func (c *ONSConnector) RadioInit(band string) (*ONSRadio, error) {
+	r := ONSRadio{
+		radio: C.struct_ons_radio_s{},
+	}
+	bandString := C.CString(band)
 
+	res := C.ONS_radio_init(&c.ons, &r.radio, bandString)
+	C.free(unsafe.Pointer(bandString))
+	if res != 0 {
+		return nil, fmt.Errorf("Error creating virtual radio for band: %s", band)
+	}
+	return &r, nil
+}
+
+// CloseRadio Closes an ONS virtual radio
+func (c *ONSConnector) CloseRadio(r *ONSRadio) {
+	C.ONS_radio_close(&c.ons, &r.radio)
+}
+
+// Close the ONS connector
+func (c *ONSConnector) Close() {
+	C.ONS_close(&c.ons)
+}
+
+// Send a data packet using the connector
+func (r *ONSRadio) Send(data []byte) {
 	typedData := make([]C.uint8_t, len(data))
-	ptr := (*C.uint8_t)(unsafe.Pointer(&data[0]))
+	ptr := (*C.uint8_t)(unsafe.Pointer(&typedData[0]))
 	length := C.uint16_t(len(data))
 
 	for i := range data {
 		typedData[i] = C.uint8_t(data[i])
 	}
 
-	C.ONS_send(&c.ons, ptr, length)
+	C.ONS_radio_send(&r.radio, ptr, length)
 }
 
 // CheckSend Check for data packet send completion
-func (c *ONSConnector) CheckSend() bool {
-	res := C.ONS_check_send(&c.ons)
+func (r *ONSRadio) CheckSend() bool {
+	res := C.ONS_radio_check_send(&r.radio)
 	if res > 0 {
 		return true
 	}
@@ -70,8 +98,8 @@ func (c *ONSConnector) CheckSend() bool {
 }
 
 // CheckReceive Check whether a packet has been received
-func (c *ONSConnector) CheckReceive() bool {
-	res := C.ONS_check_receive(&c.ons)
+func (r *ONSRadio) CheckReceive() bool {
+	res := C.ONS_radio_check_receive(&r.radio)
 	if res > 0 {
 		return true
 	}
@@ -79,7 +107,7 @@ func (c *ONSConnector) CheckReceive() bool {
 }
 
 // GetReceived Fetch a received packet
-func (c *ONSConnector) GetReceived() ([]byte, error) {
+func (r *ONSRadio) GetReceived() ([]byte, error) {
 	// Create C objects for calling
 	data := make([]C.uint8_t, C.ONS_BUFFER_LENGTH)
 	dataPtr := (*C.uint8_t)(unsafe.Pointer(&data[0]))
@@ -87,7 +115,7 @@ func (c *ONSConnector) GetReceived() ([]byte, error) {
 	len := C.uint16_t(0)
 
 	// Call C method
-	res := C.ONS_get_received(&c.ons, maxLen, dataPtr, &len)
+	res := C.ONS_radio_get_received(&r.radio, maxLen, dataPtr, &len)
 
 	// Check response
 	if res <= 0 {
@@ -104,11 +132,11 @@ func (c *ONSConnector) GetReceived() ([]byte, error) {
 }
 
 // GetRSSI Check fetches RSSI for the device
-func (c *ONSConnector) GetRSSI() (float32, error) {
+func (r *ONSRadio) GetRSSI() (float32, error) {
 	rssi := C.float(0.0)
 	rssiPtr := (*C.float)(unsafe.Pointer(&rssi))
 
-	res := C.ONS_get_rssi(&c.ons, rssiPtr)
+	res := C.ONS_radio_get_rssi(&r.radio, rssiPtr)
 	if res < 0 {
 		return float32(rssi), fmt.Errorf("GetRSSI error %d", res)
 	}
@@ -116,9 +144,4 @@ func (c *ONSConnector) GetRSSI() (float32, error) {
 		return float32(rssi), nil
 	}
 	return float32(rssi), nil
-}
-
-// Close the ONS connector
-func (c *ONSConnector) Close() {
-	C.ONS_close(&c.ons)
 }
