@@ -1,0 +1,48 @@
+hash: 9c83d0bac35e9790c924ff1d8bfcb858033d166b2472ec44932b5ad52a3ca5b8
+updated: 2017-06-18T19:19:49.308271434+12:00
+imports:
+- name: github.com/golang/protobuf
+  version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
+  subpackages:
+  - proto
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
+- name: github.com/jessevdk/go-flags
+  version: 48cf8722c3375517aba351d1f7577c40663a4407
+- name: github.com/paulmach/go.geo
+  version: b160a6efed6c2a8af1b59ce870dd8802056fcad5
+- name: github.com/paulmach/go.geojson
+  version: 40612a87147b9cf5cd0e397ced54d89e623647ff
+- name: github.com/ryankurte/go-mapbox
+  version: 4042cfbf3cd7b7ab0859e039db1a874ab413790d
+  subpackages:
+  - lib
+  - lib/base
+  - lib/directions
+  - lib/geocode
+  - lib/maps
+- name: github.com/ryankurte/go-rf
+  version: ad9965522fcb29452842f0b61c3fe0e879bb4606
+- name: gopkg.in/ryankurte/go-async-cmd.v1
+  version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
+- name: gopkg.in/yaml.v2
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+- name: gopkg.in/zeromq/goczmq.v4
+  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert

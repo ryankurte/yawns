@@ -1,11 +1,14 @@
 default: ons
 
 # Install dependencies
-install: lib
-	go get -t ./...
+install: install-deps lib
+
+install-deps:
+	glide install
 
 install-tools:
 	go get -u github.com/golang/lint/golint
+	go get -u github.com/Masterminds/glide
 	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
 
 all: ons lib client

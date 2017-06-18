@@ -11,9 +11,12 @@ services:
 before_install:
 - docker pull ryankurte/docker-native-dev
 
+install:
+- make install-tools
+
 script:
 - docker run --rm -it -v`pwd`:/root/go/src/github.com/ryankurte/ons ryankurte/docker-native-dev
-  /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make install && make test"
+  /bin/bash -c "cd /root/go/src/github.com/ryankurte/ons && make install-tools && make install && make test"
 
 after_success:
 - mkdir -p release
