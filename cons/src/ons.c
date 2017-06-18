@@ -131,10 +131,10 @@ int ONS_close(struct ons_s *ons)
     return 0;
 }
 
-int ONS_radio_send(struct ons_radio_s *radio, uint8_t *data, uint16_t length)
+int ONS_radio_send(struct ons_radio_s *radio, int32_t channel, uint8_t *data, uint16_t length)
 {   
     radio->tx_complete = false;
-    return ons_send_packet(radio->connector, data, length);
+    return ons_send_packet(radio->connector, radio->band, channel, data, length);
 }
 
 int ONS_radio_check_send(struct ons_radio_s *radio)
@@ -170,7 +170,7 @@ int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t*
     return 1;
 }
 
-int ONS_radio_get_rssi(struct ons_radio_s *radio, float* rssi)
+int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float* rssi)
 {
     int res;
 
@@ -182,7 +182,7 @@ int ONS_radio_get_rssi(struct ons_radio_s *radio, float* rssi)
     pthread_mutex_trylock(&radio->rssi_mutex);
 
     // Send get CCA message
-    ons_send_rssi_req(radio->connector, radio->band, 0);
+    ons_send_rssi_req(radio->connector, radio->band, channel);
 
     // Await cca mutex unlock from onsc thread
     res = pthread_mutex_lock(&radio->rssi_mutex);

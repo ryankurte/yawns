@@ -75,13 +75,19 @@ int ons_send_deregister(struct ons_s *ons, char* address) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_packet(struct ons_s *ons, uint8_t *data, uint16_t length) {
+int ons_send_packet(struct ons_s *ons, char* band, int32_t channel, uint8_t *data, uint16_t length) {
     Base base = BASE__INIT;
     Packet packet = PACKET__INIT;
+    RFInfo info = RFINFO__INIT;
 
     packet.has_data = 1;
     packet.data.len = length;
     packet.data.data = data;
+
+    info.band = band;
+    info.has_channel = 1;
+    info.channel = channel;
+    packet.info = &info;
 
     base.message_case = BASE__MESSAGE_PACKET;
     base.packet = &packet;

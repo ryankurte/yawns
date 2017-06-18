@@ -76,7 +76,7 @@ func TestLibONS(t *testing.T) {
 	t.Run("Client can message server", func(t *testing.T) {
 
 		data := "Test Client Data String"
-		radio.Send([]byte(data))
+		radio.Send(0, []byte(data))
 
 		time.Sleep(100 * time.Millisecond)
 		select {
@@ -156,7 +156,7 @@ func TestLibONS(t *testing.T) {
 		go respond(t, 10.0)
 		time.Sleep(100)
 
-		rssi, err := radio.GetRSSI()
+		rssi, err := radio.GetRSSI(0)
 		assert.Nil(t, err)
 		assert.InDelta(t, 10, rssi, 0.01)
 
@@ -164,7 +164,7 @@ func TestLibONS(t *testing.T) {
 		go respond(t, 76.5)
 		time.Sleep(100)
 
-		rssi, err = radio.GetRSSI()
+		rssi, err = radio.GetRSSI(0)
 		assert.Nil(t, err)
 		assert.InDelta(t, 76.5, rssi, 0.01)
 

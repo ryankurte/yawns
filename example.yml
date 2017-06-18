@@ -41,7 +41,7 @@ medium:
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
 defaults:
-  executable: ./libons/build/ons-client
+  executable: ./cons/build/ons-client
   command: "{{.server}} {{.address}}"
 
 # Node definitions

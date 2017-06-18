@@ -57,12 +57,12 @@ int main(int argc, char** argv) {
         if (res > 0) {
             ONS_radio_get_received(&radio, sizeof(data), data, &len);
             ONS_print_arr("Received", data, len);
-            ONS_radio_send(&radio, data, len);
+            ONS_radio_send(&radio, 0, data, len);
         }
 
         data[0] = count ++;
 
-        res = ONS_radio_send(&radio, data, 1);
+        res = ONS_radio_send(&radio, 0, data, 1);
         if (res < 0) {
             printf("ONS send error: %d\n", res);
         }

@@ -76,16 +76,17 @@ func (c *ONSConnector) Close() {
 }
 
 // Send a data packet using the connector
-func (r *ONSRadio) Send(data []byte) {
+func (r *ONSRadio) Send(channel int, data []byte) {
 	typedData := make([]C.uint8_t, len(data))
 	ptr := (*C.uint8_t)(unsafe.Pointer(&typedData[0]))
 	length := C.uint16_t(len(data))
+	c := C.int32_t(channel)
 
 	for i := range data {
 		typedData[i] = C.uint8_t(data[i])
 	}
 
-	C.ONS_radio_send(&r.radio, ptr, length)
+	C.ONS_radio_send(&r.radio, c, ptr, length)
 }
 
 // CheckSend Check for data packet send completion
@@ -132,11 +133,12 @@ func (r *ONSRadio) GetReceived() ([]byte, error) {
 }
 
 // GetRSSI Check fetches RSSI for the device
-func (r *ONSRadio) GetRSSI() (float32, error) {
+func (r *ONSRadio) GetRSSI(channel int) (float32, error) {
 	rssi := C.float(0.0)
 	rssiPtr := (*C.float)(unsafe.Pointer(&rssi))
+	c := C.int32_t(channel)
 
-	res := C.ONS_radio_get_rssi(&r.radio, rssiPtr)
+	res := C.ONS_radio_get_rssi(&r.radio, c, rssiPtr)
 	if res < 0 {
 		return float32(rssi), fmt.Errorf("GetRSSI error %d", res)
 	}
