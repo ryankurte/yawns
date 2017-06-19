@@ -2,7 +2,6 @@ package engine
 
 import (
 	"log"
-	"reflect"
 )
 
 import (
@@ -19,8 +18,13 @@ func (e *Engine) HandleConnectorMessage(message interface{}) {
 	case *messages.Packet:
 		e.OnReceived(m.GetAddress(), m.Data)
 
-	default:
-		log.Printf("Engine.HandleConnectorMessage error: unhandled message type (%s)", reflect.TypeOf(message))
+	}
+}
+
+func (e *Engine) HandleMediumMessage(message interface{}) {
+	switch m := message.(type) {
+	case *messages.Packet:
+		e.OnSend(m.GetAddress(), m.Data)
 	}
 }
 

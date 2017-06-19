@@ -165,7 +165,17 @@ setup:
 				log.Printf("Connector channel error")
 				break setup
 			}
+			e.medium.Send() <- message
 			e.HandleConnectorMessage(message)
+
+		// Medium outputs
+		case message, ok := <-e.medium.Receive():
+			if !ok {
+				log.Printf("Connector channel error")
+				break setup
+			}
+			e.connectorWriteCh <- message
+			e.HandleMediumMessage(message)
 
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:

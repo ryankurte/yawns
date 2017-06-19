@@ -14,6 +14,7 @@ import (
 type Simulator struct {
 	engine *engine.Engine
 	runner *runner.Runner
+	medium *medium.Medium
 }
 
 // NewSimulator creates a simulator instance
@@ -40,6 +41,17 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	r := runner.NewRunner(config, args)
 	e.BindRunnerChannel(r.OutputChan)
 
+	// Launch clients via runner
+	err = r.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Loading medium simulation")
+	m := medium.NewMedium(&config.Medium, config.TickRate, &config.Nodes)
+	e.BindMedium(m)
+	go m.Run()
+
 	log.Printf("Configuring simulation engine")
 
 	// Run engine setup
@@ -48,19 +60,9 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
-	log.Printf("Loading medium simulation")
-	m := medium.NewMedium(&config.Medium, config.EndTime, &config.Nodes)
-	e.BindMedium(m)
-
 	log.Printf("Starting runnable clients")
 
-	// Launch clients via runner
-	err = r.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Simulator{e, r}, nil
+	return &Simulator{e, r, m}, nil
 }
 
 // Info displays simulation information
@@ -85,6 +87,8 @@ func (s *Simulator) Run() error {
 
 // Close the simulation
 func (s *Simulator) Close() {
+
+	s.medium.Stop()
 
 	s.runner.Stop()
 }

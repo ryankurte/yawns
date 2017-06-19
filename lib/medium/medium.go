@@ -46,6 +46,7 @@ type Medium struct {
 type Stats struct {
 	TickMin time.Duration
 	TickMax time.Duration
+	TickAvg time.Duration
 }
 
 // NewMedium creates a new medium instance
@@ -90,13 +91,29 @@ func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) type
 	return types.Attenuation(m.layerManager.CalculateFading(band, n1.Location, n2.Location))
 }
 
+func (m *Medium) Start() {
+	go m.Run()
+}
+
+func (m *Medium) Stop() {
+	close(m.inCh)
+	close(m.outCh)
+}
+
 // Run runs the medium simulation
 func (m *Medium) Run() {
 	log.Printf("Medium running")
-	lastTime := time.Now()
-	runTimer := time.NewTicker(m.rate)
+
 	m.stats.TickMin = 0
 	m.stats.TickMax = 0
+	m.stats.TickAvg = 0
+
+	var avg float64
+	var count float64
+
+	lastTime := time.Now()
+	runTimer := time.NewTicker(m.rate)
+
 running:
 	for {
 		select {
@@ -114,27 +131,34 @@ running:
 		// Run timed updates
 		case now := <-runTimer.C:
 			// Calculate delta between runs
-			delta := now.Sub(lastTime)
-			if m.stats.TickMax == 0 || delta > m.stats.TickMax {
-				m.stats.TickMax = delta
+			if count != 0 {
+				delta := now.Sub(lastTime)
+				lastTime = now
+				if m.stats.TickMax == 0 || delta > m.stats.TickMax {
+					m.stats.TickMax = delta
+				}
+				if m.stats.TickMin == 0 || delta < m.stats.TickMin {
+					m.stats.TickMin = delta
+				}
+
+				avg = avg*count/(count+1) + float64(delta)/(count+1)
 			}
-			if m.stats.TickMin == 0 || delta < m.stats.TickMin {
-				m.stats.TickMin = delta
-			}
+			count++
 
 			m.update(now)
 		}
 	}
-	log.Printf("Medium exited (stats: +v)", m.stats)
+
+	m.stats.TickAvg = time.Duration(avg)
+
+	log.Printf("Medium exited (stats: %+v)", m.stats)
 }
 
 func (m *Medium) handleMessage(message interface{}) error {
 	switch msg := message.(type) {
-	case messages.Packet:
+	case *messages.Packet:
 		log.Printf("Received packet: %+v", msg)
-		return m.sendPacket(time.Now(), msg)
-	default:
-		log.Printf("Medium unhandled message: %+v", message)
+		return m.sendPacket(time.Now(), *msg)
 	}
 	return nil
 }

@@ -67,7 +67,10 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	case *protocol.Base_Packet:
 		c.OutputChan <- &messages.Packet{
 			BaseMessage: messages.BaseMessage{Address: address},
-			Data:        m.Packet.Data,
+			RFInfo: messages.RFInfo{
+				Band:    m.Packet.Info.Band,
+				Channel: m.Packet.Info.Channel},
+			Data: m.Packet.Data,
 		}
 
 	// Signal that a device has entered receive mode
@@ -83,6 +86,9 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	case *protocol.Base_StopReceive:
 		c.OutputChan <- &messages.StopReceive{
 			BaseMessage: messages.BaseMessage{Address: address},
+			RFInfo: messages.RFInfo{
+				Band: m.StopReceive.Info.Band,
+			},
 		}
 
 	case *protocol.Base_Event:

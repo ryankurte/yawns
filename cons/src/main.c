@@ -20,13 +20,14 @@ int main(int argc, char** argv) {
 
     printf("ONS Example Client\n");
 
-    if (argc != 3) {
-        printf("%s requires 3 arguments\n", argv[0]);
+    if (argc != 4) {
+        printf("%s requires 4 arguments\n", argv[0]);
         return 0;
     }
 
     char* server_address = argv[1];
     char* local_address = argv[2];
+    char* band = argv[3];
 
     printf("Server Address: %s\n", server_address);
     printf("Local Address: %s\n", local_address);
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
     }
 
     struct ons_radio_s radio;
-    res = ONS_radio_init(&ons, &radio, "ISM-433MHz");
+    res = ONS_radio_init(&ons, &radio, band);
     if (res < 0) {
         printf("Error %d creating ONS connector\n", res);
         return -1;
@@ -52,8 +53,12 @@ int main(int argc, char** argv) {
 
     int count = 0;
 
+    //usleep(100 * 1000);
+
+    //res = ONS_radio_start_receive(&radio, 0);
+
     while(running) {
-        int res = ONS_radio_check_receive(&radio);
+        res = ONS_radio_check_receive(&radio);
         if (res > 0) {
             ONS_radio_get_received(&radio, sizeof(data), data, &len);
             ONS_print_arr("Received", data, len);

@@ -42,7 +42,7 @@ medium:
 # These are inherited by all child nodes (unless overwritten)
 defaults:
   executable: ./cons/build/ons-client
-  command: "{{.server}} {{.address}}"
+  command: "{{.server}} {{.address}} Sub1GHz"
 
 # Node definitions
 # This defines the nodes to be linked to the simulator
