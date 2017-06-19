@@ -2,6 +2,7 @@ package engine
 
 import (
 	"log"
+	"reflect"
 )
 
 import (
@@ -12,16 +13,15 @@ import (
 func (e *Engine) HandleConnectorMessage(message interface{}) {
 
 	switch m := message.(type) {
-	case messages.Register:
+	case *messages.Register:
 		e.OnConnected(m.GetAddress())
 
-	case messages.Packet:
+	case *messages.Packet:
 		e.OnReceived(m.GetAddress(), m.Data)
 
 	default:
-		log.Printf("Engine.HandleConnectorMessage error: unhandled message type (%t)", message)
+		log.Printf("Engine.HandleConnectorMessage error: unhandled message type (%s)", reflect.TypeOf(message))
 	}
-
 }
 
 // OnConnected called when a node connects

@@ -1,6 +1,8 @@
-hash: 9c83d0bac35e9790c924ff1d8bfcb858033d166b2472ec44932b5ad52a3ca5b8
-updated: 2017-06-18T19:19:49.308271434+12:00
+hash: c3f54a94c2b65f8c4c9bbe693d049a98ad70378b2b6c0dbf785013b2d1ffcfff
+updated: 2017-06-19T16:19:27.252205087+12:00
 imports:
+- name: github.com/go-yaml/yaml
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: github.com/golang/protobuf
   version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
   subpackages:
@@ -11,26 +13,30 @@ imports:
   - query
 - name: github.com/jessevdk/go-flags
   version: 48cf8722c3375517aba351d1f7577c40663a4407
-- name: github.com/paulmach/go.geo
-  version: b160a6efed6c2a8af1b59ce870dd8802056fcad5
-- name: github.com/paulmach/go.geojson
-  version: 40612a87147b9cf5cd0e397ced54d89e623647ff
+- name: github.com/ryankurte/go-async-cmd
+  version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: github.com/ryankurte/go-mapbox
-  version: 4042cfbf3cd7b7ab0859e039db1a874ab413790d
+  version: f134225efee408ead854071bb225d4e861aa65d3
   subpackages:
   - lib
   - lib/base
   - lib/directions
+  - lib/directions_matrix
   - lib/geocode
+  - lib/map_matching
   - lib/maps
 - name: github.com/ryankurte/go-rf
-  version: ad9965522fcb29452842f0b61c3fe0e879bb4606
+  version: 84b977ca469990cbfd7460a343befb20345bb10e
+- name: github.com/zeromq/goczmq
+  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
+- name: golang.org/x/sync
+  version: f52d1811a62927559de87708c8913c1650ce4f26
+  subpackages:
+  - syncmap
 - name: gopkg.in/ryankurte/go-async-cmd.v1
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
-- name: gopkg.in/zeromq/goczmq.v4
-  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
 testImports:
 - name: github.com/davecgh/go-spew
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9

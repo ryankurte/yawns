@@ -1,11 +1,13 @@
 package sim
 
 import (
+	"log"
+
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/connector"
 	"github.com/ryankurte/owns/lib/engine"
+	"github.com/ryankurte/owns/lib/medium"
 	"github.com/ryankurte/owns/lib/runner"
-	"log"
 )
 
 // Simulator instance
@@ -38,22 +40,23 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	r := runner.NewRunner(config, args)
 	e.BindRunnerChannel(r.OutputChan)
 
-	log.Printf("Starting runnable clients")
-
-	// Launch clients via runner
-	err = r.Start()
-	if err != nil {
-		return nil, err
-	}
-
 	log.Printf("Configuring simulation engine")
 
 	// Run engine setup
 	err = e.Setup(true)
 	if err != nil {
-		// Stop runnables
-		r.Stop()
+		return nil, err
+	}
 
+	log.Printf("Loading medium simulation")
+	m := medium.NewMedium(&config.Medium, config.EndTime, &config.Nodes)
+	e.BindMedium(m)
+
+	log.Printf("Starting runnable clients")
+
+	// Launch clients via runner
+	err = r.Start()
+	if err != nil {
 		return nil, err
 	}
 

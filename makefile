@@ -42,7 +42,7 @@ run: build
 
 # Test application
 test: ons lib
-	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./...
+	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cons/...
 
 # Utilities
 

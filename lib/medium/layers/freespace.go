@@ -20,5 +20,7 @@ func (fs *FreeSpace) CalculateFading(band config.Band, p1, p2 types.Location) fl
 
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
 
-	return float64(rf.CalculateFreeSpacePathLoss(rf.Frequency(band.Frequency), distance))
+	attenuation := rf.CalculateFreeSpacePathLoss(rf.Frequency(band.Frequency), distance)
+
+	return float64(attenuation)
 }

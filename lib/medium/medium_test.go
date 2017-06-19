@@ -19,21 +19,21 @@ func TestMedium(t *testing.T) {
 	c, err := config.LoadConfigFile("../../example.yml")
 	assert.Nil(t, err)
 
-	nodes := make([]*types.Node, len(c.Nodes))
+	nodes := make([]types.Node, len(c.Nodes))
 	for i := range c.Nodes {
-		nodes[i] = &c.Nodes[i]
+		nodes[i] = c.Nodes[i]
 	}
 
-	m := NewMedium(&c.Medium, time.Millisecond/10, nodes)
+	m := NewMedium(&c.Medium, time.Millisecond/10, &nodes)
 
-	for i := range m.nodes {
+	for i := range nodes {
 		for b := range c.Medium.Bands {
 			m.SetTransceiverState(i, b, TransceiverStateReceive)
 		}
 	}
 
 	t.Run("Maps nodes in config files", func(t *testing.T) {
-		if len(m.nodes) != len(c.Nodes) {
+		if len(*m.nodes) != len(c.Nodes) {
 			t.Errorf("Expected 4%d nodes from config file", len(c.Nodes))
 		}
 	})
@@ -56,7 +56,7 @@ func TestMedium(t *testing.T) {
 		now := time.Now()
 
 		band := c.Medium.Bands[msg.Band]
-		transmission := NewTransmission(now, m.nodes[0], &band, msg)
+		transmission := NewTransmission(now, &nodes[0], &band, msg)
 
 		assert.EqualValues(t, msg.Address, transmission.Origin.Address)
 		assert.EqualValues(t, msg.Band, transmission.Band)
@@ -71,7 +71,7 @@ func TestMedium(t *testing.T) {
 	})
 
 	nodeIndex := 0
-	node := m.nodes[nodeIndex]
+	node := nodes[nodeIndex]
 	bandName := "Sub1GHz"
 
 	t.Run("Handles packet transmission", func(t *testing.T) {
@@ -102,7 +102,7 @@ func TestMedium(t *testing.T) {
 		// Distributes messages
 		// Node 0 can communicate with nodes 1, 2 and 3
 		for i := 1; i < 4; i++ {
-			CheckPacketForward(t, m.nodes[i].Address, msg.Data, msg.RFInfo, m.outCh)
+			CheckPacketForward(t, nodes[i].Address, msg.Data, msg.RFInfo, m.outCh)
 		}
 
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
@@ -111,7 +111,7 @@ func TestMedium(t *testing.T) {
 	t.Run("Handles node movement during packet transmission", func(t *testing.T) {
 
 		// Shift node 1 out of range
-		m.nodes[1].Location.Lat += 1.0
+		nodes[1].Location.Lat += 1.0
 
 		msg := messages.Packet{
 			BaseMessage: messages.BaseMessage{Address: node.Address},
@@ -132,8 +132,8 @@ func TestMedium(t *testing.T) {
 		assert.EqualValues(t, []bool{false, false, true, true, false}, m.transmissions[0].SendOK)
 
 		// Shift node 1 into range and 2 out of range
-		m.nodes[1].Location.Lat -= 1.0
-		m.nodes[2].Location.Lat += 1.0
+		nodes[1].Location.Lat -= 1.0
+		nodes[2].Location.Lat += 1.0
 
 		// Cause another update
 		now = now.Add(packetTime / 2)
@@ -150,10 +150,10 @@ func TestMedium(t *testing.T) {
 		CheckSendComplete(t, msg.Address, msg.RFInfo, m.outCh)
 
 		// Sends message to OK node (3)
-		CheckPacketForward(t, m.nodes[3].Address, msg.Data, msg.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[3].Address, msg.Data, msg.RFInfo, m.outCh)
 
 		// Reset node 2 location
-		m.nodes[2].Location.Lat -= 1.0
+		nodes[2].Location.Lat -= 1.0
 
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
 	})
@@ -162,12 +162,12 @@ func TestMedium(t *testing.T) {
 
 		// Create two packets
 		msg1 := messages.Packet{
-			BaseMessage: messages.BaseMessage{Address: m.nodes[1].Address},
+			BaseMessage: messages.BaseMessage{Address: nodes[1].Address},
 			RFInfo:      messages.NewRFInfo(bandName, 1),
 			Data:        []byte("test data 1"),
 		}
 		msg2 := messages.Packet{
-			BaseMessage: messages.BaseMessage{Address: m.nodes[2].Address},
+			BaseMessage: messages.BaseMessage{Address: nodes[2].Address},
 			RFInfo:      messages.NewRFInfo(bandName, 1),
 			Data:        []byte("test data 2"),
 		}
@@ -196,11 +196,11 @@ func TestMedium(t *testing.T) {
 		// Sends SendComplete packet to msg1 origin
 		CheckSendComplete(t, msg1.Address, msg1.RFInfo, m.outCh)
 		// Forwards msg1 to node 2
-		CheckPacketForward(t, m.nodes[2].Address, msg1.Data, msg1.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[2].Address, msg1.Data, msg1.RFInfo, m.outCh)
 		// Sends SendComplete packet to msg2 origin
 		CheckSendComplete(t, msg2.Address, msg2.RFInfo, m.outCh)
 		// Forwards msg2 to node 2
-		CheckPacketForward(t, m.nodes[1].Address, msg2.Data, msg2.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[1].Address, msg2.Data, msg2.RFInfo, m.outCh)
 
 		// Clears transmissions
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")

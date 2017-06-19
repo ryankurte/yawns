@@ -5,8 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/ryankurte/owns/lib/types"
 	"gopkg.in/yaml.v2"
+
+	"github.com/ryankurte/owns/lib/types"
 )
 
 // Config Engine configuration

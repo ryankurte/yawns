@@ -7,17 +7,18 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-)
 
-import (
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/plugins"
 )
 
 // Engine is the base simulation engine
 type Engine struct {
-	nodes         map[string]*Node
-	Events        []*Event
+	nodes map[string]*Node
+
+	Events []*Event
+
+	medium        Medium
 	pluginManager *plugins.PluginManager
 
 	connectorReadCh  chan interface{}
@@ -41,6 +42,10 @@ func NewEngine(c *config.Config) *Engine {
 	e.pluginManager = plugins.NewPluginManager()
 
 	return &e
+}
+
+func (e *Engine) BindMedium(m Medium) {
+	e.medium = m
 }
 
 func (e *Engine) BindConnectorChannels(read, write chan interface{}) {
@@ -214,17 +219,18 @@ func (e *Engine) Run() error {
 	// Run simulation
 	e.startTime = time.Now()
 	log.Printf("Simulation: starting")
+	endTimer := time.After(e.endTime)
 
-	var lastTime time.Duration
+	runTimer := time.NewTicker(e.tickRate)
+	defer runTimer.Stop()
 
 running:
 	for {
 		select {
-		// Simulation Event ticks
-		case <-time.After(lastTime + e.tickRate):
-			lastTime += e.tickRate
-			log.Printf("Simulation: tick: %s", lastTime)
-			e.handleEvents(lastTime)
+		// Exit once endtime has occurred
+		case <-endTimer:
+			log.Printf("Simulation: completed")
+			break running
 
 		// Connector inputs
 		case message, ok := <-e.connectorReadCh:
@@ -247,10 +253,10 @@ running:
 			log.Printf("Simulation: interrupted after %s", time.Now().Sub(e.startTime))
 			break running
 
-		// Exit once endtime has occurred
-		case <-time.After(e.endTime):
-			log.Printf("Simulation: completed")
-			break running
+		// Simulation Event ticks
+		case t := <-runTimer.C:
+			d := t.Sub(e.startTime)
+			e.handleEvents(d)
 		}
 	}
 

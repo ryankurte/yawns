@@ -36,8 +36,6 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		return fmt.Errorf("Error parsing protobuf message (%s)", err)
 	}
 
-	fmt.Printf("Message: %+v\n", message.GetMessage())
-
 	// Register message is a special case as no address is available for lookup
 	if m, ok := message.GetMessage().(*protocol.Base_Register); ok {
 		// Bind address to ID lookup for sending
