@@ -1,5 +1,5 @@
-hash: c3f54a94c2b65f8c4c9bbe693d049a98ad70378b2b6c0dbf785013b2d1ffcfff
-updated: 2017-06-19T16:19:27.252205087+12:00
+hash: 66a36d5ff01674ab78654921421de97c81993727ae7cf24880792d7e3e4ab369
+updated: 2017-06-21T15:53:09.940129632+12:00
 imports:
 - name: github.com/go-yaml/yaml
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
@@ -11,6 +11,8 @@ imports:
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
   subpackages:
   - query
+- name: github.com/google/gopacket
+  version: b83f94714c36e30ce851be1d5a0a5226f9f1bca4
 - name: github.com/jessevdk/go-flags
   version: 48cf8722c3375517aba351d1f7577c40663a4407
 - name: github.com/ryankurte/go-async-cmd
