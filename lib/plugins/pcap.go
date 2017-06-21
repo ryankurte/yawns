@@ -3,6 +3,7 @@ package plugins
 import (
 	"bufio"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"time"
 )
@@ -14,32 +15,41 @@ const (
 	LinkTypePrivate uint32 = 147
 )
 
+// PCAPPlugin is a plugin to write PCAP files from the simulation
 type PCAPPlugin struct {
 	f *os.File
 	b *bufio.Writer
 }
 
-func NewPACPPlugin(pcapFile string) (*PCAPPlugin, error) {
+// NewPCAPPlugin creates a new PCAP file writer plugin
+func NewPCAPPlugin(options map[string]string) (*PCAPPlugin, error) {
 	p := PCAPPlugin{}
 	var err error
 
+	file, ok := options["file"]
+	if !ok {
+		return nil, fmt.Errorf("PCAPPlugin requires file argument")
+	}
+
 	// Open capture file
-	p.f, err = os.OpenFile(pcapFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
+	p.f, err = os.OpenFile(file, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		return nil, err
 	}
 	p.b = bufio.NewWriter(p.f)
 
-	// Write header
+	// Write file header
 	p.writeGlobalHeader(LinkTypePrivate)
 
 	return &p, nil
 }
 
+// Received logs a received packet
 func (p *PCAPPlugin) Received(t time.Time, address string, message []byte) {
 	p.writePacket(t, message)
 }
 
+// Close closes the pcap file
 func (p *PCAPPlugin) Close() {
 	p.b.Flush()
 	p.f.Close()
