@@ -10,17 +10,54 @@ package plugins
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"os"
 	"time"
 )
 
 const (
-	// LinkTypeIEEE802_14_4 IEEE802.14.5 link type
-	LinkTypeIEEE802_14_4 uint32 = 195
+	// LinkTypeIEEE802_15_4 IEEE802.15.4 link type
+	LinkTypeIEEE802_15_4 uint32 = 195
 	// LinkTypePrivate Private link type
 	LinkTypePrivate uint32 = 147
+	// FileName configuration option
+	FileName string = "file"
+	// LinkType configuration option
+	LinkType string = "linktype"
 )
+
+var DefaultFileName = "./owns.pcap"
+var DefaultLinkType = LinkTypePrivate
+
+// GlobalHeader PCap file global header
+type GlobalHeader struct {
+	Magic          uint32
+	VersionMajor   uint16
+	VersionMinor   uint16
+	Timezone       uint32
+	TimeAccuracy   uint32
+	SnapshotLength uint32
+	Network        uint32
+}
+
+// BuildGlobalHeader builds a global header instance
+func BuildGlobalHeader(linkType uint32) GlobalHeader {
+	return GlobalHeader{
+		Magic:        0xa1b2c3d4,
+		VersionMajor: 2,
+		VersionMinor: 4,
+		Timezone:     0,
+		TimeAccuracy: 0,
+		Network:      linkType,
+	}
+}
+
+// PacketHeader PCap file packet header
+type PacketHeader struct {
+	Seconds        uint32
+	Micros         uint32
+	IncludedLength uint32
+	OriginalLength uint32
+}
 
 // PCAPPlugin is a plugin to write PCAP files from the simulation
 type PCAPPlugin struct {
@@ -29,31 +66,40 @@ type PCAPPlugin struct {
 }
 
 // NewPCAPPlugin creates a new PCAP file writer plugin
-func NewPCAPPlugin(options map[string]string) (*PCAPPlugin, error) {
+func NewPCAPPlugin(options map[string]interface{}) (*PCAPPlugin, error) {
 	p := PCAPPlugin{}
 	var err error
 
-	file, ok := options["file"]
-	if !ok {
-		return nil, fmt.Errorf("PCAPPlugin requires file argument")
+	// Fetch file name
+	fileName, err := GetOptionString(FileName, DefaultFileName, options)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch link type override
+	linkType, err := GetOptionUint(LinkType, DefaultLinkType, options)
+	if err != nil {
+		return nil, err
 	}
 
 	// Open capture file
-	p.f, err = os.OpenFile(file, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
+	p.f, err = os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		return nil, err
 	}
 	p.b = bufio.NewWriter(p.f)
 
 	// Write file header
-	p.writeGlobalHeader(LinkTypePrivate)
+	if err = p.writeGlobalHeader(linkType); err != nil {
+		return nil, err
+	}
 
 	return &p, nil
 }
 
 // Received logs a received packet
-func (p *PCAPPlugin) Received(t time.Time, address string, message []byte) {
-	p.writePacket(t, message)
+func (p *PCAPPlugin) Received(t time.Time, address string, message []byte) error {
+	return p.writePacket(t, message)
 }
 
 // Close closes the pcap file
@@ -62,36 +108,31 @@ func (p *PCAPPlugin) Close() {
 	p.f.Close()
 }
 
-func (p *PCAPPlugin) writeGlobalHeader(linkType uint32) {
-	// Magic no.
-	p.b.Write([]byte{0xa1, 0xb2, 0xc3, 0xd4})
-	// Major version
-	p.b.Write([]byte{0x02, 0x00})
-	// Minor version
-	p.b.Write([]byte{0x04, 0x00})
-	// Timezone (all caps in UTC, always 0)
-	p.b.Write([]byte{0x00, 0x00, 0x00, 0x00})
-	// Time accuracy, also always 0
-	p.b.Write([]byte{0x00, 0x00, 0x00, 0x00})
-	// Snapshot length
-	p.b.Write([]byte{0xff, 0xff, 0x00, 0x00})
-	// Data link type
-	binary.Write(p.b, binary.LittleEndian, linkType)
+// Helper to write the global header that starts a pcap file
+func (p *PCAPPlugin) writeGlobalHeader(linkType uint32) error {
+	// Constant header components
+	header := BuildGlobalHeader(linkType)
+	return binary.Write(p.b, binary.LittleEndian, &header)
 }
 
-func (p *PCAPPlugin) writePacket(t time.Time, data []byte) {
-	sec := t.UnixNano() / 1e9
-	micro := (t.UnixNano() % 1e9) / 1e3
+// Helper to write a packet to the pcap file
+func (p *PCAPPlugin) writePacket(t time.Time, data []byte) error {
 
-	// Capture time seconds component
-	binary.Write(p.b, binary.LittleEndian, uint32(sec))
-	// Capture time microsecond component
-	binary.Write(p.b, binary.LittleEndian, uint32(micro))
+	header := PacketHeader{
+		Seconds:        uint32(t.UnixNano() / 1e9),
+		Micros:         uint32((t.UnixNano() % 1e9) / 1e3),
+		IncludedLength: uint32(len(data)),
+		OriginalLength: uint32(len(data)),
+	}
 
-	// Included and original data lengths
-	binary.Write(p.b, binary.LittleEndian, uint32(len(data)))
-	binary.Write(p.b, binary.LittleEndian, uint32(len(data)))
+	// Write the header
+	if err := binary.Write(p.b, binary.LittleEndian, &header); err != nil {
+		return err
+	}
+	// Write the data
+	if _, err := p.b.Write(data); err != nil {
+		return err
+	}
 
-	// Actual data
-	p.b.Write(data)
+	return nil
 }

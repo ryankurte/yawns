@@ -16,18 +16,18 @@ import (
 // ConnectHandler interface should be implemented by plugins that need to detect
 // when a node is connected
 type ConnectHandler interface {
-	Connected(address string)
+	Connected(address string) error
 }
 
 // ReceiveHandler interface should be implemented by plugins to receive packets sent by any node
 type ReceiveHandler interface {
-	Received(address string, message []byte)
+	Received(address string, message []byte) error
 }
 
 // SendHandler interface should be implemented by plugins to receive packets distributed by the simulator
 // Note that packets will be repeated based on connectivity
 type SendHandler interface {
-	Send(address string, message []byte)
+	Send(address string, message []byte) error
 }
 
 // EventHandler interface should be implemented by plugins to handle simulation Events
