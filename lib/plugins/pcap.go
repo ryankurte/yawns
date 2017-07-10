@@ -1,3 +1,10 @@
+/**
+ * PCap file output plugin
+ * File format information from https://wiki.wireshark.org/Development/LibpcapFileFormat
+ *
+ * Copyright 2017 Ryan Kurte
+ */
+
 package plugins
 
 import (

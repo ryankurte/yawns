@@ -42,8 +42,24 @@ int main(int argc, char** argv) {
     struct ons_radio_s radio;
     res = ONS_radio_init(&ons, &radio, band);
     if (res < 0) {
-        printf("Error %d creating ONS connector\n", res);
+        printf("Error %d creating ONS virtual radio\n", res);
         return -1;
+    }
+
+    res = ONS_radio_check_receive(&radio);
+    if (res > 0) {
+        ONS_radio_get_received(&radio, sizeof(data), data, &len);
+        ONS_print_arr("Received", data, len);
+        ONS_radio_send(&radio, 0, data, len);
+    }
+
+    res = ONS_radio_send(&radio, 0, data, 1);
+    if (res < 0) {
+        printf("ONS radio send error: %d\n", res);
+    }
+    while((res = ONS_radio_check_send(&radio)) == 0);
+    if (res < 0) {
+        printf("ONS radio send error: %d\n", res);
     }
 
     uint8_t data[256];

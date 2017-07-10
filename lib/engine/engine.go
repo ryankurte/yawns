@@ -135,7 +135,6 @@ func (e *Engine) getNode(address string) (*Node, error) {
 }
 
 // Setup engine for simulation
-// TODO: this is a bit broken...
 func (e *Engine) Setup(wait bool) error {
 	if !wait {
 		return nil
@@ -248,7 +247,16 @@ running:
 				log.Printf("Connector channel error")
 				break running
 			}
+			e.medium.Send() <- message
 			e.HandleConnectorMessage(message)
+
+		case message, ok := <-e.medium.Receive():
+			if !ok {
+				log.Printf("Medium output channel error")
+				break running
+			}
+			e.connectorWriteCh <- message
+			e.HandleMediumMessage(message)
 
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:

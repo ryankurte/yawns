@@ -253,9 +253,8 @@ func (m *Medium) updateTransmissions(now time.Time) {
 				m.SetTransceiverState(i, t.Band, TransceiverStateReceive)
 			}
 
-			// Reject if radio exits receiving state
-			state := m.transceivers[j][t.Band]
-			log.Printf("Node: %s radio state: %s", n.Address, state)
+			// TODO: Reject if radio exits receiving state
+			// state := m.transceivers[j][t.Band]
 			/*
 				if t.SendOK[j] && state != TransceiverStateReceiving {
 					// If the device is not in the receiving state fail
@@ -302,7 +301,7 @@ func (m *Medium) finaliseTransmissions(now time.Time) {
 	toRemove := make([]int, 0)
 	for i, t := range m.transmissions {
 		if now.After(t.EndTime) {
-			log.Printf("Send complete for tx: %+v", t)
+			log.Printf("Send complete for node %s in band %s and channel %d", t.Origin.Address, t.Band, t.Channel)
 			sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
 			band := m.config.Bands[t.Band]
 
