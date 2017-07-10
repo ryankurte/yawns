@@ -23,6 +23,9 @@ type Config struct {
 	// Medium configuration
 	Medium Medium
 
+	// Plugin configuration
+	Plugins map[string]PluginConfig
+
 	// Defaults defines default settings for each node
 	Defaults types.Node
 
@@ -32,6 +35,9 @@ type Config struct {
 	// Event actions to execute when running
 	Events []Event
 }
+
+// PluginConfig implemented as a generic map[string]interface{} to support future extensions
+type PluginConfig map[string]interface{}
 
 const (
 	defaultEndTime  = 1 * time.Second

@@ -7,6 +7,7 @@ import (
 	"github.com/ryankurte/owns/lib/connector"
 	"github.com/ryankurte/owns/lib/engine"
 	"github.com/ryankurte/owns/lib/medium"
+	"github.com/ryankurte/owns/lib/plugins"
 	"github.com/ryankurte/owns/lib/runner"
 )
 
@@ -40,6 +41,15 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	// Create and bind client runner
 	r := runner.NewRunner(config, args)
 	e.BindRunnerChannel(r.OutputChan)
+
+	// Create plugins
+	if c, ok := config.Plugins["pcap"]; ok {
+		pcap, err := plugins.NewPCAPPlugin(c)
+		if err != nil {
+			return nil, err
+		}
+		e.BindPlugin(pcap)
+	}
 
 	// Launch clients via runner
 	err = r.Start()
@@ -91,4 +101,6 @@ func (s *Simulator) Close() {
 	s.medium.Stop()
 
 	s.runner.Stop()
+
+	s.engine.Close()
 }

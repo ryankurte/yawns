@@ -23,11 +23,11 @@ func TestPCap(t *testing.T) {
 		assert.Fail(t, "PCap file not created")
 	}
 
-	now := time.Now()
+	now := time.Second * 1
 	err = p.Received(now, "fake-address1", []byte{0xbe, 0xef})
 	assert.Nil(t, err, "writing to pcap file failed")
 
-	then := now.Add(time.Second + time.Millisecond)
+	then := now + time.Millisecond*100
 	err = p.Received(then, "fake-address2", []byte{0xca, 0xfe})
 	assert.Nil(t, err, "writing to pcap file failed")
 

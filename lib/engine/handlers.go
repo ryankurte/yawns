@@ -2,73 +2,68 @@ package engine
 
 import (
 	"log"
-)
+	"time"
 
-import (
 	"github.com/ryankurte/owns/lib/messages"
 )
 
 // HandleConnectorMessage Handle messages sent to the engine from the connector
-func (e *Engine) HandleConnectorMessage(message interface{}) {
-
+func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
 	switch m := message.(type) {
 	case *messages.Register:
-		e.OnConnected(m.GetAddress())
-
+		e.OnConnected(d, m.GetAddress())
 	case *messages.Packet:
-		e.OnReceived(m.GetAddress(), m.Data)
-
+		e.OnReceived(d, m.GetAddress(), m.Data)
+	case *messages.Event:
+		//TODO:
 	}
 }
 
-func (e *Engine) HandleMediumMessage(message interface{}) {
+// HandleMediumMessage handles messages from the medium emulation module
+func (e *Engine) HandleMediumMessage(d time.Duration, message interface{}) {
 	switch m := message.(type) {
 	case *messages.Packet:
-		e.OnSend(m.GetAddress(), m.Data)
+		e.OnSend(d, m.GetAddress(), m.Data)
 	}
 }
 
 // OnConnected called when a node connects
-func (e *Engine) OnConnected(address string) {
+func (e *Engine) OnConnected(d time.Duration, address string) {
 	node, ok := e.nodes[address]
 	if !ok {
 		log.Printf("Node registration not found")
 		return
 	}
 
+	// Set connected state
 	node.connected = true
 
 	// Call connected plugins
-	e.pluginManager.OnConnected(address)
-
+	e.pluginManager.OnConnected(d, address)
 }
 
 // OnReceived called when a packet is received from the connector
-func (e *Engine) OnReceived(address string, data []byte) {
-
+func (e *Engine) OnReceived(d time.Duration, address string, data []byte) {
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
 		return
 	}
-
 	node.sent++
 
-	// Call plugin
-	e.pluginManager.OnReceived(address, data)
+	// Call plugins
+	e.pluginManager.OnReceived(d, address, data)
 }
 
 // OnSend called when a packet is sent to the connector
-func (e *Engine) OnSend(address string, data []byte) {
-	log.Printf("OnSend called")
-
+func (e *Engine) OnSend(d time.Duration, address string, data []byte) {
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
 		return
 	}
-
 	node.received++
 
-	e.pluginManager.OnSend(address, data)
+	// Call plugins
+	e.pluginManager.OnSend(d, address, data)
 }

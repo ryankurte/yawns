@@ -98,8 +98,8 @@ func NewPCAPPlugin(options map[string]interface{}) (*PCAPPlugin, error) {
 }
 
 // Received logs a received packet
-func (p *PCAPPlugin) Received(t time.Time, address string, message []byte) error {
-	return p.writePacket(t, message)
+func (p *PCAPPlugin) Received(d time.Duration, address string, message []byte) error {
+	return p.writePacket(d, message)
 }
 
 // Close closes the pcap file
@@ -116,11 +116,11 @@ func (p *PCAPPlugin) writeGlobalHeader(linkType uint32) error {
 }
 
 // Helper to write a packet to the pcap file
-func (p *PCAPPlugin) writePacket(t time.Time, data []byte) error {
+func (p *PCAPPlugin) writePacket(d time.Duration, data []byte) error {
 
 	header := PacketHeader{
-		Seconds:        uint32(t.UnixNano() / 1e9),
-		Micros:         uint32((t.UnixNano() % 1e9) / 1e3),
+		Seconds:        uint32(d.Seconds()),
+		Micros:         uint32(d.Nanoseconds() % 1e9),
 		IncludedLength: uint32(len(data)),
 		OriginalLength: uint32(len(data)),
 	}

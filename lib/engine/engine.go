@@ -57,6 +57,10 @@ func (e *Engine) BindRunnerChannel(logCh chan string) {
 	e.runnerLogCh = logCh
 }
 
+func (e *Engine) BindPlugin(p interface{}) error {
+	return e.pluginManager.BindPlugin(p)
+}
+
 // LoadConfig Loads a simulation config
 func (e *Engine) loadConfig(c *config.Config) {
 
@@ -140,6 +144,8 @@ func (e *Engine) Setup(wait bool) error {
 		return nil
 	}
 
+	now := time.Second * 0
+
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
@@ -165,7 +171,7 @@ setup:
 				break setup
 			}
 			e.medium.Send() <- message
-			e.HandleConnectorMessage(message)
+			e.HandleConnectorMessage(now, message)
 
 		// Medium outputs
 		case message, ok := <-e.medium.Receive():
@@ -174,7 +180,7 @@ setup:
 				break setup
 			}
 			e.connectorWriteCh <- message
-			e.HandleMediumMessage(message)
+			e.HandleMediumMessage(now, message)
 
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:
@@ -248,7 +254,7 @@ running:
 				break running
 			}
 			e.medium.Send() <- message
-			e.HandleConnectorMessage(message)
+			e.HandleConnectorMessage(time.Now().Sub(e.startTime), message)
 
 		case message, ok := <-e.medium.Receive():
 			if !ok {
@@ -256,7 +262,7 @@ running:
 				break running
 			}
 			e.connectorWriteCh <- message
-			e.HandleMediumMessage(message)
+			e.HandleMediumMessage(time.Now().Sub(e.startTime), message)
 
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:
@@ -293,4 +299,8 @@ func (e *Engine) Ready() bool {
 	}
 
 	return ready
+}
+
+func (e *Engine) Close() {
+	e.pluginManager.OnClose()
 }

@@ -121,7 +121,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 	address := ""
 
 	switch m := message.(type) {
-	case messages.Packet:
+	case *messages.Packet:
 		address = m.Address
 		base.Message = &protocol.Base_Packet{
 			Packet: &protocol.Packet{
@@ -130,7 +130,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 			},
 		}
 
-	case messages.RSSIResponse:
+	case *messages.RSSIResponse:
 		address = m.Address
 		base.Message = &protocol.Base_RssiResp{
 			RssiResp: &protocol.RSSIResp{
@@ -138,14 +138,14 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 				Rssi: m.RSSI,
 			},
 		}
-	case messages.SendComplete:
+	case *messages.SendComplete:
 		address = m.Address
 		base.Message = &protocol.Base_SendComplete{
 			SendComplete: &protocol.SendComplete{},
 		}
 
 	default:
-		return fmt.Errorf("Connector error: unsupported derived message type: %t", message)
+		return fmt.Errorf("Connector error, unsupported message type: %T", message)
 	}
 
 	data, err := proto.Marshal(&base)
