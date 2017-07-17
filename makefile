@@ -1,4 +1,4 @@
-default: ons
+default: owns
 
 # Install dependencies
 install: install-deps lib
@@ -11,7 +11,7 @@ install-tools:
 	go get -u github.com/Masterminds/glide
 	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
 
-all: ons lib client
+all: owns lib client
 
 # Build protocol
 protocol: protocol/*.proto
@@ -19,8 +19,8 @@ protocol: protocol/*.proto
 	protoc-c --c_out=cons/src protocol/*.proto
 
 # Build ons server
-ons: protocol
-	go build -ldflags -s ./cmd/ons/
+owns: protocol
+	go build -ldflags -s ./cmd/owns/
 
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/ons/
@@ -57,4 +57,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: ons lib run test lint format coverage protocol
+.PHONY: owns lib run test lint format coverage protocol

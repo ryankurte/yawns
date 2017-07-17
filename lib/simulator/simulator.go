@@ -2,6 +2,7 @@ package sim
 
 import (
 	"log"
+	"time"
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/connector"
@@ -21,14 +22,22 @@ type Simulator struct {
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
+	log.Printf("[DEBUG] Starting OWNS")
+
+	log.Printf("[DEBUG] Loading configuration file")
+
 	// Load configuration file
 	config, err := config.LoadConfigFile(o.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("[DEBUG] Creating simulation engine")
+
 	// Create the underlying engine
 	e := engine.NewEngine(config)
+
+	log.Printf("[DEBUG] Creating connector layer")
 
 	// Load and bind connector
 	c := connector.NewZMQConnector(o.BindAddr)
@@ -38,18 +47,24 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	args := make(map[string]string)
 	args["server"] = o.ClientAddr
 
+	log.Printf("[DEBUG] Creating client runner")
+
 	// Create and bind client runner
 	r := runner.NewRunner(config, args)
 	e.BindRunnerChannel(r.OutputChan)
 
+	log.Printf("[DEBUG] Initialising plugins")
+
 	// Create plugins
 	if c, ok := config.Plugins["pcap"]; ok {
-		pcap, err := plugins.NewPCAPPlugin(c)
+		pcap, err := plugins.NewPCAPPlugin(config.Medium.Bands, time.Now(), c)
 		if err != nil {
 			return nil, err
 		}
 		e.BindPlugin(pcap)
 	}
+
+	log.Printf("[DEBUG] Launching plugins")
 
 	// Launch clients via runner
 	err = r.Start()
@@ -57,12 +72,13 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
-	log.Printf("Loading medium simulation")
+	log.Printf("[DEBUG] Creating simulation medium")
+
 	m := medium.NewMedium(&config.Medium, config.TickRate, &config.Nodes)
 	e.BindMedium(m)
 	go m.Run()
 
-	log.Printf("Configuring simulation engine")
+	log.Printf("[DEBUG] Configuring simulation engine")
 
 	// Run engine setup
 	err = e.Setup(true)
@@ -70,7 +86,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
-	log.Printf("Starting runnable clients")
+	log.Printf("[DEBUG] Setup complete")
 
 	return &Simulator{e, r, m}, nil
 }
@@ -83,7 +99,7 @@ func (s *Simulator) Info() {
 
 // Run launches a simulation
 func (s *Simulator) Run() error {
-	log.Printf("Launching Simulation Instance")
+	log.Printf("[INFO] Launching Simulation Instance")
 
 	// Run engine
 	err := s.engine.Run()
@@ -91,12 +107,13 @@ func (s *Simulator) Run() error {
 		return err
 	}
 
-	log.Printf("Simulation complete")
+	log.Printf("[INFO] Simulation complete")
 	return nil
 }
 
 // Close the simulation
 func (s *Simulator) Close() {
+	log.Printf("[INFO] Exiting OWNS")
 
 	s.medium.Stop()
 

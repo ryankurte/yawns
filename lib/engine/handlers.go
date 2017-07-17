@@ -13,7 +13,7 @@ func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
 	case *messages.Register:
 		e.OnConnected(d, m.GetAddress())
 	case *messages.Packet:
-		e.OnReceived(d, m.GetAddress(), m.Data)
+		e.OnReceived(d, m.Band, m.GetAddress(), m.Data)
 	case *messages.Event:
 		//TODO:
 	}
@@ -23,7 +23,7 @@ func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
 func (e *Engine) HandleMediumMessage(d time.Duration, message interface{}) {
 	switch m := message.(type) {
 	case *messages.Packet:
-		e.OnSend(d, m.GetAddress(), m.Data)
+		e.OnSend(d, m.Band, m.GetAddress(), m.Data)
 	}
 }
 
@@ -43,7 +43,7 @@ func (e *Engine) OnConnected(d time.Duration, address string) {
 }
 
 // OnReceived called when a packet is received from the connector
-func (e *Engine) OnReceived(d time.Duration, address string, data []byte) {
+func (e *Engine) OnReceived(d time.Duration, band, address string, data []byte) {
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
@@ -52,11 +52,11 @@ func (e *Engine) OnReceived(d time.Duration, address string, data []byte) {
 	node.sent++
 
 	// Call plugins
-	e.pluginManager.OnReceived(d, address, data)
+	e.pluginManager.OnReceived(d, band, address, data)
 }
 
 // OnSend called when a packet is sent to the connector
-func (e *Engine) OnSend(d time.Duration, address string, data []byte) {
+func (e *Engine) OnSend(d time.Duration, band, address string, data []byte) {
 	// Update stats
 	node, ok := e.nodes[address]
 	if !ok {
@@ -65,5 +65,5 @@ func (e *Engine) OnSend(d time.Duration, address string, data []byte) {
 	node.received++
 
 	// Call plugins
-	e.pluginManager.OnSend(d, address, data)
+	e.pluginManager.OnSend(d, band, address, data)
 }

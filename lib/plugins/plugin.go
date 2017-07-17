@@ -23,13 +23,13 @@ type ConnectHandler interface {
 
 // ReceiveHandler interface should be implemented by plugins to receive packets sent by any node
 type ReceiveHandler interface {
-	Received(d time.Duration, address string, message []byte) error
+	Received(d time.Duration, band, address string, message []byte) error
 }
 
 // SendHandler interface should be implemented by plugins to receive packets distributed by the simulator
 // Note that packets will be repeated based on connectivity
 type SendHandler interface {
-	Send(d time.Duration, address string, message []byte) error
+	Send(d time.Duration, band, address string, message []byte) error
 }
 
 // EventHandler interface should be implemented by plugins to handle simulation Events
@@ -61,31 +61,31 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 	bound := 0
 
 	if connected, ok := plugin.(ConnectHandler); ok {
-		log.Printf("PluginManager.BindPlugin: Bound connectHandler")
+		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound connectHandler")
 		pm.connectHandlers = append(pm.connectHandlers, connected)
 		bound++
 	}
 
 	if receive, ok := plugin.(ReceiveHandler); ok {
-		log.Printf("PluginManager.BindPlugin: Bound receiveHandler")
+		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound receiveHandler")
 		pm.receiveHandlers = append(pm.receiveHandlers, receive)
 		bound++
 	}
 
 	if send, ok := plugin.(SendHandler); ok {
-		log.Printf("PluginManager.BindPlugin: Bound sendHandler")
+		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound sendHandler")
 		pm.sendHandlers = append(pm.sendHandlers, send)
 		bound++
 	}
 
 	if event, ok := plugin.(EventHandler); ok {
-		log.Printf("PluginManager.BindPlugin: Bound eventHandler")
+		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound eventHandler")
 		pm.eventHandlers = append(pm.eventHandlers, event)
 		bound++
 	}
 
 	if close, ok := plugin.(CloseHandler); ok {
-		log.Printf("PluginManager.BindPlugin: Bound closeHandler")
+		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound closeHandler")
 		pm.closeHandlers = append(pm.closeHandlers, close)
 	}
 
@@ -97,31 +97,31 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 
 // OnConnected calls bound plugin ConnectHandlers
 func (pm *PluginManager) OnConnected(d time.Duration, address string) {
-	log.Printf("PluginManager.OnConnected called")
+	log.Printf("[DEBUG] PluginManager.OnConnected called")
 	for _, h := range pm.connectHandlers {
 		h.Connected(d, address)
 	}
 }
 
 // OnReceived calls bound plugin ReceiveHandlers
-func (pm *PluginManager) OnReceived(d time.Duration, address string, data []byte) {
-	log.Printf("PluginManager.OnReceived called")
+func (pm *PluginManager) OnReceived(d time.Duration, band, address string, data []byte) {
+	log.Printf("[DEBUG] PluginManager.OnReceived called")
 	for _, h := range pm.receiveHandlers {
-		h.Received(d, address, data)
+		h.Received(d, band, address, data)
 	}
 }
 
 // OnSend calls bound plugin SendHandlers
-func (pm *PluginManager) OnSend(d time.Duration, address string, data []byte) {
-	log.Printf("PluginManager.OnSend called")
+func (pm *PluginManager) OnSend(d time.Duration, band, address string, data []byte) {
+	log.Printf("[DEBUG] PluginManager.OnSend called")
 	for _, h := range pm.sendHandlers {
-		h.Send(d, address, data)
+		h.Send(d, band, address, data)
 	}
 }
 
 // OnEvent calls bound plugin EventHandlers
 func (pm *PluginManager) OnEvent(d time.Duration, eventType, address string, data map[string]string) {
-	log.Printf("PluginManager.OnEvent called")
+	log.Printf("[DEBUG] PluginManager.OnEvent called")
 	for _, h := range pm.eventHandlers {
 		h.Event(d, eventType, address, data)
 	}
@@ -129,7 +129,7 @@ func (pm *PluginManager) OnEvent(d time.Duration, eventType, address string, dat
 
 // OnClose calls bound plugin CloseHandlers
 func (pm *PluginManager) OnClose() {
-	log.Printf("PluginManager.OnClose called")
+	log.Printf("[DEBUG] PluginManager.OnClose called")
 	for _, h := range pm.closeHandlers {
 		h.Close()
 	}
