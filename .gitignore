@@ -1,5 +1,8 @@
 test.yml
 
+go
+owns
+ons-mapclient
 ons
 ons-client
 
@@ -8,11 +11,12 @@ build/
 *.a
 *.so
 
-go
 protocol/
-ons-mapclient
+vendor/
+
 *.png
 *.jpg
-vendor/
+
 *.pcap
-./owns
+
+.vscode/

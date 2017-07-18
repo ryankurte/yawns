@@ -28,7 +28,7 @@ const (
 	DefaultFileName = "./owns.pcap"
 
 	// Default (no config) link type
-	DefaultLinkType = types.LinkTypePrivate
+	DefaultLinkType = types.LinkTypeIEEE802_15_4
 )
 
 // PCAPPlugin is a plugin to write PCAP files from the simulation
@@ -104,14 +104,14 @@ func (p *PCAPPlugin) Received(d time.Duration, band string, address string, mess
 		return fmt.Errorf("Unrecognised band name (%s)", band)
 	}
 
-	bandInfo, ok := p.bands[band]
+	_, ok = p.bands[band]
 	if !ok {
 		return fmt.Errorf("Unable to locate band (%s)", band)
 	}
 
 	packetOpts := types.EnhancedPacketOptions{
-		OriginalLength: uint32(len(message) + int(bandInfo.PacketOverhead)),
-		Comment:        fmt.Sprintf("Simulator address: %s", address),
+		//OriginalLength: uint32(len(message) + int(bandInfo.PacketOverhead)),
+		Comment: fmt.Sprintf("Simulator address: %s", address),
 	}
 
 	return p.fileWriter.WriteEnhancedPacketBlock(uint32(interfaceID), p.startTime.Add(d), message, packetOpts)
