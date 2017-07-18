@@ -122,7 +122,7 @@ func collect(address string, in chan string, out chan string) {
 				log.Printf("Runner.collect error channel closed")
 				return
 			}
-			log.Printf("[CLIENT %s] %s", address, d)
+			//log.Printf("[CLIENT %s] %s", address, d)
 			out <- fmt.Sprintf("[CLIENT %s] %s", address, d)
 		}
 	}

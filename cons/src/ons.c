@@ -18,7 +18,7 @@
 #include "protocol/ons.pb-c.h"
 
 
-#define ONS_DEBUG
+//#define ONS_DEBUG
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -139,7 +139,11 @@ int ONS_radio_send(struct ons_radio_s *radio, int32_t channel, uint8_t *data, ui
 
 int ONS_radio_check_send(struct ons_radio_s *radio)
 {
-    return 1;
+    if (radio->tx_complete) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 int ONS_radio_start_receive(struct ons_radio_s *radio, int32_t channel) 
@@ -326,6 +330,24 @@ void *ons_handle_receive(void* ctx)
                 radio->rssi_received = true;
                 ONS_DEBUG_PRINT("[ONCS THREAD] got rssi response %.2f\n", radio->rssi);
                 pthread_mutex_unlock(&radio->rssi_mutex);
+                break;
+
+                case BASE__MESSAGE_SEND_COMPLETE:
+                if (base == NULL || base->sendcomplete == NULL || base->sendcomplete->info == NULL || base->sendcomplete->info->band == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid send complete\n");
+                    break;
+                }
+
+                // Find matching radio instance
+                radio = ons_get_radio(ons, base->sendcomplete->info->band);
+                if (radio == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] no radio found matching rssi response\n");
+                    break;
+                }
+
+                radio->tx_complete = true;
+
+                ONS_DEBUG_PRINT("[ONCS THREAD] got tx complete\n");
                 break;
 
                 default:

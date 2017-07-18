@@ -102,7 +102,7 @@ func (m *Medium) Stop() {
 
 // Run runs the medium simulation
 func (m *Medium) Run() {
-	log.Printf("Medium running")
+	log.Printf("[INFO] Medium running")
 
 	m.stats.TickMin = 0
 	m.stats.TickMax = 0
@@ -119,13 +119,13 @@ running:
 		select {
 		case message, ok := <-m.inCh:
 			if !ok {
-				log.Printf("Medium input channel closed")
+				log.Printf("[INFO] Medium input channel closed")
 				break running
 			}
 
 			err := m.handleMessage(message)
 			if err != nil {
-				log.Printf("Medium error: %s", err)
+				log.Printf("[ERROR] Medium error: %s", err)
 			}
 
 		// Run timed updates
@@ -151,13 +151,12 @@ running:
 
 	m.stats.TickAvg = time.Duration(avg)
 
-	log.Printf("Medium exited (stats: %+v)", m.stats)
+	log.Printf("[INFO] Medium exited (stats: %+v)", m.stats)
 }
 
 func (m *Medium) handleMessage(message interface{}) error {
 	switch msg := message.(type) {
 	case *messages.Packet:
-		log.Printf("Received packet: %+v", msg)
 		return m.sendPacket(time.Now(), *msg)
 	}
 	return nil
@@ -301,7 +300,6 @@ func (m *Medium) finaliseTransmissions(now time.Time) {
 	toRemove := make([]int, 0)
 	for i, t := range m.transmissions {
 		if now.After(t.EndTime) {
-			log.Printf("Send complete for node %s in band %s and channel %d", t.Origin.Address, t.Band, t.Channel)
 			sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
 			band := m.config.Bands[t.Band]
 

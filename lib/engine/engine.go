@@ -150,7 +150,7 @@ func (e *Engine) Setup(wait bool) error {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
 	// Await node connections
-	log.Printf("Setup: Awaiting node connections...")
+	log.Printf("[INFO] Setup: Awaiting node connections...")
 
 setup:
 	for {
@@ -167,7 +167,7 @@ setup:
 		// Connector inputs
 		case message, ok := <-e.connectorReadCh:
 			if !ok {
-				log.Printf("Connector channel error")
+				log.Printf("[ERROR] Connector channel error")
 				break setup
 			}
 			e.medium.Send() <- message
@@ -176,7 +176,7 @@ setup:
 		// Medium outputs
 		case message, ok := <-e.medium.Receive():
 			if !ok {
-				log.Printf("Connector channel error")
+				log.Printf("[ERROR] Connector channel error")
 				break setup
 			}
 			e.connectorWriteCh <- message
@@ -185,21 +185,21 @@ setup:
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:
 			if !ok {
-				log.Printf("Runner channel error")
+				log.Printf("[ERROR] Runner channel error")
 				break setup
 			}
 			log.Printf("Runner: %s", line)
 
 		// Interrupt channel
 		case <-ch:
-			return fmt.Errorf("Engine interrupted awaiting node connections")
+			return fmt.Errorf("[ERROR] Engine interrupted awaiting node connections")
 		// Timeout channel
 		case <-time.After(1 * time.Minute):
-			return fmt.Errorf("Engine timeout awaiting node connections")
+			return fmt.Errorf("[ERROR] Engine timeout awaiting node connections")
 		}
 	}
 
-	log.Printf("Setup: All nodes connected")
+	log.Printf("[INFO] Setup: All nodes connected")
 
 	return nil
 }
@@ -210,12 +210,12 @@ func (e *Engine) handleEvents(d time.Duration) {
 		// If the time has passed and the Event has not been executed
 		if d >= u.TimeStamp && !u.executed {
 
-			log.Printf("Executing Event %s (%s)", u.Action, u.Comment)
+			log.Printf("[INFO] Executing Event %s (%s)", u.Action, u.Comment)
 
 			// Execute the Event
 			err := e.handleEvent(u.Nodes, u.Action, u.Data)
 			if err != nil {
-				log.Printf("Event error: %s", err)
+				log.Printf("[ERROR] Event error: %s", err)
 			}
 
 			// Event the Event list
@@ -233,7 +233,7 @@ func (e *Engine) Run() error {
 
 	// Run simulation
 	e.startTime = time.Now()
-	log.Printf("Simulation: starting")
+	log.Printf("[INFO] Simulation: starting")
 	endTimer := time.After(e.endTime)
 
 	runTimer := time.NewTicker(e.tickRate)
@@ -244,13 +244,13 @@ running:
 		select {
 		// Exit once endtime has occurred
 		case <-endTimer:
-			log.Printf("Simulation: completed")
+			log.Printf("[INFO] Simulation: completed")
 			break running
 
 		// Connector inputs
 		case message, ok := <-e.connectorReadCh:
 			if !ok {
-				log.Printf("Connector channel error")
+				log.Printf("[ERROR] Connector channel error")
 				break running
 			}
 			e.medium.Send() <- message
@@ -258,7 +258,7 @@ running:
 
 		case message, ok := <-e.medium.Receive():
 			if !ok {
-				log.Printf("Medium output channel error")
+				log.Printf("[ERROR] Medium output channel error")
 				break running
 			}
 			e.connectorWriteCh <- message
@@ -267,14 +267,14 @@ running:
 		// Runner log inputs
 		case line, ok := <-e.runnerLogCh:
 			if !ok {
-				log.Printf("Runner channel error")
+				log.Printf("[ERROR] Runner channel error")
 				break running
 			}
 			log.Printf("Runner: %s", line)
 
 		// Handle command line interrupts
 		case <-interruptCh:
-			log.Printf("Simulation: interrupted after %s", time.Now().Sub(e.startTime))
+			log.Printf("[INFO] Simulation: interrupted after %s", time.Now().Sub(e.startTime))
 			break running
 
 		// Simulation Event ticks

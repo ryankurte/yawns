@@ -141,7 +141,9 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 	case *messages.SendComplete:
 		address = m.Address
 		base.Message = &protocol.Base_SendComplete{
-			SendComplete: &protocol.SendComplete{},
+			SendComplete: &protocol.SendComplete{
+				Info: &protocol.RFInfo{Band: m.Band},
+			},
 		}
 
 	default:

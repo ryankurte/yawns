@@ -22,7 +22,7 @@ type Simulator struct {
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
-	log.Printf("[DEBUG] Starting OWNS")
+	log.Printf("[INFO] Starting OWNS")
 
 	log.Printf("[DEBUG] Loading configuration file")
 
@@ -64,7 +64,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		e.BindPlugin(pcap)
 	}
 
-	log.Printf("[DEBUG] Launching plugins")
+	log.Printf("[DEBUG] Launching clients")
 
 	// Launch clients via runner
 	err = r.Start()
@@ -86,7 +86,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		return nil, err
 	}
 
-	log.Printf("[DEBUG] Setup complete")
+	log.Printf("[INFO] Setup complete")
 
 	return &Simulator{e, r, m}, nil
 }

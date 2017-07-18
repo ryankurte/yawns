@@ -16,8 +16,8 @@ void interrupt_handler(int x) {
     running = 0;
 }
 
-void run_master(uint16_t addr, struct ons_radio_s* radio);
-void run_slave(uint16_t addr, struct ons_radio_s* radio);
+void run_master(uint16_t addr, volatile struct ons_radio_s* radio);
+void run_slave(uint16_t addr, volatile struct ons_radio_s* radio);
 
 int main(int argc, char** argv) {
     int res;
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    struct ons_radio_s radio;
+    volatile struct ons_radio_s radio;
     res = ONS_radio_init(&ons, &radio, band);
     if (res < 0) {
         printf("Error %d creating ONS virtual radio\n", res);
@@ -92,7 +92,7 @@ uint16_t crc16_ccit_kermit(uint32_t len, uint8_t* data) {
     return crc;
 }
 
-void run_master(uint16_t addr, struct ons_radio_s* radio) {
+void run_master(uint16_t addr, volatile struct ons_radio_s* radio) {
     uint16_t seq = 0;
     int res;
 
@@ -111,9 +111,9 @@ void run_master(uint16_t addr, struct ons_radio_s* radio) {
         if (res < 0) {
             printf("ONS send error: %d\n", res);
         } else {
-//            while ((res = ONS_radio_check_send(radio)) == 0) {
-//                usleep(1000);
-//            }
+            while ((res = ONS_radio_check_send(radio)) == 0) {
+                usleep(1000);
+            }
         }
 
         seq ++;
@@ -121,7 +121,7 @@ void run_master(uint16_t addr, struct ons_radio_s* radio) {
     }
 }
 
-void run_slave(uint16_t addr, struct ons_radio_s* radio) {
+void run_slave(uint16_t addr, volatile struct ons_radio_s* radio) {
     uint16_t seq = 0;
     uint8_t data[256];
     uint16_t len;
@@ -132,7 +132,7 @@ void run_slave(uint16_t addr, struct ons_radio_s* radio) {
         if (res > 0) {
             
             ONS_radio_get_received(radio, sizeof(data), data, &len);
-            ONS_print_arr("Received", data, len);
+            //ONS_print_arr("Received", data, len);
             
             struct fifteen_four_header_s *header_in = (struct fifteen_four_header_s*) &data[0];
             if (header_in->dest == addr) {
@@ -147,9 +147,9 @@ void run_slave(uint16_t addr, struct ons_radio_s* radio) {
                 if (res < 0) {
                     printf("ONS send error: %d\n", res);
                 } else {
-//                    while ((res = ONS_radio_check_send(radio)) == 0) {
-//                        usleep(1000);
-//                    }
+                    while ((res = ONS_radio_check_send(radio)) == 0) {
+                        usleep(1000);
+                    }
                 }
 
                 seq ++;

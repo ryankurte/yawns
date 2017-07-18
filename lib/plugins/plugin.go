@@ -11,7 +11,6 @@ package plugins
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -61,31 +60,26 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 	bound := 0
 
 	if connected, ok := plugin.(ConnectHandler); ok {
-		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound connectHandler")
 		pm.connectHandlers = append(pm.connectHandlers, connected)
 		bound++
 	}
 
 	if receive, ok := plugin.(ReceiveHandler); ok {
-		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound receiveHandler")
 		pm.receiveHandlers = append(pm.receiveHandlers, receive)
 		bound++
 	}
 
 	if send, ok := plugin.(SendHandler); ok {
-		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound sendHandler")
 		pm.sendHandlers = append(pm.sendHandlers, send)
 		bound++
 	}
 
 	if event, ok := plugin.(EventHandler); ok {
-		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound eventHandler")
 		pm.eventHandlers = append(pm.eventHandlers, event)
 		bound++
 	}
 
 	if close, ok := plugin.(CloseHandler); ok {
-		log.Printf("[DEBUG] PluginManager.BindPlugin: Bound closeHandler")
 		pm.closeHandlers = append(pm.closeHandlers, close)
 	}
 
@@ -97,7 +91,6 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 
 // OnConnected calls bound plugin ConnectHandlers
 func (pm *PluginManager) OnConnected(d time.Duration, address string) {
-	log.Printf("[DEBUG] PluginManager.OnConnected called")
 	for _, h := range pm.connectHandlers {
 		h.Connected(d, address)
 	}
@@ -105,7 +98,6 @@ func (pm *PluginManager) OnConnected(d time.Duration, address string) {
 
 // OnReceived calls bound plugin ReceiveHandlers
 func (pm *PluginManager) OnReceived(d time.Duration, band, address string, data []byte) {
-	log.Printf("[DEBUG] PluginManager.OnReceived called")
 	for _, h := range pm.receiveHandlers {
 		h.Received(d, band, address, data)
 	}
@@ -113,7 +105,6 @@ func (pm *PluginManager) OnReceived(d time.Duration, band, address string, data 
 
 // OnSend calls bound plugin SendHandlers
 func (pm *PluginManager) OnSend(d time.Duration, band, address string, data []byte) {
-	log.Printf("[DEBUG] PluginManager.OnSend called")
 	for _, h := range pm.sendHandlers {
 		h.Send(d, band, address, data)
 	}
@@ -121,7 +112,6 @@ func (pm *PluginManager) OnSend(d time.Duration, band, address string, data []by
 
 // OnEvent calls bound plugin EventHandlers
 func (pm *PluginManager) OnEvent(d time.Duration, eventType, address string, data map[string]string) {
-	log.Printf("[DEBUG] PluginManager.OnEvent called")
 	for _, h := range pm.eventHandlers {
 		h.Event(d, eventType, address, data)
 	}
@@ -129,7 +119,6 @@ func (pm *PluginManager) OnEvent(d time.Duration, eventType, address string, dat
 
 // OnClose calls bound plugin CloseHandlers
 func (pm *PluginManager) OnClose() {
-	log.Printf("[DEBUG] PluginManager.OnClose called")
 	for _, h := range pm.closeHandlers {
 		h.Close()
 	}
