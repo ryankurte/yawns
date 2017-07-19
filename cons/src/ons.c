@@ -60,7 +60,7 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
     // Send message to register with server
-    ons_send_register(ons, ons->local_address);
+    ons_send_register(ons, (char*)ons->local_address);
 
     return 0;
 }
@@ -256,7 +256,6 @@ void *ons_handle_receive(void* ctx)
     struct ons_s *ons = (struct ons_s*) ctx;
     uint8_t *zdata;
     size_t zsize;
-    uint8_t type = 8;
     int res;
 
     ONS_DEBUG_PRINT("[ONSC THREAD] Starting recieve thread\n");
@@ -302,7 +301,7 @@ void *ons_handle_receive(void* ctx)
                 pthread_mutex_lock(&radio->rx_mutex);
                 memcpy((void *)radio->receive_data, base->packet->data.data, max_size);
                 radio->receive_length = max_size;
-                ONS_print_arr("[ONSC THREAD] Received packet", radio->receive_data, radio->receive_length);
+                ONS_print_arr("[ONSC THREAD] Received packet", (uint8_t *)radio->receive_data, radio->receive_length);
                 pthread_mutex_unlock(&radio->rx_mutex);
                 break;
 

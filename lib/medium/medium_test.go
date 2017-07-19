@@ -24,7 +24,11 @@ func TestMedium(t *testing.T) {
 		nodes[i] = c.Nodes[i]
 	}
 
-	m := NewMedium(&c.Medium, time.Millisecond/10, &nodes)
+	m, err := NewMedium(&c.Medium, time.Millisecond/10, &nodes)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
 
 	for i := range nodes {
 		for b := range c.Medium.Bands {

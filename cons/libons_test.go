@@ -108,7 +108,7 @@ func TestLibONS(t *testing.T) {
 			RFInfo:      messages.NewRFInfo(band, 0),
 			Data:        []byte(data),
 		}
-		server.InputChan <- packet
+		server.InputChan <- &packet
 
 		time.Sleep(100 * time.Millisecond)
 
@@ -139,7 +139,7 @@ func TestLibONS(t *testing.T) {
 					BaseMessage: messages.BaseMessage{Address: req.Address},
 					RFInfo:      messages.NewRFInfo(band, 0),
 					RSSI:        value}
-				server.InputChan <- resp
+				server.InputChan <- &resp
 
 			case <-time.After(timeout):
 				t.Errorf("Timeout")

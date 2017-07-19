@@ -52,25 +52,41 @@ defaults:
 # This defines the nodes to be linked to the simulator
 nodes:
   - address: 0x0001
+    details: Quay St
     location: 
       lat: -36.8474505
       lng: 174.773418
+      alt: 2.0
   - address: 0x0002
+    details: East Peir
     location: 
       lat: -36.840376
       lng: 174.783203
+      alt: 2.0
   - address: 0x0003
+    details: Devonport Wharf
     location: 
-      lat: -36.830389
-      lng: 174.784686
+      lat: -36.833957
+      lng: 174.795257
+      alt: 2.0
   - address: 0x0004
+    details: Stanley Point
     location: 
       lat: -36.828514
       lng: 174.773170
+      alt: 2.0
   - address: 0x0005
+    details: Okahu Bay
     location:
       lat: -36.845286
       lng: 174.816868
+      alt: 2.0
+  - address: 0x0006
+    details: Torpedo Bay
+    location:
+      lat: -36.830456
+      lng: 174.809947
+      alt: 2.0
 
 # Event definitions
 # These define changes to the simulation and environment at a given point in time

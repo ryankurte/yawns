@@ -107,7 +107,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		}
 
 	default:
-		return fmt.Errorf("Received unhandled message type (%t)", m)
+		return fmt.Errorf("[WARNING] Connector.handleIncoming: unhandled message type (%t)", m)
 	}
 
 	return nil
@@ -147,7 +147,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		}
 
 	default:
-		return fmt.Errorf("Connector error, unsupported message type: %T", message)
+		return fmt.Errorf("[WARNING] Connector.handleOutgoing: unsupported message type (%T)", message)
 	}
 
 	data, err := proto.Marshal(&base)

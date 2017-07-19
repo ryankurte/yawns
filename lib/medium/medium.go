@@ -50,7 +50,7 @@ type Stats struct {
 }
 
 // NewMedium creates a new medium instance
-func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) *Medium {
+func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medium, error) {
 	// Create base medium object
 	m := Medium{
 		config:        c,
@@ -75,7 +75,13 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) *Mediu
 	m.layerManager.BindLayer(layers.NewFreeSpace())
 	m.layerManager.BindLayer(layers.NewRandom())
 
-	return &m
+	mapLayer, err := layers.NewMapLayer(&c.Maps)
+	if err != nil {
+		return nil, err
+	}
+	m.layerManager.BindLayer(mapLayer)
+
+	return &m, nil
 }
 
 func (m *Medium) Send() chan interface{} {

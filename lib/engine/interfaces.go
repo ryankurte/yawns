@@ -7,7 +7,3 @@ type Medium interface {
 	Send() chan interface{}
 	Receive() chan interface{}
 }
-
-// Plugin interface defines functions required by plugin modules
-type Plugin interface {
-}

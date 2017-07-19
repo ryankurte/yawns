@@ -2,9 +2,8 @@ test.yml
 
 go
 owns
-ons-mapclient
-ons
-ons-client
+owns-mapclient
+owns-client
 
 build/
 *.o

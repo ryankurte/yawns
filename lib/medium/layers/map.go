@@ -6,12 +6,13 @@ import (
 
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/maps"
+	"github.com/ryankurte/go-rf"
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/types"
 )
 
-type Map struct {
+type MapLayer struct {
 	In        chan RenderCommand
 	satellite maps.Tile
 	terrain   maps.Tile
@@ -24,8 +25,8 @@ type RenderCommand struct {
 	Links    []types.Link
 }
 
-func NewMap(c *config.Maps) (*Map, error) {
-	m := Map{
+func NewMapLayer(c *config.Maps) (*MapLayer, error) {
+	m := MapLayer{
 		In: make(chan RenderCommand, 128),
 	}
 
@@ -48,7 +49,7 @@ func NewMap(c *config.Maps) (*Map, error) {
 	return &m, nil
 }
 
-func (m *Map) Run() {
+func (m *MapLayer) Run() {
 	for {
 		select {
 		case c, ok := <-m.In:
@@ -63,7 +64,7 @@ func (m *Map) Run() {
 	}
 }
 
-func (m *Map) Render(fileName string, nodes []types.Node, links []types.Link) error {
+func (m *MapLayer) Render(fileName string, nodes []types.Node, links []types.Link) error {
 	tile := m.satellite
 
 	for _, n := range nodes {
@@ -80,4 +81,34 @@ func (m *Map) Render(fileName string, nodes []types.Node, links []types.Link) er
 
 func onsToMapLoc(l *types.Location) base.Location {
 	return base.Location{Latitude: l.Lat, Longitude: l.Lng}
+}
+
+// CalculateFading calculates the free space fading for a link
+func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+
+	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
+	terrain := m.terrain.InterpolateAltitudes(p1m, p2m)
+	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
+
+	highestImpingement := rf.Distance(terrain[0])
+	distanceToImpingement := rf.Distance(0.0)
+
+	for i, v := range terrain {
+		if v > float64(highestImpingement) {
+			highestImpingement = rf.Distance(v)
+			distanceToImpingement = distance * rf.Distance(float64(i)/float64(len(terrain)))
+		}
+	}
+
+	v, err := rf.CalculateFresnelKirckoffDiffractionParam(rf.Frequency(band.Frequency), distanceToImpingement, distance-distanceToImpingement, highestImpingement)
+	if err != nil {
+		return 0.0, err
+	}
+
+	f, err := rf.CalculateFresnelKirchoffLossApprox(v)
+	if err != nil {
+		return 0.0, nil
+	}
+
+	return float64(f), nil
 }

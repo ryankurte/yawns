@@ -1,5 +1,5 @@
 hash: 2c3416bd1c34d35191a3fc407747f263117c19f858c40dda3a86e3f8f6d4199b
-updated: 2017-07-17T15:07:06.936246875+12:00
+updated: 2017-07-19T16:18:28.087186522+12:00
 imports:
 - name: github.com/go-yaml/yaml
   version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
@@ -29,6 +29,8 @@ imports:
   - lib/maps
 - name: github.com/ryankurte/go-pcapng
   version: 73fd1a63fab471e18d8a2908848a03731e43f0b6
+  subpackages:
+  - types
 - name: github.com/ryankurte/go-rf
   version: 84b977ca469990cbfd7460a343befb20345bb10e
 - name: github.com/zeromq/goczmq

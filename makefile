@@ -38,10 +38,10 @@ client: lib
 
 # Run application
 run: build
-	./ons
+	./owns
 
 # Test application
-test: ons lib
+test: owns lib
 	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cons/...
 
 # Utilities
