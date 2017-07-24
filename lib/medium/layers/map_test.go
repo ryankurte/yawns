@@ -5,7 +5,6 @@ import (
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/types"
-	//"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/assert"
 )
 

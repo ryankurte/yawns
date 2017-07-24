@@ -47,7 +47,7 @@ func TestMedium(t *testing.T) {
 		assert.InDelta(t, 86, float64(fading), 1.0)
 
 		fading = m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[1], c.Nodes[2])
-		assert.InDelta(t, 86, float64(fading), 1.0)
+		assert.InDelta(t, 87, float64(fading), 1.0)
 	})
 
 	t.Run("Can create transmission instances", func(t *testing.T) {
@@ -105,9 +105,8 @@ func TestMedium(t *testing.T) {
 
 		// Distributes messages
 		// Node 0 can communicate with nodes 1, 2 and 3
-		for i := 1; i < 4; i++ {
-			CheckPacketForward(t, nodes[i].Address, msg.Data, msg.RFInfo, m.outCh)
-		}
+		CheckPacketForward(t, nodes[1].Address, msg.Data, msg.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[3].Address, msg.Data, msg.RFInfo, m.outCh)
 
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
 	})
@@ -133,7 +132,7 @@ func TestMedium(t *testing.T) {
 		now = now.Add(packetTime / 2)
 		m.update(now)
 
-		assert.EqualValues(t, []bool{false, false, true, true, false}, m.transmissions[0].SendOK)
+		assert.EqualValues(t, []bool{false, false, false, true, false, false}, m.transmissions[0].SendOK)
 
 		// Shift node 1 into range and 2 out of range
 		nodes[1].Location.Lat -= 1.0
@@ -144,7 +143,7 @@ func TestMedium(t *testing.T) {
 		m.update(now)
 
 		// Check sendOK flags
-		assert.EqualValues(t, []bool{false, false, false, true, false}, m.transmissions[0].SendOK)
+		assert.EqualValues(t, []bool{false, false, false, true, false, false}, m.transmissions[0].SendOK)
 
 		// Cause another update
 		now = now.Add(time.Microsecond)
@@ -190,8 +189,8 @@ func TestMedium(t *testing.T) {
 		m.update(now)
 
 		// At this instant collisions have been detected and transmissions not yet removed
-		assert.EqualValues(t, []bool{false, false, true, false, false}, m.transmissions[0].SendOK)
-		assert.EqualValues(t, []bool{false, true, false, false, false}, m.transmissions[1].SendOK)
+		assert.EqualValues(t, []bool{false, false, true, false, false, false}, m.transmissions[0].SendOK)
+		assert.EqualValues(t, []bool{false, true, false, false, false, false}, m.transmissions[1].SendOK)
 
 		// Next instant causes transmission to be finalised
 		now = now.Add(time.Microsecond)
