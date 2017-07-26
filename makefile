@@ -1,12 +1,16 @@
+
+IDIR=/usr/local
+
+BINS=owns owns-mapclient
+LIBS=cowns/build/libowns.a cowns/build/libowns.so
+
 default: owns
 
 # Install dependencies
-install: install-deps lib
-
-install-deps:
+deps:
 	glide install
 
-install-tools:
+tools:
 	go get -u github.com/golang/lint/golint
 	go get -u github.com/Masterminds/glide
 	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
@@ -16,7 +20,7 @@ all: owns lib client
 # Build protocol
 protocol: protocol/*.proto
 	protoc --go_out=import_path=protocol:lib/ protocol/*.proto
-	protoc-c --c_out=cons/src protocol/*.proto
+	protoc-c --c_out=cowns/src protocol/*.proto
 
 # Build ons server
 owns: protocol
@@ -30,11 +34,11 @@ build-osx-x64:
 
 # Build libons C library
 lib: protocol
-	/bin/bash -c "cd ./cons && make libs"
+	/bin/bash -c "cd ./cowns && make libs"
 
 # Build libons example client
 client: lib
-	/bin/bash -c "cd ./cons && make client"
+	/bin/bash -c "cd ./cowns && make client"
 
 # Run application
 run: build
@@ -43,6 +47,11 @@ run: build
 # Test application
 test: owns lib
 	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cons/...
+
+install: owns lib
+	cp $(BINS) $(IDIR)/bin
+	cp -R cowns/owns $(IDIR)/include/
+	cp $(LIBS) $(IDIR)/lib/
 
 # Utilities
 

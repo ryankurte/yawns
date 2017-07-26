@@ -1,8 +1,8 @@
 # C-ONS Example / Library Makefile
 
-TARGET=ons-client
-LIB=libons
-SOURCES=src/ons.c src/protocol.c src/protocol/ons.pb-c.c
+TARGET=owns-client
+LIB=libowns
+SOURCES=src/owns.c src/protocol.c src/protocol/ons.pb-c.c
 OUTDIR=build
 
 CC=gcc

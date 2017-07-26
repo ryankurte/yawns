@@ -5,7 +5,7 @@
  */
 
 
-#include "ons/ons.h"
+#include "owns/owns.h"
 
 #include <stdint.h>
 #include <assert.h>
@@ -14,7 +14,7 @@
 #include <czmq.h>
 #include <semaphore.h>
 
-#include "ons/protocol.h"
+#include "owns/protocol.h"
 #include "protocol/ons.pb-c.h"
 
 

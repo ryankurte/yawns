@@ -5,7 +5,7 @@
  */
 
 
-#include "ons/protocol.h"
+#include "owns/protocol.h"
 
 #include <stdint.h>
 
