@@ -32,7 +32,7 @@ type Medium struct {
 	config        *config.Medium
 	nodes         *[]types.Node
 	transmissions []*Transmission
-	transceivers  []map[string]TransceiverState
+	transceivers  []map[string]Transceiver
 	rate          time.Duration
 
 	layerManager *layers.LayerManager
@@ -58,16 +58,16 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 		inCh:          make(chan interface{}, 128),
 		outCh:         make(chan interface{}, 128),
 		transmissions: make([]*Transmission, 0),
-		transceivers:  make([]map[string]TransceiverState, len(*nodes)),
+		transceivers:  make([]map[string]Transceiver, len(*nodes)),
 		layerManager:  layers.NewLayerManager(),
 		nodes:         nodes,
 	}
 
 	// Initialise TransceiverState for each node and band
 	for i := range *nodes {
-		m.transceivers[i] = make(map[string]TransceiverState)
+		m.transceivers[i] = make(map[string]Transceiver)
 		for j := range c.Bands {
-			m.transceivers[i][j] = TransceiverStateIdle
+			m.transceivers[i][j] = *NewTransceiver(time.Now())
 		}
 	}
 
@@ -186,7 +186,7 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 	}
 
 	// Set transmitting state
-	m.SetTransceiverState(nodeIndex, bandName, TransceiverStateTransmitting)
+	m.SetTransceiverState(now, nodeIndex, bandName, TransceiverStateTransmitting)
 
 	// Create transmission instance
 	t := NewTransmission(now, source, &band, p)
@@ -213,10 +213,10 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 		t.SendOK[i] = true
 
 		// Update radio states
-		state := m.transceivers[i][t.Band]
-		if state == TransceiverStateReceive {
+		transceiver := m.transceivers[i][t.Band]
+		if transceiver.State == TransceiverStateReceive {
 			// Devices in receive state will enter receiving state
-			m.SetTransceiverState(i, t.Band, TransceiverStateReceiving)
+			m.SetTransceiverState(now, i, t.Band, TransceiverStateReceiving)
 		}
 	}
 
@@ -255,7 +255,7 @@ func (m *Medium) updateTransmissions(now time.Time) {
 			if t.SendOK[j] && fading > band.LinkBudget {
 				log.Printf("Updating failed state for node %d (%s)", j, n.Address)
 				m.transmissions[i].SendOK[j] = false
-				m.SetTransceiverState(i, t.Band, TransceiverStateReceive)
+				m.SetTransceiverState(now, i, t.Band, TransceiverStateReceive)
 			}
 
 			// TODO: Reject if radio exits receiving state
@@ -293,7 +293,7 @@ func (m *Medium) updateCollisions(now time.Time) {
 					log.Printf("Updating collision state for node %d (%s)", i, n.Address)
 					m.transmissions[j1].SendOK[i] = false
 					m.transmissions[j2].SendOK[i] = false
-					m.SetTransceiverState(i, t1.Band, TransceiverStateReceive)
+					m.SetTransceiverState(now, i, t1.Band, TransceiverStateReceive)
 				}
 			}
 		}
@@ -312,16 +312,16 @@ func (m *Medium) finaliseTransmissions(now time.Time) {
 			// Update origin transmitting state
 			m.outCh <- messages.NewSendComplete(t.Origin.Address, t.Band, t.Channel)
 			if band.NoAutoTXRXTransition {
-				m.SetTransceiverState(sourceIndex, t.Band, TransceiverStateIdle)
+				m.SetTransceiverState(now, sourceIndex, t.Band, TransceiverStateIdle)
 			} else {
-				m.SetTransceiverState(sourceIndex, t.Band, TransceiverStateReceive)
+				m.SetTransceiverState(now, sourceIndex, t.Band, TransceiverStateReceive)
 			}
 
 			// Distribute to receivers
 			for i, n := range *m.nodes {
 				if t.SendOK[i] {
 					m.outCh <- messages.NewPacket(n.Address, t.Data, t.GetRFInfo(i))
-					m.SetTransceiverState(i, t.Band, TransceiverStateReceive)
+					m.SetTransceiverState(now, i, t.Band, TransceiverStateReceive)
 				}
 			}
 

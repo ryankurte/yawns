@@ -1,11 +1,11 @@
 package medium
 
 import (
-//"log"
+	"time"
 )
 
-func (m *Medium) SetTransceiverState(nodeIndex int, band string, state TransceiverState) {
-	//log.Printf("Updating node '%s' transceiver: '%s' from state: '%s' to: '%s'",
-	//	(*m.nodes)[nodeIndex].Address, band, m.transceivers[nodeIndex][band], state)
-	m.transceivers[nodeIndex][band] = state
+func (m *Medium) SetTransceiverState(now time.Time, nodeIndex int, band string, state TransceiverState) {
+	transceiver := m.transceivers[nodeIndex][band]
+	transceiver.SetState(now, state)
+	m.transceivers[nodeIndex][band] = transceiver
 }

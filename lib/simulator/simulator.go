@@ -74,7 +74,11 @@ func NewSimulator(o *Options) (*Simulator, error) {
 
 	log.Printf("[DEBUG] Creating simulation medium")
 
-	m := medium.NewMedium(&config.Medium, config.TickRate, &config.Nodes)
+	m, err := medium.NewMedium(&config.Medium, config.TickRate, &config.Nodes)
+	if err != nil {
+		return nil, err
+	}
+
 	e.BindMedium(m)
 	go m.Run()
 
