@@ -32,13 +32,9 @@ build-linux-x64:
 build-osx-x64:
 	GOOS=darwin GOARCH=amd64 go build ./cmd/ons/
 
-# Build libons C library
+# Build libons C library and example client
 lib: protocol
-	/bin/bash -c "cd ./cowns && make libs"
-
-# Build libons example client
-client: lib
-	/bin/bash -c "cd ./cowns && make client"
+	/bin/bash -c "cd ./cowns && make all"
 
 # Run application
 run: build
@@ -46,7 +42,7 @@ run: build
 
 # Test application
 test: owns lib
-	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cons/...
+	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cowns/...
 
 install: owns lib
 	cp $(BINS) $(IDIR)/bin

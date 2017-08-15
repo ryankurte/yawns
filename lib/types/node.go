@@ -9,6 +9,7 @@ type Node struct {
 	Executable string            // Executable is the command to be called by the runner
 	Command    string            // Command is the command to be passed to the executable by the runner (if provided)
 	Arguments  map[string]string // Arguments is a map of the arguments to be provided to the node instance by the runner
+	Exec       []string          // Commands to be executed within the node instance
 
 	Sent, Received uint32 // Sent and Received packet count
 }

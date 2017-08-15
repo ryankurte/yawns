@@ -10,15 +10,15 @@
 #include <stdint.h>
 #include <assert.h>
 #include <pthread.h>
-#include <signal.h>
-#include <czmq.h>
 #include <semaphore.h>
 
+#include "zmq.h"
+#include "czmq.h"
 #include "owns/protocol.h"
 #include "protocol/ons.pb-c.h"
 
 
-//#define ONS_DEBUG
+#define ONS_DEBUG
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -37,11 +37,13 @@ int ons_send_msg(struct ons_s *ons, uint32_t type, uint8_t *data, uint16_t lengt
 
 /** External Functions **/
 
-int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
+int ONS_init(struct ons_s *ons, char* ons_address, char* local_address, struct ons_config_s *config)
 {
     // Copy configuration
     strncpy((char*)ons->ons_address, ons_address, ONS_STRING_LENGTH);
     strncpy((char*)ons->local_address, local_address, ONS_STRING_LENGTH);
+    ons->radio_count = 0;
+    ons->config = config;
 
     ONS_DEBUG_PRINT("[ONSC] Connector init\n");
     ONS_DEBUG_PRINT("[ONSC] Connecting to '%s' as '%s'\n", ons_address, local_address);
@@ -65,6 +67,20 @@ int ONS_init(struct ons_s *ons, char* ons_address, char* local_address)
     return 0;
 }
 
+
+int ONS_status(struct ons_s *ons) {
+    printf("OWNS connector status: ");
+    
+    if (ons->running != 0) {
+        printf("Running\n");
+        printf("\t- Socket Type: %s\n", zsock_type_str(ons->sock));
+    } else {
+        printf("Not connected\n");
+    }
+
+    return 0;
+}
+
 int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
 {
     radio->connector = NULL;
@@ -81,6 +97,7 @@ int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
         if (ons->radios[i] == NULL) {
             ons->radios[i] = radio;
             radio->connector = ons;
+            ons->radio_count ++;
             break;
         }
     }
@@ -101,6 +118,7 @@ int ONS_radio_close(struct ons_s *ons, struct ons_radio_s *radio) {
     for (int i=0; i<ONS_MAX_RADIOS; i++) {
         if (ons->radios[i] == radio) {
             ons->radios[i] = NULL;
+            ons->radio_count --;
             break;
         }
     }
@@ -123,7 +141,7 @@ int ONS_close(struct ons_s *ons)
     pthread_kill(ons->thread, SIGINT);
 
     pthread_join(ons->thread, NULL);
-
+    
     zsock_destroy(&ons->sock);
 
     ONS_DEBUG_PRINT("[ONSC] Closed\n");
@@ -261,7 +279,7 @@ void *ons_handle_receive(void* ctx)
     ONS_DEBUG_PRINT("[ONSC THREAD] Starting recieve thread\n");
 
     // Bind exit handler to interrupt handler to avoid unhandled exits
-    signal(SIGINT, exit_handler);
+    if (ons->config->intercept_signals) signal(SIGINT, exit_handler);
 
     while (ons->running) {
 

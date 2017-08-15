@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <signal.h>
 
-#include "ons/ons.h"
-#include "ons/fifteenfour.h"
+#include "owns/owns.h"
+#include "owns/fifteenfour.h"
 
 static volatile int running = 1;
 
@@ -16,8 +16,8 @@ void interrupt_handler(int x) {
     running = 0;
 }
 
-void run_master(uint16_t addr, volatile struct ons_radio_s* radio);
-void run_slave(uint16_t addr, volatile struct ons_radio_s* radio);
+void run_master(uint16_t addr, struct ons_radio_s* radio);
+void run_slave(uint16_t addr, struct ons_radio_s* radio);
 
 int main(int argc, char** argv) {
     int res;
@@ -39,13 +39,14 @@ int main(int argc, char** argv) {
     printf("Local Address: %s (%d)\n", local_address, net_address);
 
     struct ons_s ons;
-    res = ONS_init(&ons, server_address, local_address);
+    struct ons_config_s config;
+    res = ONS_init(&ons, server_address, local_address, &config);
     if (res < 0) {
         printf("Error %d creating ONS connector\n", res);
         return -1;
     }
 
-    volatile struct ons_radio_s radio;
+    struct ons_radio_s radio;
     res = ONS_radio_init(&ons, &radio, band);
     if (res < 0) {
         printf("Error %d creating ONS virtual radio\n", res);
@@ -92,7 +93,7 @@ uint16_t crc16_ccit_kermit(uint32_t len, uint8_t* data) {
     return crc;
 }
 
-void run_master(uint16_t addr, volatile struct ons_radio_s* radio) {
+void run_master(uint16_t addr, struct ons_radio_s* radio) {
     uint16_t seq = 0;
     int res;
 
@@ -121,7 +122,7 @@ void run_master(uint16_t addr, volatile struct ons_radio_s* radio) {
     }
 }
 
-void run_slave(uint16_t addr, volatile struct ons_radio_s* radio) {
+void run_slave(uint16_t addr, struct ons_radio_s* radio) {
     uint16_t seq = 0;
     uint8_t data[256];
     uint16_t len;

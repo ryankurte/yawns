@@ -20,8 +20,6 @@
 #define ONS_DEBUG_PRINT(...)
 #endif
 
-
-
 // Send an ONS message with the specified type
 int ons_send_msg(struct ons_s *ons, uint8_t *data, uint16_t length)
 {

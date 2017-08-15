@@ -50,7 +50,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	log.Printf("[DEBUG] Creating client runner")
 
 	// Create and bind client runner
-	r := runner.NewRunner(config, args)
+	r := runner.NewRunner(config, config.Defaults.Exec, args)
 	e.BindRunnerChannel(r.OutputChan)
 
 	log.Printf("[DEBUG] Initialising plugins")

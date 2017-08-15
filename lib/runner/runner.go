@@ -22,41 +22,38 @@ import (
 type Runner struct {
 	OutputChan chan string
 	clients    map[string]*Runnable
+	execs      []string
 }
 
 // NewRunner Creates a new Runner instance
-func NewRunner(c *config.Config, args map[string]string) *Runner {
+func NewRunner(c *config.Config, execs []string, args map[string]string) *Runner {
 	r := Runner{
 		OutputChan: make(chan string, 1024),
 		clients:    make(map[string]*Runnable),
+		execs:      execs,
 	}
 
-	r.loadConfig(c, args)
+	r.parseConfig(c, args)
 
 	return &r
 }
 
-// LoadConfig loads clients from a provided configuration
-func (runner *Runner) loadConfig(c *config.Config, args map[string]string) {
-	if c == nil {
-		return
-	}
-
+func (runner *Runner) parseConfig(c *config.Config, args map[string]string) {
 	for _, n := range c.Nodes {
 		if n.Address != "" && n.Executable != "" && n.Command != "" {
-			runner.NewRunnable(n.Address, n.Executable, n.Command, args)
+			runner.NewRunnable(n.Address, n.Executable, n.Command, n.Exec, args)
 		}
 	}
 }
 
 // NewRunnable creates a runnable instance indexed by address
-func (runner *Runner) NewRunnable(address, executable, command string, args map[string]string) {
+func (runner *Runner) NewRunnable(address, executable, command string, execs []string, args map[string]string) {
 
 	// Load address into args for command building
 	args["address"] = address
 
 	// Create and save runnable instance
-	runnable := NewRunnable(executable, command, args)
+	runnable := NewRunnable(executable, command, execs, args)
 	runner.clients[address] = runnable
 }
 

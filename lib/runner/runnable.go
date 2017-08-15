@@ -15,6 +15,7 @@ import (
 	"text/template"
 
 	"gopkg.in/ryankurte/go-async-cmd.v1"
+	"time"
 )
 
 // Runnable wraps an executable with arguments to allow management of the underlying executing instance
@@ -22,14 +23,16 @@ type Runnable struct {
 	*gocmd.Cmd
 	executable string
 	command    string
+	execs      []string
 	args       map[string]string
 }
 
 // NewRunnable Create a new runnable instance
-func NewRunnable(executable string, command string, args map[string]string) *Runnable {
+func NewRunnable(executable string, command string, execs []string, args map[string]string) *Runnable {
 	runnable := Runnable{
 		executable: executable,
 		command:    command,
+		execs:      execs,
 		args:       make(map[string]string),
 	}
 
@@ -92,6 +95,12 @@ func (runnable *Runnable) Start() error {
 		return err
 	}
 
+	time.AfterFunc(time.Second, func() {
+		for _, e := range runnable.execs {
+			line, _ := generateArgs(e, runnable.args)
+			runnable.Write(line + "\n")
+		}
+	})
 	return nil
 }
 

@@ -3,6 +3,8 @@ package runner
 import (
 	"testing"
 	"time"
+
+	"github.com/ryankurte/owns/lib/config"
 )
 
 func TestRunner(t *testing.T) {
@@ -12,9 +14,9 @@ func TestRunner(t *testing.T) {
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
 
-		var runner = NewRunner(nil, make(map[string]string))
-		runner.NewRunnable("testOne", "echo", "{{.arg1}} {{.arg2}}", args)
-		runner.NewRunnable("testTwo", "echo", "{{.arg1}} {{.arg2}}", args)
+		var runner = NewRunner(&config.Config{}, []string{}, make(map[string]string))
+		runner.NewRunnable("testOne", "echo", "{{.arg1}} {{.arg2}}", []string{}, args)
+		runner.NewRunnable("testTwo", "echo", "{{.arg1}} {{.arg2}}", []string{}, args)
 
 		err := runner.Start()
 		if err != nil {

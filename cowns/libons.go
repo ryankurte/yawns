@@ -10,8 +10,8 @@ package libons
 
 /*
 #include <stdint.h>
-#include "ons/ons.h"
-#cgo LDFLAGS: -L./build/ -L./cons/build/ -lons -lzmq -lczmq -lpthread -lprotobuf-c
+#include "owns/owns.h"
+#cgo LDFLAGS: -L./build -L./cowns/build -lowns -lzmq -lczmq -lpthread -lprotobuf-c
 */
 import "C"
 
@@ -38,8 +38,11 @@ func NewONSConnector() *ONSConnector {
 func (c *ONSConnector) Init(serverAddress string, localAddress string) error {
 	sa := C.CString(serverAddress)
 	la := C.CString(localAddress)
+	conf := C.struct_ons_config_s{
+		intercept_signals: false,
+	}
 
-	res := C.ONS_init(&c.ons, sa, la)
+	res := C.ONS_init(&c.ons, sa, la, &conf)
 
 	C.free(unsafe.Pointer(sa))
 	C.free(unsafe.Pointer(la))

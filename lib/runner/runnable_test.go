@@ -26,7 +26,7 @@ func TestRunnable(t *testing.T) {
 		args := make(map[string]string)
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
-		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
+		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", []string{}, args)
 
 		err := r.Start()
 		if err != nil {
@@ -39,7 +39,7 @@ func TestRunnable(t *testing.T) {
 		args := make(map[string]string)
 		args["arg1"] = "Hello"
 		args["arg2"] = "World"
-		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", args)
+		r := NewRunnable("echo", "{{.arg1}} {{.arg2}}", []string{}, args)
 
 		err := r.Start()
 		if err != nil {
@@ -60,7 +60,7 @@ func TestRunnable(t *testing.T) {
 	})
 
 	t.Run("Can interrupt and exit commands", func(t *testing.T) {
-		r := NewRunnable("cat", "", nil)
+		r := NewRunnable("cat", "", []string{}, nil)
 
 		err := r.Start()
 		if err != nil {
@@ -74,13 +74,32 @@ func TestRunnable(t *testing.T) {
 	})
 
 	t.Run("Can write input to commands", func(t *testing.T) {
-		r := NewRunnable("tee", "", nil)
+		r := NewRunnable("tee", "", []string{}, nil)
 
 		testString := "Test String\n"
 
 		r.Start()
 
 		r.Write(testString)
+
+		time.Sleep(500 * time.Millisecond)
+
+		line, ok := <-r.GetReadCh()
+		if !ok {
+			t.Errorf("Error fetching from channel")
+		}
+		if !strings.Contains(line, testString) {
+			t.Errorf("Unexpected line out: %s", line)
+		}
+
+		r.Exit()
+	})
+
+	t.Run("Can write execs to commands", func(t *testing.T) {
+		testString := "Test String\n"
+		r := NewRunnable("tee", "", []string{testString}, nil)
+
+		r.Start()
 
 		time.Sleep(500 * time.Millisecond)
 
