@@ -304,19 +304,21 @@ func (m *Medium) updateCollisions(now time.Time) {
 }
 
 func (m *Medium) getRSSI(now time.Time, address, bandName string, channel int32) (float64, error) {
-	band := m.config.Bands[bandName]
-	node, err := m.getNodeByAddr(address)
+	nodeIndex, err := m.getNodeIndex(address)
 	if err != nil {
 		return 0.0, err
 	}
+	//node := (*m.nodes)[nodeIndex]
 	rssi := -9000.0
 
 	for _, t := range m.transmissions {
 		if t.Band != bandName || t.Channel != channel {
 			continue
 		}
-		fading := m.GetPointToPointFading(band, *t.Origin, node)
-
+		fading := t.RSSIs[nodeIndex][len(t.RSSIs[nodeIndex])-1]
+		if float64(fading) > rssi {
+			rssi = float64(fading)
+		}
 	}
 	return rssi, nil
 }
