@@ -32,6 +32,8 @@ type Band struct {
 	Channels Channels
 	// Disable auto transition from tx to RX state
 	NoAutoTXRXTransition bool
+	// Noise floor in dB
+	NoiseFloor types.Attenuation
 }
 
 // Maps configuration for the Medium Map layer

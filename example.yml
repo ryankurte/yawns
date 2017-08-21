@@ -27,6 +27,7 @@ medium:
       channels: 
         count: 32
         spacing: 200KHz
+      noisefloor: -80dB
     IEEE802.15.4-2.4GHz:
       frequency: 2.45GHz
       baud: 250kbps
@@ -37,6 +38,7 @@ medium:
       channels: 
         count: 16
         spacing: 200KHz
+      noisefloor: -80dB
 
 plugins:
   pcap:
