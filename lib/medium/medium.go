@@ -164,7 +164,10 @@ func (m *Medium) handleMessage(message interface{}) error {
 	switch msg := message.(type) {
 	case *messages.Packet:
 		return m.sendPacket(time.Now(), *msg)
+	case *messages.RSSIRequest:
+
 	}
+
 	return nil
 }
 
@@ -298,6 +301,24 @@ func (m *Medium) updateCollisions(now time.Time) {
 			}
 		}
 	}
+}
+
+func (m *Medium) getRSSI(now time.Time, address, bandName string, channel int32) (float64, error) {
+	band := m.config.Bands[bandName]
+	node, err := m.getNodeByAddr(address)
+	if err != nil {
+		return 0.0, err
+	}
+	rssi := -9000.0
+
+	for _, t := range m.transmissions {
+		if t.Band != bandName || t.Channel != channel {
+			continue
+		}
+		fading := m.GetPointToPointFading(band, *t.Origin, node)
+
+	}
+	return rssi, nil
 }
 
 // finaliseTransmissions finalises any completed transmissions

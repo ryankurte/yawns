@@ -45,7 +45,7 @@ plugins:
 # Node defaults
 # These are inherited by all child nodes (unless overwritten)
 defaults:
-  executable: ./cons/build/ons-client
+  executable: ./cowns/build/owns-client
   command: "{{.server}} {{.address}} Sub1GHz"
 
 # Node definitions

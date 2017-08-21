@@ -46,8 +46,7 @@ test: owns lib
 
 install: owns lib
 	cp $(BINS) $(IDIR)/bin
-	cp -R cowns/owns $(IDIR)/include/
-	cp $(LIBS) $(IDIR)/lib/
+	cd cowns/build && cmake .. && make install; cd ../..
 
 # Utilities
 
