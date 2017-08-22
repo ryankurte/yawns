@@ -11,7 +11,7 @@ package connector
 
 import (
 	"fmt"
-	//"log"
+	"log"
 
 	"github.com/golang/protobuf/proto"
 
@@ -76,21 +76,35 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		}
 
 	// Signal that a device has entered receive mode
-	case *protocol.Base_StartReceive:
-		c.OutputChan <- &messages.StartReceive{
-			BaseMessage: messages.BaseMessage{Address: address},
-			RFInfo: messages.RFInfo{
-				Band:    m.StartReceive.Info.Band,
-				Channel: m.StartReceive.Info.Channel,
-			},
-		}
+	case *protocol.Base_StateSet:
+		state := m.StateSet.GetState()
+		log.Printf("State: %+v", state)
 
-	case *protocol.Base_StopReceive:
-		c.OutputChan <- &messages.StopReceive{
-			BaseMessage: messages.BaseMessage{Address: address},
-			RFInfo: messages.RFInfo{
-				Band: m.StopReceive.Info.Band,
-			},
+		switch state {
+		case protocol.RFState_RECEIVE:
+			c.OutputChan <- &messages.StartReceive{
+				BaseMessage: messages.BaseMessage{Address: address},
+				RFInfo: messages.RFInfo{
+					Band:    m.StateSet.Info.Band,
+					Channel: m.StateSet.Info.Channel,
+				},
+			}
+		case protocol.RFState_IDLE:
+			c.OutputChan <- &messages.StopReceive{
+				BaseMessage: messages.BaseMessage{Address: address},
+				RFInfo: messages.RFInfo{
+					Band: m.StateSet.Info.Band,
+				},
+			}
+		case protocol.RFState_SLEEP:
+			c.OutputChan <- &messages.StopReceive{
+				BaseMessage: messages.BaseMessage{Address: address},
+				RFInfo: messages.RFInfo{
+					Band: m.StateSet.Info.Band,
+				},
+			}
+		default:
+			return fmt.Errorf("[WARNING] Connector.handleIncoming invalid set state: %+v", state)
 		}
 
 	case *protocol.Base_Event:

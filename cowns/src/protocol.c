@@ -106,32 +106,68 @@ int ons_send_rssi_req(struct ons_s *ons, char* band, int channel) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
+int ons_send_state_req(struct ons_s *ons, char* band) {
     Base base = BASE__INIT;
-    StartReceive startreceive = START_RECEIVE__INIT;
-
-    RFInfo info = ons_build_rfinfo(band, channel);
-    startreceive.info = &info;
-
-    base.message_case = BASE__MESSAGE_START_RECEIVE;
-    base.startreceive = &startreceive;
-
-    return ons_send_pb(ons, &base);
-}
-
-int ons_send_stop_receive(struct ons_s *ons, char* band) {
-    Base base = BASE__INIT;
-    StopReceive stopreceive = STOP_RECEIVE__INIT;
+    StateReq req = STATE_REQ__INIT;
 
     RFInfo info = RFINFO__INIT;
     info.band = band;
-    stopreceive.info = &info;
+    req.info = &info;
 
-    base.message_case = BASE__MESSAGE_STOP_RECEIVE;
-    base.stopreceive = &stopreceive;
+    base.message_case = BASE__MESSAGE_STATE_REQ;
+    base.statereq = &req;
 
     return ons_send_pb(ons, &base);
 }
+
+int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
+    Base base = BASE__INIT;
+    StateSet stateset = STATE_SET__INIT;
+
+    RFInfo info = ons_build_rfinfo(band, channel);
+    stateset.info = &info;
+    stateset.has_state = true;
+    stateset.state = RFSTATE__RECEIVE;
+
+    base.message_case = BASE__MESSAGE_STATE_SET;
+    base.stateset = &stateset;
+
+    return ons_send_pb(ons, &base);
+}
+
+int ons_send_idle(struct ons_s *ons, char* band) {
+    Base base = BASE__INIT;
+    StateSet stateset = STATE_SET__INIT;
+
+    RFInfo info = RFINFO__INIT;
+    info.band = band;
+
+    stateset.info = &info;
+    stateset.has_state = true;
+    stateset.state = RFSTATE__IDLE;
+
+    base.message_case = BASE__MESSAGE_STATE_SET;
+    base.stateset = &stateset;
+
+    return ons_send_pb(ons, &base);
+}
+
+int ons_send_sleep(struct ons_s *ons, char* band) {
+    Base base = BASE__INIT;
+    StateSet stateset = STATE_SET__INIT;
+
+    RFInfo info = RFINFO__INIT;
+    info.band = band;
+    stateset.info = &info;
+    stateset.has_state = true;
+    stateset.state = RFSTATE__SLEEP;
+
+    base.message_case = BASE__MESSAGE_STATE_SET;
+    base.stateset = &stateset;
+
+    return ons_send_pb(ons, &base);
+}
+
 
 int ons_send_event(struct ons_s *ons, char* data) {
     Base base = BASE__INIT;

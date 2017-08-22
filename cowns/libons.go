@@ -39,7 +39,7 @@ func (c *ONSConnector) Init(serverAddress string, localAddress string) error {
 	sa := C.CString(serverAddress)
 	la := C.CString(localAddress)
 	conf := C.struct_ons_config_s{
-		intercept_signals: false,
+		intercept_signals: true,
 	}
 
 	res := C.ONS_init(&c.ons, sa, la, &conf)

@@ -1,11 +1,11 @@
-// Protocol definitions for communication with ONS
+// Protocol definitions for communication with OWNS
 
 syntax = "proto3";
 
 // Common RF information message
 message RFInfo {
-    string band   = 1;  // Band must match a named band in the ONS config
-    int32 channel = 2;  // Channel number
+    string band   = 1;      // Band must match a named band in the ONS config
+    int32 channel = 2;      // Channel number
 }
 
 // RF Transceiver State
@@ -38,19 +38,21 @@ message SendComplete {
     RFInfo info = 1;        // Receive channel information
 }
 
-// Indicates a device has entered the receive state
-message StartReceive {
-    RFInfo info = 1;        // Receive channel information
-}
-
-// Indicates a device has left the receive state
-message StopReceive {
-    RFInfo info = 1;        // Receive channel information
-}
-
-message SetState {
+// Set transceiver state
+message StateSet {
     RFInfo info = 1;        // Radio information
-    RFState state = 2;
+     RFState state = 2;     // Transceiver state
+}
+
+// Request transceiver state
+message StateReq {
+    RFInfo info = 1;        // Radio information
+}
+
+// Response to transceiver state request
+message StateResp {
+    RFInfo info = 1;        // Radio information
+    RFState state = 2;      // Transceiver state
 }
 
 // Request RSSI for a provided channel
@@ -77,10 +79,11 @@ message Base {
         Deregister      deregister      = 2;
         Packet          packet          = 3;
         SendComplete    sendComplete    = 4;
-        StartReceive    startReceive    = 5;
-        StopReceive     stopReceive     = 6;
-        Event           event           = 7;
-        RSSIReq         rssiReq         = 8;
-        RSSIResp        rssiResp        = 9;
+        StateSet        stateSet        = 5;
+        StateReq        stateReq        = 6;
+        StateResp       stateResp       = 7;
+        Event           event           = 8;
+        RSSIReq         rssiReq         = 9;
+        RSSIResp        rssiResp        = 10;
     }
 }

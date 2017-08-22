@@ -172,7 +172,6 @@ func TestLibONS(t *testing.T) {
 	})
 
 	t.Run("Client can set radio state", func(t *testing.T) {
-
 		radio.StartReceive(7)
 
 		time.Sleep(100 * time.Millisecond)

@@ -171,7 +171,7 @@ int ONS_radio_start_receive(struct ons_radio_s *radio, int32_t channel)
 
 int ONS_radio_stop_receive(struct ons_radio_s *radio) 
 {
-    return ons_send_stop_receive(radio->connector, radio->band);
+    return ons_send_idle(radio->connector, radio->band);
 }
 
 int ONS_radio_check_receive(struct ons_radio_s *radio)
