@@ -11,7 +11,7 @@ package connector
 
 import (
 	"fmt"
-	"log"
+	//"log"
 
 	"github.com/golang/protobuf/proto"
 
@@ -59,7 +59,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		return fmt.Errorf("Received message for unknown clientID (%+v)", clientID)
 	}
 
-	log.Printf("Incoming From: %s Message: %+v", address, &message)
+	//log.Printf("Incoming From: %s Message: %+v", address, &message)
 
 	// Handle messages
 	switch m := message.GetMessage().(type) {
@@ -152,7 +152,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		return fmt.Errorf("[WARNING] Connector.handleOutgoing: unsupported message type (%T)", message)
 	}
 
-	log.Printf("Outgoing Message: %+v", message)
+	//log.Printf("Outgoing Message: %+v", message)
 
 	data, err := proto.Marshal(&base)
 	if err != nil {

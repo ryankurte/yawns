@@ -58,7 +58,7 @@ func (c *ZMQConnector) Run() {
 				log.Printf("channel error")
 				break
 			}
-			log.Printf("RX from client: %+v", p)
+			//log.Printf("RX from client: %+v", p)
 			err := c.handleIncoming(p)
 			if err != nil {
 				log.Printf("Parsing error: %s", err)

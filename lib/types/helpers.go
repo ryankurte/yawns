@@ -27,7 +27,7 @@ func MarshalUnit(unit string, value float64) ([]byte, error) {
 	return []byte(str), nil
 }
 
-var unitRegex = regexp.MustCompile(`^([0-9\.]+)[ ]{0,1}([a-zA-Z]+)$`)
+var unitRegex = regexp.MustCompile(`^([\-]?[0-9\.]+)[ ]{0,1}([a-zA-Z]+)$`)
 
 // UnmarshalUnit is a helper for common (SI) unit deserialisation/unmarshalling
 func UnmarshalUnit(unit string, text []byte) (float64, error) {

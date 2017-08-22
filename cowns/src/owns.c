@@ -18,7 +18,7 @@
 #include "protocol/ons.pb-c.h"
 
 
-#define ONS_DEBUG
+//#define ONS_DEBUG
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -184,7 +184,6 @@ int ONS_radio_check_receive(struct ons_radio_s *radio)
 
 int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t* data, uint16_t* len)
 {
-
     pthread_mutex_lock(&radio->rx_mutex);
 
     if (radio->receive_length == 0) {

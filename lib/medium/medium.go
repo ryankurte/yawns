@@ -146,17 +146,14 @@ running:
 				if m.stats.TickMin == 0 || delta < m.stats.TickMin {
 					m.stats.TickMin = delta
 				}
-
 				avg = avg*count/(count+1) + float64(delta)/(count+1)
 			}
 			count++
-
 			m.update(now)
 		}
 	}
 
 	m.stats.TickAvg = time.Duration(avg)
-
 	log.Printf("[INFO] Medium exited (stats: %+v)", m.stats)
 }
 
@@ -165,9 +162,36 @@ func (m *Medium) handleMessage(message interface{}) error {
 	case *messages.Packet:
 		return m.sendPacket(time.Now(), *msg)
 	case *messages.RSSIRequest:
+		rssi, _ := m.getRSSI(msg.Address, msg.Band, msg.Channel)
+		m.outCh <- &messages.RSSIResponse{
+			BaseMessage: msg.BaseMessage,
+			RFInfo:      msg.RFInfo,
+			RSSI:        float32(rssi),
+		}
+	case *messages.StartReceive:
+		m.setTransceiverState(msg.Address, msg.Band, TransceiverStateReceive)
 
+	case *messages.StopReceive:
+		m.setTransceiverState(msg.Address, msg.Band, TransceiverStateIdle)
+
+	default:
+		log.Printf("[WARNING] medium unhandled message type: %+t", message)
 	}
 
+	return nil
+}
+
+func (m *Medium) setTransceiverState(address, band string, state TransceiverState) error {
+	index, err := m.getNodeIndex(address)
+	if err != nil {
+		return err
+	}
+	transceiver, ok := m.transceivers[index][band]
+	if !ok {
+		return fmt.Errorf("Transceiver not found for band: %s", band)
+	}
+	transceiver.SetState(time.Now(), state)
+	m.transceivers[index][band] = transceiver
 	return nil
 }
 
@@ -187,6 +211,8 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 	if !ok {
 		return fmt.Errorf("Medium error: no matching band configured (%s)", bandName)
 	}
+
+	log.Printf("[DEBUG] Medium - Starting transmission from %s", p.Address)
 
 	// Set transmitting state
 	m.SetTransceiverState(now, nodeIndex, bandName, TransceiverStateTransmitting)
@@ -303,15 +329,14 @@ func (m *Medium) updateCollisions(now time.Time) {
 	}
 }
 
-func (m *Medium) getRSSI(now time.Time, address, bandName string, channel int32) (types.Attenuation, error) {
+func (m *Medium) getRSSI(address, bandName string, channel int32) (types.Attenuation, error) {
 	band := m.config.Bands[bandName]
 	nodeIndex, err := m.getNodeIndex(address)
 	if err != nil {
 		return 0.0, err
 	}
-	//node := (*m.nodes)[nodeIndex]
-	rssi := band.NoiseFloor
 
+	rssi := band.NoiseFloor
 	for _, t := range m.transmissions {
 		if t.Band != bandName || t.Channel != channel {
 			continue
@@ -334,6 +359,8 @@ func (m *Medium) finaliseTransmissions(now time.Time) {
 		if now.After(t.EndTime) {
 			sourceIndex, _ := m.getNodeIndex(t.Origin.Address)
 			band := m.config.Bands[t.Band]
+
+			log.Printf("[DEBUG] Medium - Completing transmission from %s", t.Origin.Address)
 
 			// Update origin transmitting state
 			m.outCh <- messages.NewSendComplete(t.Origin.Address, t.Band, t.Channel)

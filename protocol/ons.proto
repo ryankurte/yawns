@@ -8,6 +8,15 @@ message RFInfo {
     int32 channel = 2;  // Channel number
 }
 
+// RF Transceiver State
+enum RFState {
+    IDLE            = 0;    // Idle (awake)
+    RECEIVE         = 1;    // Prepared to receive
+    RECEIVING       = 2;    // Currently receiving
+    TRANSMITTING    = 3;    // Currently transmitting
+    SLEEP           = 4;    // Sleeping
+}
+
 // Sent on ONS first connection
 message Register {
     string address = 1;     // Address is the network address of the device
@@ -37,6 +46,11 @@ message StartReceive {
 // Indicates a device has left the receive state
 message StopReceive {
     RFInfo info = 1;        // Receive channel information
+}
+
+message SetState {
+    RFInfo info = 1;        // Radio information
+    RFState state = 2;
 }
 
 // Request RSSI for a provided channel
