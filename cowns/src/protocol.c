@@ -126,6 +126,7 @@ int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
 
     RFInfo info = ons_build_rfinfo(band, channel);
     stateset.info = &info;
+
     stateset.has_state = true;
     stateset.state = RFSTATE__RECEIVE;
 

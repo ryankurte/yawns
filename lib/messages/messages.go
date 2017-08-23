@@ -8,7 +8,9 @@
 
 package messages
 
-import ()
+import (
+	"github.com/ryankurte/owns/lib/types"
+)
 
 // Type defines the type of message being passed
 type Type string
@@ -16,7 +18,7 @@ type Type string
 const (
 	// ConnectedID message indicates a node has connected
 	ConnectedID Type = "connected"
-	// Packet Packet message type
+	// PacketID Packet message type
 	PacketID Type = "packet"
 	// PacketSentID Packet sent message type
 	PacketSentID Type = "packet-sent"
@@ -88,6 +90,23 @@ type RSSIResponse struct {
 	RSSI float32
 }
 
+type StateSet struct {
+	BaseMessage
+	RFInfo
+	State types.TransceiverState
+}
+
+type StateRequest struct {
+	BaseMessage
+	RFInfo
+}
+
+type StateResponse struct {
+	BaseMessage
+	RFInfo
+	State types.TransceiverState
+}
+
 type SendComplete struct {
 	BaseMessage
 	RFInfo
@@ -100,16 +119,6 @@ func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 		},
 		RFInfo: NewRFInfo(bandName, channel),
 	}
-}
-
-type StartReceive struct {
-	BaseMessage
-	RFInfo
-}
-
-type StopReceive struct {
-	BaseMessage
-	RFInfo
 }
 
 type Event struct {

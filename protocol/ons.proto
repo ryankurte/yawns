@@ -40,8 +40,8 @@ message SendComplete {
 
 // Set transceiver state
 message StateSet {
-    RFInfo info = 1;        // Radio information
-     RFState state = 2;     // Transceiver state
+    RFInfo info = 1;       // Radio information
+    RFState state = 2;     // Transceiver state
 }
 
 // Request transceiver state

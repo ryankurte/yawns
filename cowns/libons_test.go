@@ -20,7 +20,7 @@ import (
 
 	"github.com/ryankurte/owns/lib/connector"
 	"github.com/ryankurte/owns/lib/messages"
-	//	"github.com/ryankurte/owns/lib/protocol"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 func TestLibONS(t *testing.T) {
@@ -177,9 +177,11 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.StartReceive)
+			packet, ok := msg.(*messages.StateSet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
+			assert.EqualValues(t, types.TransceiverStateReceive, packet.State)
+			assert.EqualValues(t, band, packet.Band)
 			assert.EqualValues(t, 7, packet.Channel)
 
 		case <-time.After(timeout):
@@ -192,9 +194,11 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.StopReceive)
+			packet, ok := msg.(*messages.StateSet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
+			assert.EqualValues(t, types.TransceiverStateIdle, packet.State)
+			assert.EqualValues(t, band, packet.Band)
 
 		case <-time.After(timeout):
 			t.Errorf("Timeout")

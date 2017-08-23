@@ -2,23 +2,13 @@ package medium
 
 import (
 	"time"
-)
 
-// TransceiverState is the state of a virtual transceiver
-type TransceiverState string
-
-// Allowed transceiver states
-const (
-	TransceiverStateIdle         TransceiverState = "idle"
-	TransceiverStateSleep        TransceiverState = "sleep"
-	TransceiverStateReceive      TransceiverState = "receive"
-	TransceiverStateReceiving    TransceiverState = "receiving"
-	TransceiverStateTransmitting TransceiverState = "transmitting"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 type Transceiver struct {
 	// Current transceiver state
-	State TransceiverState
+	State types.TransceiverState
 
 	lastTime time.Time
 
@@ -36,25 +26,25 @@ type Transceiver struct {
 
 func NewTransceiver(startTime time.Time) *Transceiver {
 	return &Transceiver{
-		State:    TransceiverStateIdle,
+		State:    types.TransceiverStateIdle,
 		lastTime: startTime,
 	}
 }
 
-func (t *Transceiver) SetState(now time.Time, state TransceiverState) {
+func (t *Transceiver) SetState(now time.Time, state types.TransceiverState) {
 	lastState := t.State
 	stateTime := now.Sub(t.lastTime)
 
 	switch lastState {
-	case TransceiverStateIdle:
+	case types.TransceiverStateIdle:
 		t.IdleTime += stateTime
-	case TransceiverStateSleep:
+	case types.TransceiverStateSleep:
 		t.SleepTime += stateTime
-	case TransceiverStateReceive:
+	case types.TransceiverStateReceive:
 		t.ReceiveTime += stateTime
-	case TransceiverStateReceiving:
+	case types.TransceiverStateReceiving:
 		t.ReceivingTime += stateTime
-	case TransceiverStateTransmitting:
+	case types.TransceiverStateTransmitting:
 		t.TransmittingTime += stateTime
 	}
 

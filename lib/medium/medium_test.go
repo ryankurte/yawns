@@ -33,7 +33,7 @@ func TestMedium(t *testing.T) {
 	now := time.Now()
 	for i := range nodes {
 		for b := range c.Medium.Bands {
-			m.SetTransceiverState(now, i, b, TransceiverStateReceive)
+			m.SetTransceiverState(now, i, b, types.TransceiverStateReceive)
 		}
 	}
 
@@ -90,7 +90,7 @@ func TestMedium(t *testing.T) {
 		now := time.Now()
 		m.sendPacket(now, msg)
 
-		assert.EqualValues(t, TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName].State, "Sets transceiver state for node")
+		assert.EqualValues(t, types.TransceiverStateTransmitting, m.transceivers[nodeIndex][bandName].State, "Sets transceiver state for node")
 		assert.EqualValues(t, 1, len(m.transmissions), "Stores transmission instance")
 
 		transmission := m.transmissions[0]

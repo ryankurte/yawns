@@ -11,12 +11,12 @@ package connector
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/golang/protobuf/proto"
 
 	"github.com/ryankurte/owns/lib/messages"
 	"github.com/ryankurte/owns/lib/protocol"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 // handleIncoming handles incoming messages from external sources (ie. from nodes to ONS)
@@ -77,34 +77,27 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
 	// Signal that a device has entered receive mode
 	case *protocol.Base_StateSet:
-		state := m.StateSet.GetState()
-		log.Printf("State: %+v", state)
-
-		switch state {
-		case protocol.RFState_RECEIVE:
-			c.OutputChan <- &messages.StartReceive{
-				BaseMessage: messages.BaseMessage{Address: address},
-				RFInfo: messages.RFInfo{
-					Band:    m.StateSet.Info.Band,
-					Channel: m.StateSet.Info.Channel,
-				},
-			}
+		state := types.TransceiverStateIdle
+		switch m.StateSet.State {
 		case protocol.RFState_IDLE:
-			c.OutputChan <- &messages.StopReceive{
-				BaseMessage: messages.BaseMessage{Address: address},
-				RFInfo: messages.RFInfo{
-					Band: m.StateSet.Info.Band,
-				},
-			}
+			state = types.TransceiverStateIdle
+		case protocol.RFState_RECEIVE:
+			state = types.TransceiverStateReceive
+		case protocol.RFState_RECEIVING:
+			state = types.TransceiverStateReceiving
+		case protocol.RFState_TRANSMITTING:
+			state = types.TransceiverStateTransmitting
 		case protocol.RFState_SLEEP:
-			c.OutputChan <- &messages.StopReceive{
-				BaseMessage: messages.BaseMessage{Address: address},
-				RFInfo: messages.RFInfo{
-					Band: m.StateSet.Info.Band,
-				},
-			}
-		default:
-			return fmt.Errorf("[WARNING] Connector.handleIncoming invalid set state: %+v", state)
+			state = types.TransceiverStateSleep
+		}
+
+		c.OutputChan <- &messages.StateSet{
+			BaseMessage: messages.BaseMessage{Address: address},
+			RFInfo: messages.RFInfo{
+				Band:    m.StateSet.Info.Band,
+				Channel: m.StateSet.Info.Channel,
+			},
+			State: state,
 		}
 
 	case *protocol.Base_Event:
@@ -119,6 +112,14 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			RFInfo: messages.RFInfo{
 				Band:    m.RssiReq.Info.Band,
 				Channel: m.RssiReq.Info.Channel,
+			},
+		}
+
+	case *protocol.Base_StateReq:
+		c.OutputChan <- &messages.StateRequest{
+			BaseMessage: messages.BaseMessage{Address: address},
+			RFInfo: messages.RFInfo{
+				Band: m.StateReq.Info.Band,
 			},
 		}
 
@@ -143,6 +144,29 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 			Packet: &protocol.Packet{
 				Info: &protocol.RFInfo{Band: m.Band},
 				Data: m.Data,
+			},
+		}
+
+	case *messages.StateResponse:
+		address = m.Address
+		state := protocol.RFState_IDLE
+		switch m.State {
+		case types.TransceiverStateIdle:
+			state = protocol.RFState_IDLE
+		case types.TransceiverStateReceive:
+			state = protocol.RFState_RECEIVE
+		case types.TransceiverStateReceiving:
+			state = protocol.RFState_RECEIVING
+		case types.TransceiverStateTransmitting:
+			state = protocol.RFState_TRANSMITTING
+		case types.TransceiverStateSleep:
+			state = protocol.RFState_SLEEP
+		}
+
+		base.Message = &protocol.Base_StateResp{
+			StateResp: &protocol.StateResp{
+				Info:  &protocol.RFInfo{Band: m.Band},
+				State: state,
 			},
 		}
 

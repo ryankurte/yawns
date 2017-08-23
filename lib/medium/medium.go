@@ -11,13 +11,12 @@ package medium
 import (
 	"fmt"
 	"log"
-	//"time"
+	"time"
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/medium/layers"
 	"github.com/ryankurte/owns/lib/messages"
 	"github.com/ryankurte/owns/lib/types"
-	"time"
 )
 
 // Link encapsulates a link between two nodes
@@ -75,12 +74,13 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 	m.layerManager.BindLayer(layers.NewFreeSpace())
 	m.layerManager.BindLayer(layers.NewRandom())
 
-	mapLayer, err := layers.NewMapLayer(&c.Maps)
-	if err != nil {
-		return nil, err
-	}
-	m.layerManager.BindLayer(mapLayer)
-
+	/*
+		mapLayer, err := layers.NewMapLayer(&c.Maps)
+		if err != nil {
+			return nil, err
+		}
+		m.layerManager.BindLayer(mapLayer)
+	*/
 	return &m, nil
 }
 
@@ -168,11 +168,8 @@ func (m *Medium) handleMessage(message interface{}) error {
 			RFInfo:      msg.RFInfo,
 			RSSI:        float32(rssi),
 		}
-	case *messages.StartReceive:
-		m.setTransceiverState(msg.Address, msg.Band, TransceiverStateReceive)
-
-	case *messages.StopReceive:
-		m.setTransceiverState(msg.Address, msg.Band, TransceiverStateIdle)
+	case *messages.StateSet:
+		m.setTransceiverState(msg.Address, msg.Band, msg.State)
 
 	default:
 		log.Printf("[WARNING] medium unhandled message type: %+t", message)
@@ -181,7 +178,7 @@ func (m *Medium) handleMessage(message interface{}) error {
 	return nil
 }
 
-func (m *Medium) setTransceiverState(address, band string, state TransceiverState) error {
+func (m *Medium) setTransceiverState(address, band string, state types.TransceiverState) error {
 	index, err := m.getNodeIndex(address)
 	if err != nil {
 		return err
@@ -215,7 +212,7 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 	log.Printf("[DEBUG] Medium - Starting transmission from %s", p.Address)
 
 	// Set transmitting state
-	m.SetTransceiverState(now, nodeIndex, bandName, TransceiverStateTransmitting)
+	m.SetTransceiverState(now, nodeIndex, bandName, types.TransceiverStateTransmitting)
 
 	// Create transmission instance
 	t := NewTransmission(now, source, &band, p)
@@ -243,9 +240,9 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 
 		// Update radio states
 		transceiver := m.transceivers[i][t.Band]
-		if transceiver.State == TransceiverStateReceive {
+		if transceiver.State == types.TransceiverStateReceive {
 			// Devices in receive state will enter receiving state
-			m.SetTransceiverState(now, i, t.Band, TransceiverStateReceiving)
+			m.SetTransceiverState(now, i, t.Band, types.TransceiverStateReceiving)
 		}
 	}
 
@@ -284,7 +281,7 @@ func (m *Medium) updateTransmissions(now time.Time) {
 			if t.SendOK[j] && fading > band.LinkBudget {
 				log.Printf("Updating failed state for node %d (%s)", j, n.Address)
 				m.transmissions[i].SendOK[j] = false
-				m.SetTransceiverState(now, i, t.Band, TransceiverStateReceive)
+				m.SetTransceiverState(now, i, t.Band, types.TransceiverStateReceive)
 			}
 
 			// TODO: Reject if radio exits receiving state
@@ -322,7 +319,7 @@ func (m *Medium) updateCollisions(now time.Time) {
 					log.Printf("Updating collision state for node %d (%s)", i, n.Address)
 					m.transmissions[j1].SendOK[i] = false
 					m.transmissions[j2].SendOK[i] = false
-					m.SetTransceiverState(now, i, t1.Band, TransceiverStateReceive)
+					m.SetTransceiverState(now, i, t1.Band, types.TransceiverStateReceive)
 				}
 			}
 		}
@@ -365,16 +362,16 @@ func (m *Medium) finaliseTransmissions(now time.Time) {
 			// Update origin transmitting state
 			m.outCh <- messages.NewSendComplete(t.Origin.Address, t.Band, t.Channel)
 			if band.NoAutoTXRXTransition {
-				m.SetTransceiverState(now, sourceIndex, t.Band, TransceiverStateIdle)
+				m.SetTransceiverState(now, sourceIndex, t.Band, types.TransceiverStateIdle)
 			} else {
-				m.SetTransceiverState(now, sourceIndex, t.Band, TransceiverStateReceive)
+				m.SetTransceiverState(now, sourceIndex, t.Band, types.TransceiverStateReceive)
 			}
 
 			// Distribute to receivers
 			for i, n := range *m.nodes {
 				if t.SendOK[i] {
 					m.outCh <- messages.NewPacket(n.Address, t.Data, t.GetRFInfo(i))
-					m.SetTransceiverState(now, i, t.Band, TransceiverStateReceive)
+					m.SetTransceiverState(now, i, t.Band, types.TransceiverStateReceive)
 				}
 			}
 
