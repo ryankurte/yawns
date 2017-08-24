@@ -26,7 +26,8 @@ int ons_send_msg(struct ons_s *ons, uint8_t *data, uint16_t length)
     return zsock_send(ons->sock, "b", data, length);
 }
 
-int ons_send_pb(struct ons_s *ons, Base* message) {
+int ons_send_pb(struct ons_s *ons, Base* message)
+{
     void* buf;
 
     size_t size = base__get_packed_size(message);
@@ -42,7 +43,8 @@ int ons_send_pb(struct ons_s *ons, Base* message) {
     return res;
 }
 
-RFInfo ons_build_rfinfo(char* band, int channel) {
+RFInfo ons_build_rfinfo(char* band, int channel)
+{
     RFInfo info = RFINFO__INIT;
 
     info.band = band;
@@ -52,7 +54,8 @@ RFInfo ons_build_rfinfo(char* band, int channel) {
     return info;
 }
 
-int ons_send_register(struct ons_s *ons, char* address) {
+int ons_send_register(struct ons_s *ons, char* address)
+{
     Base base = BASE__INIT;
     Register reg = REGISTER__INIT;
 
@@ -64,7 +67,8 @@ int ons_send_register(struct ons_s *ons, char* address) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_deregister(struct ons_s *ons, char* address) {
+int ons_send_deregister(struct ons_s *ons, char* address)
+{
     Base base = BASE__INIT;
     Deregister dereg = DEREGISTER__INIT;
 
@@ -73,7 +77,8 @@ int ons_send_deregister(struct ons_s *ons, char* address) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_packet(struct ons_s *ons, char* band, int32_t channel, uint8_t *data, uint16_t length) {
+int ons_send_packet(struct ons_s *ons, char* band, int32_t channel, uint8_t *data, uint16_t length)
+{
     Base base = BASE__INIT;
     Packet packet = PACKET__INIT;
     RFInfo info = RFINFO__INIT;
@@ -89,11 +94,12 @@ int ons_send_packet(struct ons_s *ons, char* band, int32_t channel, uint8_t *dat
 
     base.message_case = BASE__MESSAGE_PACKET;
     base.packet = &packet;
-   
+
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_rssi_req(struct ons_s *ons, char* band, int channel) {
+int ons_send_rssi_req(struct ons_s *ons, char* band, int channel)
+{
     Base base = BASE__INIT;
     RSSIReq req = RSSIREQ__INIT;
 
@@ -106,7 +112,8 @@ int ons_send_rssi_req(struct ons_s *ons, char* band, int channel) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_state_req(struct ons_s *ons, char* band) {
+int ons_send_state_req(struct ons_s *ons, char* band)
+{
     Base base = BASE__INIT;
     StateReq req = STATE_REQ__INIT;
 
@@ -120,7 +127,8 @@ int ons_send_state_req(struct ons_s *ons, char* band) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
+int ons_send_start_receive(struct ons_s *ons, char* band, int channel)
+{
     Base base = BASE__INIT;
     StateSet stateset = STATE_SET__INIT;
 
@@ -136,7 +144,8 @@ int ons_send_start_receive(struct ons_s *ons, char* band, int channel) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_idle(struct ons_s *ons, char* band) {
+int ons_send_idle(struct ons_s *ons, char* band)
+{
     Base base = BASE__INIT;
     StateSet stateset = STATE_SET__INIT;
 
@@ -153,7 +162,8 @@ int ons_send_idle(struct ons_s *ons, char* band) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_sleep(struct ons_s *ons, char* band) {
+int ons_send_sleep(struct ons_s *ons, char* band)
+{
     Base base = BASE__INIT;
     StateSet stateset = STATE_SET__INIT;
 
@@ -170,7 +180,8 @@ int ons_send_sleep(struct ons_s *ons, char* band) {
 }
 
 
-int ons_send_event(struct ons_s *ons, char* data) {
+int ons_send_event(struct ons_s *ons, char* data)
+{
     Base base = BASE__INIT;
     Event event = EVENT__INIT;
 

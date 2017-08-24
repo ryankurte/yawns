@@ -19,6 +19,9 @@ run:
 test: all
 	GODEBUG=cgocheck=0 go test -v -p 1 -timeout 10s ./
 
+install:
+	cd $(OUTDIR) && cmake .. && make install; cd ..
+
 # Cleanup build files
 clean:
 	rm -rf $(OUTDIR)

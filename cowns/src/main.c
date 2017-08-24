@@ -3,7 +3,7 @@
  * https://github.com/ryankurte/ons
  * Copyright 2017 Ryan Kurte
  */
- 
+
 #include <stdio.h>
 #include <signal.h>
 
@@ -12,14 +12,16 @@
 
 static volatile int running = 1;
 
-void interrupt_handler(int x) {
+void interrupt_handler(int x)
+{
     running = 0;
 }
 
-void run_master(uint16_t addr, struct ons_radio_s* radio);
-void run_slave(uint16_t addr, struct ons_radio_s* radio);
+void run_master(uint16_t addr, struct ons_radio_s *radio);
+void run_slave(uint16_t addr, struct ons_radio_s *radio);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     int res;
 
     printf("ONS Example Client\n");
@@ -29,9 +31,9 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    char* server_address = argv[1];
-    char* local_address = argv[2];
-    char* band = argv[3];
+    char *server_address = argv[1];
+    char *local_address = argv[2];
+    char *band = argv[3];
 
     uint16_t net_address = (uint16_t)strtol(local_address, NULL, 0);
 
@@ -77,10 +79,11 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-uint16_t crc16_ccit_kermit(uint32_t len, uint8_t* data) {
+uint16_t crc16_ccit_kermit(uint32_t len, uint8_t *data)
+{
     uint16_t crc = 0x0000;
 
-    for (uint32_t i=0; i<len; i++) {
+    for (uint32_t i = 0; i < len; i++) {
         uint8_t d = data[i];
         uint16_t q;
 
@@ -93,12 +96,13 @@ uint16_t crc16_ccit_kermit(uint32_t len, uint8_t* data) {
     return crc;
 }
 
-void run_master(uint16_t addr, struct ons_radio_s* radio) {
+void run_master(uint16_t addr, struct ons_radio_s *radio)
+{
     uint16_t seq = 0;
     int res;
 
-    while(running) {
-        struct fifteen_four_header_s header_out = FIFTEEN_FOUR_DEFAULT_HEADER(0x01, addr, addr+1, seq);
+    while (running) {
+        struct fifteen_four_header_s header_out = FIFTEEN_FOUR_DEFAULT_HEADER(0x01, addr, addr + 1, seq);
         uint8_t test_data[] = {0xaa, 0xbb, 0xcc, 0xdd};
 
         uint8_t packet[sizeof(struct fifteen_four_header_s) + sizeof(test_data) + 2];
@@ -117,25 +121,26 @@ void run_master(uint16_t addr, struct ons_radio_s* radio) {
             }
         }
 
-        seq ++;
+        seq++;
         sleep(2);
     }
 }
 
-void run_slave(uint16_t addr, struct ons_radio_s* radio) {
+void run_slave(uint16_t addr, struct ons_radio_s *radio)
+{
     uint16_t seq = 0;
     uint8_t data[256];
     uint16_t len;
     int res;
 
-    while(running) {
+    while (running) {
         res = ONS_radio_check_receive(radio);
         if (res > 0) {
-            
+
             ONS_radio_get_received(radio, sizeof(data), data, &len);
             //ONS_print_arr("Received", data, len);
-            
-            struct fifteen_four_header_s *header_in = (struct fifteen_four_header_s*) &data[0];
+
+            struct fifteen_four_header_s *header_in = (struct fifteen_four_header_s *)&data[0];
             if (header_in->dest == addr) {
                 header_in->seq = seq;
                 header_in->src = addr;
@@ -153,10 +158,10 @@ void run_slave(uint16_t addr, struct ons_radio_s* radio) {
                     }
                 }
 
-                seq ++;
+                seq++;
             }
         }
-        
+
         usleep(10000);
     }
 }
