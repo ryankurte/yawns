@@ -7,6 +7,7 @@
 #include "owns/owns.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -25,6 +26,8 @@
 #else
 #define ONS_DEBUG_PRINT(...)
 #endif
+
+bool ons_debug = false;
 
 /** Internal Function Prototypes **/
 
@@ -378,7 +381,9 @@ void *ons_handle_receive(void *ctx)
                 if ((base == NULL) || (base->rssiresp == NULL) ||
                     (base->rssiresp->info == NULL) || (base->rssiresp->info->band == NULL) ||
                     (base->rssiresp->has_rssi == 0)) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing elements)\n");
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing elements) %x %x %x %x\n",
+                        base->rssiresp, base->rssiresp->info, base->rssiresp->info->band, base->rssiresp->has_rssi
+                    );
                     break;
                 }
 

@@ -162,7 +162,10 @@ func (m *Medium) handleMessage(message interface{}) error {
 	case *messages.Packet:
 		return m.sendPacket(time.Now(), *msg)
 	case *messages.RSSIRequest:
-		rssi, _ := m.getRSSI(msg.Address, msg.Band, msg.Channel)
+		rssi, err := m.getRSSI(msg.Address, msg.Band, msg.Channel)
+		if err != nil {
+			log.Printf("[ERROR] Medium RSSI get error: %s", err)
+		}
 		m.outCh <- &messages.RSSIResponse{
 			BaseMessage: msg.BaseMessage,
 			RFInfo:      msg.RFInfo,
@@ -354,6 +357,7 @@ func (m *Medium) getRSSI(address, bandName string, channel int32) (types.Attenua
 		}
 
 	}
+
 	return rssi, nil
 }
 

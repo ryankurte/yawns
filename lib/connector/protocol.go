@@ -174,7 +174,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		address = m.Address
 		base.Message = &protocol.Base_RssiResp{
 			RssiResp: &protocol.RSSIResp{
-				Info: &protocol.RFInfo{Band: m.Band},
+				Info: &protocol.RFInfo{Band: m.Band, Channel: m.Channel},
 				Rssi: m.RSSI,
 			},
 		}
