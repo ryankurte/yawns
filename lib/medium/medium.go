@@ -168,6 +168,15 @@ func (m *Medium) handleMessage(message interface{}) error {
 			RFInfo:      msg.RFInfo,
 			RSSI:        float32(rssi),
 		}
+	case *messages.StateRequest:
+		nodeIndex, _ := m.getNodeIndex(msg.Address)
+		state := m.transceivers[nodeIndex][msg.Band].State
+		m.outCh <- &messages.StateResponse{
+			BaseMessage: msg.BaseMessage,
+			RFInfo:      msg.RFInfo,
+			State:       state,
+		}
+
 	case *messages.StateSet:
 		m.setTransceiverState(msg.Address, msg.Band, msg.State)
 

@@ -110,6 +110,8 @@ func TestMedium(t *testing.T) {
 		CheckPacketForward(t, nodes[3].Address, msg.Data, msg.RFInfo, m.outCh)
 
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instance")
+
+		assert.EqualValues(t, types.TransceiverStateReceive, m.transceivers[nodeIndex][bandName].State, "Resets transceiver state for node")
 	})
 
 	t.Run("Handles node movement during packet transmission", func(t *testing.T) {

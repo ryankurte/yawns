@@ -169,3 +169,18 @@ func (r *ONSRadio) GetRSSI(channel int) (float32, error) {
 	}
 	return float32(rssi), nil
 }
+
+// GetState Check fetches state for the device
+func (r *ONSRadio) GetState() (uint32, error) {
+	state := C.uint32_t(0)
+	statePtr := (*C.uint32_t)(unsafe.Pointer(&state))
+
+	res := C.ONS_radio_get_state(&r.radio, statePtr)
+	if res < 0 {
+		return uint32(state), fmt.Errorf("GetState error %d", res)
+	}
+	if res == 0 {
+		return uint32(state), nil
+	}
+	return uint32(state), nil
+}

@@ -18,7 +18,7 @@
 #include "protocol/ons.pb-c.h"
 
 
-//#define ONS_DEBUG
+#define ONS_DEBUG
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -88,6 +88,7 @@ int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char* band)
 
     // Init mutexes
     pthread_mutex_init(&radio->rssi_mutex, NULL);
+    pthread_mutex_init(&radio->state_mutex, NULL);
     pthread_mutex_init(&radio->rx_mutex, NULL);
     pthread_mutex_init(&radio->tx_mutex, NULL);
 
@@ -199,6 +200,45 @@ int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t*
     pthread_mutex_unlock(&radio->rx_mutex);
 
     return 1;
+}
+
+int ONS_radio_get_state(struct ons_radio_s *radio, uint32_t *state)
+{
+    int res;
+
+    ONS_DEBUG_PRINT("[ONCS] get state\n");
+
+    radio->state_received = false;
+
+    // TryLock in case mutex already locked
+    pthread_mutex_trylock(&radio->state_mutex);
+
+    // Send get CCA message
+    ons_send_state_req(radio->connector, radio->band);
+
+    // Await cca mutex unlock from onsc thread
+    res = pthread_mutex_lock(&radio->state_mutex);
+    if (res < 0) {
+        perror("[ONSC] rssi mutex lock error");
+        return -1;
+    }
+
+    // Copy CCA
+    *state = radio->state;
+    bool state_received = radio->state_received;
+
+    // Return mutex to unlocked state
+    pthread_mutex_unlock(&radio->state_mutex);
+
+    // Check a CCA message was received
+    if (state_received != true) {
+        ONS_DEBUG_PRINT("[ONCS] no state response received\n");
+        return -2;
+    }
+
+    ONS_DEBUG_PRINT("[ONCS] got state value OK (%d)\n", *state);
+
+    return 0;
 }
 
 int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float* rssi)
@@ -324,18 +364,15 @@ void *ons_handle_receive(void* ctx)
 
                 case BASE__MESSAGE_RSSI_RESP:
                 // Check RSSI packet is valid
-                if((base->rssiresp == NULL) || (base->rssiresp->has_rssi == 0)) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing rssi)\n");
-                    break;
-                }
-
-                if (base == NULL || base->rssireq == NULL || base->rssireq->info == NULL || base->rssireq->info->band == NULL) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing info)\n");
+                if((base == NULL) || (base->rssiresp == NULL) || 
+                        (base->rssiresp->info == NULL) || (base->rssiresp->info->band == NULL) || 
+                        (base->rssiresp->has_rssi == 0)) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing elements)\n");
                     break;
                 }
 
                 // Find matching radio instance
-                radio = ons_get_radio(ons, base->rssireq->info->band);
+                radio = ons_get_radio(ons, base->rssiresp->info->band);
                 if (radio == NULL) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] no radio found matching rssi response\n");
                     break;
@@ -346,6 +383,30 @@ void *ons_handle_receive(void* ctx)
                 radio->rssi_received = true;
                 ONS_DEBUG_PRINT("[ONCS THREAD] got rssi response %.2f\n", radio->rssi);
                 pthread_mutex_unlock(&radio->rssi_mutex);
+                break;
+
+                case BASE__MESSAGE_STATE_RESP:
+                // Check RSSI packet is valid
+                if((base == NULL) || (base->stateresp == NULL) || 
+                        (base->stateresp->info == NULL) || (base->stateresp->info->band == NULL) || 
+                        (base->stateresp->has_state == 0)) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid state response (missing elements) (%x, %x, %x, %x, %d)\n",
+                            base, base->stateresp, base->stateresp->info, base->stateresp->info->band, base->stateresp->has_state);
+                    break;
+                }
+
+                // Find matching radio instance
+                radio = ons_get_radio(ons, base->stateresp->info->band);
+                if (radio == NULL) {
+                    ONS_DEBUG_PRINT("[ONCS THREAD] no radio found matching state response\n");
+                    break;
+                }
+
+                // Copy RSSI data and signal receipt
+                radio->state = base->stateresp->state;
+                radio->state_received = true;
+                ONS_DEBUG_PRINT("[ONCS THREAD] got state response %.2f\n", radio->state);
+                pthread_mutex_unlock(&radio->state_mutex);
                 break;
 
                 case BASE__MESSAGE_SEND_COMPLETE:

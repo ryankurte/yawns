@@ -171,6 +171,52 @@ func TestLibONS(t *testing.T) {
 		timer.Stop()
 	})
 
+	t.Run("Client can request radio states", func(t *testing.T) {
+
+		respond := func(t *testing.T, state types.TransceiverState) {
+			select {
+			case msg, ok := <-server.OutputChan:
+				assert.True(t, ok)
+				req, ok := msg.(*messages.StateRequest)
+				assert.True(t, ok)
+
+				resp := messages.StateResponse{
+					BaseMessage: messages.BaseMessage{Address: req.Address},
+					RFInfo:      messages.NewRFInfo(band, 0),
+					State:       state,
+				}
+				server.InputChan <- &resp
+
+			case <-time.After(timeout):
+				t.Errorf("Timeout")
+				t.FailNow()
+			}
+		}
+
+		timer := time.AfterFunc(time.Second, func() {
+			t.Errorf("Timeout")
+			t.FailNow()
+		})
+
+		log.Printf("State Check 1")
+		go respond(t, types.TransceiverStateIdle)
+		time.Sleep(100)
+
+		state, err := radio.GetState()
+		assert.Nil(t, err)
+		assert.EqualValues(t, 1, state)
+
+		log.Printf("State Check 2")
+		go respond(t, types.TransceiverStateReceiving)
+		time.Sleep(100)
+
+		state, err = radio.GetState()
+		assert.Nil(t, err)
+		assert.EqualValues(t, 3, state)
+
+		timer.Stop()
+	})
+
 	t.Run("Client can set radio state", func(t *testing.T) {
 		radio.StartReceive(7)
 
@@ -204,6 +250,7 @@ func TestLibONS(t *testing.T) {
 			t.Errorf("Timeout")
 			t.FailNow()
 		}
+
 	})
 
 	t.Run("Exit radio", func(t *testing.T) {

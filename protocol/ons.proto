@@ -10,11 +10,12 @@ message RFInfo {
 
 // RF Transceiver State
 enum RFState {
-    IDLE            = 0;    // Idle (awake)
-    RECEIVE         = 1;    // Prepared to receive
-    RECEIVING       = 2;    // Currently receiving
-    TRANSMITTING    = 3;    // Currently transmitting
-    SLEEP           = 4;    // Sleeping
+    NONE            = 0;    // Mock state to ensure state is always included
+    IDLE            = 1;    // Idle (awake)
+    RECEIVE         = 2;    // Prepared to receive
+    RECEIVING       = 3;    // Currently receiving
+    TRANSMITTING    = 4;    // Currently transmitting
+    SLEEP           = 5;    // Sleeping
 }
 
 // Sent on ONS first connection
