@@ -224,6 +224,21 @@ int ONS_radio_get_state(struct ons_radio_s *radio, uint32_t *state)
     }
 
     // Copy CCA
+    switch (radio->state) {
+        case RFSTATE__IDLE:
+        *state = ONS_RADIO_STATE_IDLE;
+        break;
+        case RFSTATE__RECEIVE:
+        *state = ONS_RADIO_STATE_RECEIVE;
+        break;
+        case RFSTATE__RECEIVING:
+        *state = ONS_RADIO_STATE_RECEIVING;
+        break;
+        case RFSTATE__TRANSMITTING:
+        *state = ONS_RADIO_STATE_TRANSMITTING;
+        break;
+    }
+
     *state = radio->state;
     bool state_received = radio->state_received;
 
@@ -315,7 +330,7 @@ void *ons_handle_receive(void* ctx)
     size_t zsize;
     int res;
 
-    ONS_DEBUG_PRINT("[ONSC THREAD] Starting recieve thread\n");
+    ONS_DEBUG_PRINT("[ONSC THREAD] Starting receive thread\n");
 
     // Bind exit handler to interrupt handler to avoid unhandled exits
     if (ons->config->intercept_signals) signal(SIGINT, exit_handler);
@@ -390,8 +405,7 @@ void *ons_handle_receive(void* ctx)
                 if((base == NULL) || (base->stateresp == NULL) || 
                         (base->stateresp->info == NULL) || (base->stateresp->info->band == NULL) || 
                         (base->stateresp->has_state == 0)) {
-                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid state response (missing elements) (%x, %x, %x, %x, %d)\n",
-                            base, base->stateresp, base->stateresp->info, base->stateresp->info->band, base->stateresp->has_state);
+                    ONS_DEBUG_PRINT("[ONCS THREAD] invalid state response (missing elements)\n");
                     break;
                 }
 
@@ -405,7 +419,7 @@ void *ons_handle_receive(void* ctx)
                 // Copy RSSI data and signal receipt
                 radio->state = base->stateresp->state;
                 radio->state_received = true;
-                ONS_DEBUG_PRINT("[ONCS THREAD] got state response %.2f\n", radio->state);
+                ONS_DEBUG_PRINT("[ONCS THREAD] got state response %d\n", radio->state);
                 pthread_mutex_unlock(&radio->state_mutex);
                 break;
 
@@ -438,7 +452,7 @@ void *ons_handle_receive(void* ctx)
         }
     }
 
-    ONS_DEBUG_PRINT("[ONSC THREAD] Exiting recieve thread\n");
+    ONS_DEBUG_PRINT("[ONSC THREAD] Exiting receive thread\n");
 
     return NULL;
 }
