@@ -24,13 +24,13 @@ protocol: protocol/*.proto
 
 # Build ons server
 owns: protocol
-	go build -ldflags -s ./cmd/owns/
+	go build -ldflags -s ./cmd/...
 
 build-linux-x64:
-	GOOS=linux GOARCH=amd64 go build ./cmd/ons/
+	GOOS=linux GOARCH=amd64 go build ./cmd/...
 
 build-osx-x64:
-	GOOS=darwin GOARCH=amd64 go build ./cmd/ons/
+	GOOS=darwin GOARCH=amd64 go build ./cmd/...
 
 # Build libons C library and example client
 lib: protocol

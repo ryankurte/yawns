@@ -17,7 +17,8 @@
 #include "owns/protocol.h"
 #include "protocol/ons.pb-c.h"
 
-#define ONS_DEBUG
+//#define ONS_DEBUG
+//#define ONS_INFO
 
 // ONS_DEBUG macro controls debug printing
 #ifdef ONS_DEBUG
@@ -25,6 +26,13 @@
 #define ONS_DEBUG_PRINT(...) printf(__VA_ARGS__)
 #else
 #define ONS_DEBUG_PRINT(...)
+#endif
+
+#ifdef ONS_INFO
+#include <stdio.h>
+#define ONS_INFO_PRINT(...) printf(__VA_ARGS__)
+#else
+#define ONS_INFO_PRINT(...)
 #endif
 
 bool ons_debug = false;
@@ -250,7 +258,7 @@ int ONS_radio_get_state(struct ons_radio_s *radio, uint32_t *state)
         return -2;
     }
 
-    ONS_DEBUG_PRINT("[ONCS] got state value OK (%d)\n", *state);
+    ONS_INFO_PRINT("[ONCS] got state value OK (%d)\n", *state);
 
     return 0;
 }
@@ -289,7 +297,7 @@ int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float *rssi)
         return -2;
     }
 
-    ONS_DEBUG_PRINT("[ONCS] got rssi value OK (%.2f)\n", *rssi);
+    ONS_INFO_PRINT("[ONCS] got rssi value OK (%.2f)\n", *rssi);
 
     return 0;
 }

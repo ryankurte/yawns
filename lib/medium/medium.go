@@ -42,12 +42,6 @@ type Medium struct {
 	outCh chan interface{}
 }
 
-type Stats struct {
-	TickMin time.Duration
-	TickMax time.Duration
-	TickAvg time.Duration
-}
-
 // NewMedium creates a new medium instance
 func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medium, error) {
 	// Create base medium object
@@ -60,6 +54,7 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 		transceivers:  make([]map[string]Transceiver, len(*nodes)),
 		layerManager:  layers.NewLayerManager(),
 		nodes:         nodes,
+		stats:         NewStats(),
 	}
 
 	// Initialise TransceiverState for each node and band
@@ -74,13 +69,12 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 	m.layerManager.BindLayer(layers.NewFreeSpace())
 	m.layerManager.BindLayer(layers.NewRandom())
 
-	/*
-		mapLayer, err := layers.NewMapLayer(&c.Maps)
-		if err != nil {
-			return nil, err
-		}
-		m.layerManager.BindLayer(mapLayer)
-	*/
+	mapLayer, err := layers.NewMapLayer(&c.Maps)
+	if err != nil {
+		return nil, err
+	}
+	m.layerManager.BindLayer(mapLayer)
+
 	return &m, nil
 }
 
@@ -155,6 +149,8 @@ running:
 
 	m.stats.TickAvg = time.Duration(avg)
 	log.Printf("[INFO] Medium exited (stats: %+v)", m.stats)
+
+	runTimer.Stop()
 }
 
 func (m *Medium) handleMessage(message interface{}) error {
@@ -220,6 +216,14 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 	if !ok {
 		return fmt.Errorf("Medium error: no matching band configured (%s)", bandName)
 	}
+
+	nodeStats := m.stats.Nodes[fromAddress]
+	nodeStats.Sent++
+	m.stats.Nodes[fromAddress] = nodeStats
+
+	bandStats := m.stats.Bands[bandName]
+	bandStats.PacketCount++
+	m.stats.Bands[bandName] = bandStats
 
 	log.Printf("[DEBUG] Medium - Starting transmission from %s", p.Address)
 

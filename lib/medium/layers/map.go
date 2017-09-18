@@ -1,6 +1,7 @@
 package layers
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 
@@ -84,7 +85,7 @@ func onsToMapLoc(l *types.Location) base.Location {
 }
 
 // CalculateFading calculates the free space fading for a link
-func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
 
 	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
 	terrain := m.terrain.InterpolateAltitudes(p1m, p2m)
@@ -100,15 +101,21 @@ func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) (flo
 		}
 	}
 
+	fmt.Printf("link\n")
+	fmt.Printf("  - p1 alt: %02.2f p2 alt: %2.2f gradient: %2.4f\n", p1.Alt, p2.Alt, (p2.Alt-p1.Alt)/float64(len(terrain)))
+	fmt.Printf("  - terrain p1: %2.2f terrain p2: %2.2f terrain h: %2.2f\n", terrain[0], terrain[len(terrain)-1], highestImpingement)
+
 	v, err := rf.CalculateFresnelKirckoffDiffractionParam(rf.Frequency(band.Frequency), distanceToImpingement, distance-distanceToImpingement, highestImpingement)
 	if err != nil {
-		return 0.0, err
+		fmt.Printf("MAP layer error: %s", err)
+		return 0.0
 	}
 
 	f, err := rf.CalculateFresnelKirchoffLossApprox(v)
 	if err != nil {
-		return 0.0, nil
+		fmt.Printf("MAP layer error: %s", err)
+		return 0.0
 	}
 
-	return float64(f), nil
+	return float64(f)
 }
