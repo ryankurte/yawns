@@ -72,6 +72,22 @@ message Event {
     string data = 1;        // Event data
 }
 
+// FieldReq requests a field value
+message FieldReq {
+    string name = 1;
+}
+
+// FieldResp is a field value response
+message FieldResp {
+    string name = 1;
+    string data = 2;
+}
+
+message FieldSet {
+    string name = 1;
+    string data = 2;
+}
+
 // Base / common message
 // This is the on-the-wire communication type
 message Base {

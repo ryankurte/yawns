@@ -8,6 +8,7 @@ import (
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/medium"
+	"github.com/ryankurte/owns/lib/types"
 )
 
 type options struct {
@@ -48,6 +49,7 @@ func main() {
 		os.Exit(-1)
 	}
 
+	links := make([]types.Link, 0)
 	for i := 0; i < len(c.Nodes); i++ {
 		for j := i + 1; j < len(c.Nodes); j++ {
 
@@ -55,7 +57,14 @@ func main() {
 			f := m.GetPointToPointFading(b, n1, n2)
 
 			fmt.Printf("Link %s %s attenuation: %.2f\n", n1.Address, n2.Address, f)
+			links = append(links, types.Link{A: i, B: j, Fading: float64(f)})
 		}
+	}
+
+	err = m.Render("boop.png", c.Nodes, links)
+	if err != nil {
+		fmt.Printf("Error rendering output: %s", err)
+		os.Exit(-1)
 	}
 
 }

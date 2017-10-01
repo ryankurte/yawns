@@ -1,8 +1,8 @@
 hash: 2c3416bd1c34d35191a3fc407747f263117c19f858c40dda3a86e3f8f6d4199b
-updated: 2017-07-19T16:18:28.087186522+12:00
+updated: 2017-09-20T16:33:01.980941139+12:00
 imports:
 - name: github.com/go-yaml/yaml
-  version: 3b4ad1db5b2a649883ff3782f5f9f6fb52be71af
+  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 - name: github.com/golang/protobuf
   version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
   subpackages:
@@ -12,9 +12,9 @@ imports:
   subpackages:
   - query
 - name: github.com/google/gopacket
-  version: b83f94714c36e30ce851be1d5a0a5226f9f1bca4
+  version: 7d9ba85c47bb41298fed10f5769f793741de187f
 - name: github.com/jessevdk/go-flags
-  version: 48cf8722c3375517aba351d1f7577c40663a4407
+  version: 96dc06278ce32a0e9d957d590bb987c81ee66407
 - name: github.com/ryankurte/go-async-cmd
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: github.com/ryankurte/go-mapbox
@@ -32,14 +32,14 @@ imports:
   subpackages:
   - types
 - name: github.com/ryankurte/go-rf
-  version: 84b977ca469990cbfd7460a343befb20345bb10e
+  version: 6b4af41475f63db39ce198e77fc8cb674ddb9ec9
 - name: github.com/zeromq/goczmq
   version: faef36c9feea28111fd413ea29ea99d80ef54e7b
 - name: golang.org/x/sync
   version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
   - syncmap
-- name: gopkg.in/ryankurte/go-async-cmd.v1
+- name: github.com/ryankurte/go-async-cmd
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b

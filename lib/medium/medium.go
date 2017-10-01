@@ -186,6 +186,10 @@ func (m *Medium) handleMessage(message interface{}) error {
 	return nil
 }
 
+func (m *Medium) Render(filename string, nodes []types.Node, links []types.Link) error {
+	return m.layerManager.Render(filename, nodes, links)
+}
+
 func (m *Medium) setTransceiverState(address, band string, state types.TransceiverState) error {
 	index, err := m.getNodeIndex(address)
 	if err != nil {

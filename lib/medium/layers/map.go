@@ -91,31 +91,30 @@ func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) floa
 	terrain := m.terrain.InterpolateAltitudes(p1m, p2m)
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
 
-	highestImpingement := rf.Distance(terrain[0])
-	distanceToImpingement := rf.Distance(0.0)
-
-	for i, v := range terrain {
-		if v > float64(highestImpingement) {
-			highestImpingement = rf.Distance(v)
-			distanceToImpingement = distance * rf.Distance(float64(i)/float64(len(terrain)))
-		}
+	if len(terrain) == 0 {
+		fmt.Printf("MAP layer error, no terrain between %+v and %+v\n", p1, p2)
+		return 0.0
 	}
 
-	fmt.Printf("link\n")
-	fmt.Printf("  - p1 alt: %02.2f p2 alt: %2.2f gradient: %2.4f\n", p1.Alt, p2.Alt, (p2.Alt-p1.Alt)/float64(len(terrain)))
-	fmt.Printf("  - terrain p1: %2.2f terrain p2: %2.2f terrain h: %2.2f\n", terrain[0], terrain[len(terrain)-1], highestImpingement)
+	highestImpingement, distanceToImpingement := rf.TerrainToFresnelKirchoff(p1.Alt, p2.Alt, distance, terrain)
 
-	v, err := rf.CalculateFresnelKirckoffDiffractionParam(rf.Frequency(band.Frequency), distanceToImpingement, distance-distanceToImpingement, highestImpingement)
+	fmt.Printf("\nlink\n")
+	fmt.Printf("  - p1 alt: %02.2f p2 alt: %2.2f distance: %2.4f\n", p1.Alt, p2.Alt, distance)
+	fmt.Printf("  - terrain p1: %2.2f terrain p2: %2.2f terrain impingement: %2.2f at: %2.2f\n", terrain[0], terrain[len(terrain)-1], highestImpingement, distanceToImpingement)
+
+	v, err := rf.CalculateFresnelKirckoffDiffractionParam(rf.Frequency(band.Frequency), rf.Distance(distanceToImpingement), distance-rf.Distance(distanceToImpingement), rf.Distance(highestImpingement))
 	if err != nil {
-		fmt.Printf("MAP layer error: %s", err)
+		fmt.Printf("MAP layer error: %s\n", err)
 		return 0.0
 	}
 
 	f, err := rf.CalculateFresnelKirchoffLossApprox(v)
 	if err != nil {
-		fmt.Printf("MAP layer error: %s", err)
+		fmt.Printf("MAP layer error: %s\n", err)
 		return 0.0
 	}
+
+	fmt.Printf("  - attenuation: %.2f\n", f)
 
 	return float64(f)
 }

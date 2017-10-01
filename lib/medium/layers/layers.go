@@ -29,14 +29,14 @@ type InfoLayer interface {
 
 // RenderLayer interface for layers implementing rendering functions
 type RenderLayer interface {
-	Render()
+	Render(fileName string, nodes []types.Node, links []types.Link) error
 }
 
 // LayerManager manages a set of medium layers
 type LayerManager struct {
 	fadingLayers []FadingLayer
 	infoLayers   []InfoLayer
-	renderLayers []RenderLayer
+	renderLayer  RenderLayer
 }
 
 // NewLayerManager creates a new medium layer manager
@@ -44,7 +44,6 @@ func NewLayerManager() *LayerManager {
 	return &LayerManager{
 		fadingLayers: make([]FadingLayer, 0),
 		infoLayers:   make([]InfoLayer, 0),
-		renderLayers: make([]RenderLayer, 0),
 	}
 }
 
@@ -61,7 +60,7 @@ func (lm *LayerManager) BindLayer(layer interface{}) error {
 		match = true
 	}
 	if render, ok := layer.(RenderLayer); ok {
-		lm.renderLayers = append(lm.renderLayers, render)
+		lm.renderLayer = render
 		match = true
 	}
 	if !match {
@@ -78,4 +77,11 @@ func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location)
 		fading += layer.CalculateFading(band, p1, p2)
 	}
 	return fading
+}
+
+func (lm *LayerManager) Render(filename string, nodes []types.Node, links []types.Link) error {
+	if lm.renderLayer != nil {
+		return lm.renderLayer.Render(filename, nodes, links)
+	}
+	return fmt.Errorf("No render layer bound")
 }
