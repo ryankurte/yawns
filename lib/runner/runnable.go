@@ -14,7 +14,7 @@ import (
 	"strings"
 	"text/template"
 
-	"gopkg.in/ryankurte/go-async-cmd.v1"
+	"github.com/ryankurte/go-async-cmd"
 	"time"
 )
 

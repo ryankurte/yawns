@@ -87,16 +87,19 @@ func onsToMapLoc(l *types.Location) base.Location {
 // CalculateFading calculates the free space fading for a link
 func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
 
+	// TODO: finish fixing map layer
+	return 0.0
+
 	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
 	terrain := m.terrain.InterpolateAltitudes(p1m, p2m)
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
 
 	if len(terrain) == 0 {
 		fmt.Printf("MAP layer error, no terrain between %+v and %+v\n", p1, p2)
-		return 0.0
+		return -6.0
 	}
 
-	highestImpingement, distanceToImpingement := rf.TerrainToFresnelKirchoff(p1.Alt, p2.Alt, distance, terrain)
+	highestImpingement, distanceToImpingement := rf.BullingtonFigure12Method(p1.Alt, p2.Alt, distance, terrain)
 
 	fmt.Printf("\nlink\n")
 	fmt.Printf("  - p1 alt: %02.2f p2 alt: %2.2f distance: %2.4f\n", p1.Alt, p2.Alt, distance)
@@ -105,13 +108,13 @@ func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) floa
 	v, err := rf.CalculateFresnelKirckoffDiffractionParam(rf.Frequency(band.Frequency), rf.Distance(distanceToImpingement), distance-rf.Distance(distanceToImpingement), rf.Distance(highestImpingement))
 	if err != nil {
 		fmt.Printf("MAP layer error: %s\n", err)
-		return 0.0
+		return -6.0
 	}
 
 	f, err := rf.CalculateFresnelKirchoffLossApprox(v)
 	if err != nil {
 		fmt.Printf("MAP layer error: %s\n", err)
-		return 0.0
+		return -6.0
 	}
 
 	fmt.Printf("  - attenuation: %.2f\n", f)

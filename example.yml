@@ -21,7 +21,7 @@ medium:
       frequency: 433MHz
       baud: 10kbps
       packetoverhead: 12B
-      linkbudget: 92dB
+      linkbudget: 94dB
       interferencebudget: 20dB
       randomdeviation: 0dB
       channels: 
@@ -32,7 +32,7 @@ medium:
       frequency: 2.45GHz
       baud: 250kbps
       packetoverhead: 12
-      linkbudget: 70dB
+      linkbudget: 90dB
       interferencebudget: 20dB
       randomdeviation: 0dB
       channels: 

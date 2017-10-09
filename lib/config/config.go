@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"gopkg.in/yaml.v2"
+	"github.com/go-yaml/yaml"
 
 	"github.com/ryankurte/owns/lib/types"
 )

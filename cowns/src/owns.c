@@ -15,7 +15,7 @@
 #include "zmq.h"
 #include "czmq.h"
 #include "owns/protocol.h"
-#include "protocol/ons.pb-c.h"
+#include "ons.pb-c.h"
 
 //#define ONS_DEBUG
 //#define ONS_INFO
@@ -363,7 +363,7 @@ void *ons_handle_receive(void *ctx)
             case BASE__MESSAGE_PACKET:
 
                 // Check received packet is valid
-                if ((base->packet == NULL) || (base->packet->has_data == 0) || (base->packet->info == NULL)) {
+                if ((base->packet == NULL) || (base->packet->data.len == 0) || (base->packet->info == NULL)) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] invalid packet\n");
                     break;
                 }
@@ -387,8 +387,7 @@ void *ons_handle_receive(void *ctx)
             case BASE__MESSAGE_RSSI_RESP:
                 // Check RSSI packet is valid
                 if ((base == NULL) || (base->rssiresp == NULL) ||
-                    (base->rssiresp->info == NULL) || (base->rssiresp->info->band == NULL) ||
-                    (base->rssiresp->has_rssi == 0)) {
+                    (base->rssiresp->info == NULL) || (base->rssiresp->info->band == NULL)) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] invalid rssi response (missing elements) %x %x %x %x\n",
                         base->rssiresp, base->rssiresp->info, base->rssiresp->info->band, base->rssiresp->has_rssi
                     );
@@ -412,8 +411,7 @@ void *ons_handle_receive(void *ctx)
             case BASE__MESSAGE_STATE_RESP:
                 // Check RSSI packet is valid
                 if ((base == NULL) || (base->stateresp == NULL) ||
-                    (base->stateresp->info == NULL) || (base->stateresp->info->band == NULL) ||
-                    (base->stateresp->has_state == 0)) {
+                    (base->stateresp->info == NULL) || (base->stateresp->info->band == NULL)) {
                     ONS_DEBUG_PRINT("[ONCS THREAD] invalid state response (missing elements)\n");
                     break;
                 }

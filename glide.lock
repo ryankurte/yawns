@@ -1,5 +1,5 @@
-hash: 2c3416bd1c34d35191a3fc407747f263117c19f858c40dda3a86e3f8f6d4199b
-updated: 2017-09-20T16:33:01.980941139+12:00
+hash: 1723d1e05c84d7b22b058f7fb74896c95345ada072e0ef86afcae9aadaec2f3a
+updated: 2017-10-09T12:45:47.08153+13:00
 imports:
 - name: github.com/go-yaml/yaml
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
@@ -12,7 +12,7 @@ imports:
   subpackages:
   - query
 - name: github.com/google/gopacket
-  version: 7d9ba85c47bb41298fed10f5769f793741de187f
+  version: 11c65f1ca9081dfea43b4f9643f5c155583b73ba
 - name: github.com/jessevdk/go-flags
   version: 96dc06278ce32a0e9d957d590bb987c81ee66407
 - name: github.com/ryankurte/go-async-cmd
@@ -32,17 +32,13 @@ imports:
   subpackages:
   - types
 - name: github.com/ryankurte/go-rf
-  version: 6b4af41475f63db39ce198e77fc8cb674ddb9ec9
+  version: 66dba4c49199410208a88f1d9751d6882a76cdfa
 - name: github.com/zeromq/goczmq
   version: faef36c9feea28111fd413ea29ea99d80ef54e7b
 - name: golang.org/x/sync
   version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
   - syncmap
-- name: github.com/ryankurte/go-async-cmd
-  version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
-- name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports:
 - name: github.com/davecgh/go-spew
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9

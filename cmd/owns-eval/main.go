@@ -57,7 +57,10 @@ func main() {
 			f := m.GetPointToPointFading(b, n1, n2)
 
 			fmt.Printf("Link %s %s attenuation: %.2f\n", n1.Address, n2.Address, f)
-			links = append(links, types.Link{A: i, B: j, Fading: float64(f)})
+
+			if f < b.LinkBudget {
+				links = append(links, types.Link{A: i, B: j, Fading: float64(f)})
+			}
 		}
 	}
 

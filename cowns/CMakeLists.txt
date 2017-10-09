@@ -17,17 +17,23 @@ set(CMAKE_CXX_FLAGS_RELEASE "-std=gnu++11 -Os -flto")
 include_directories(
     .
     src/
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set(LIB_SOURCES
     src/owns.c
     src/protocol.c
-    src/protocol/ons.pb-c.c
+    ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.c
 )
 
 set(CLIENT_SOURCES
     src/main.c    
 )
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.c ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.h
+                   COMMAND protoc-c --c_out=${CMAKE_CURRENT_BINARY_DIR} 
+                                --proto_path=${CMAKE_CURRENT_LIST_DIR}/../protocol/
+                                ${CMAKE_CURRENT_LIST_DIR}/../protocol/*.proto)
 
 add_library(owns ${LIB_SOURCES})
 target_link_libraries(owns zmq czmq protobuf protobuf-c pthread)

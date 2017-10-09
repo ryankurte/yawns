@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include "protocol/ons.pb-c.h"
+#include "ons.pb-c.h"
 
 
 // ONS_DEBUG macro controls debug printing
@@ -48,7 +48,6 @@ RFInfo ons_build_rfinfo(char* band, int channel)
     RFInfo info = RFINFO__INIT;
 
     info.band = band;
-    info.has_channel = 1;
     info.channel = channel;
 
     return info;
@@ -83,12 +82,10 @@ int ons_send_packet(struct ons_s *ons, char* band, int32_t channel, uint8_t *dat
     Packet packet = PACKET__INIT;
     RFInfo info = RFINFO__INIT;
 
-    packet.has_data = 1;
     packet.data.len = length;
     packet.data.data = data;
 
     info.band = band;
-    info.has_channel = 1;
     info.channel = channel;
     packet.info = &info;
 
@@ -135,7 +132,6 @@ int ons_send_start_receive(struct ons_s *ons, char* band, int channel)
     RFInfo info = ons_build_rfinfo(band, channel);
     stateset.info = &info;
 
-    stateset.has_state = true;
     stateset.state = RFSTATE__RECEIVE;
 
     base.message_case = BASE__MESSAGE_STATE_SET;
@@ -153,7 +149,6 @@ int ons_send_idle(struct ons_s *ons, char* band)
     info.band = band;
 
     stateset.info = &info;
-    stateset.has_state = true;
     stateset.state = RFSTATE__IDLE;
 
     base.message_case = BASE__MESSAGE_STATE_SET;
@@ -170,7 +165,6 @@ int ons_send_sleep(struct ons_s *ons, char* band)
     RFInfo info = RFINFO__INIT;
     info.band = band;
     stateset.info = &info;
-    stateset.has_state = true;
     stateset.state = RFSTATE__SLEEP;
 
     base.message_case = BASE__MESSAGE_STATE_SET;
