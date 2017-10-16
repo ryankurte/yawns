@@ -88,7 +88,7 @@ func onsToMapLoc(l *types.Location) base.Location {
 func (m *MapLayer) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
 
 	// TODO: finish fixing map layer
-	return 0.0
+	//return 0.0
 
 	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
 	terrain := m.terrain.InterpolateAltitudes(p1m, p2m)
