@@ -1,9 +1,6 @@
 test.yml
 
 go
-owns
-owns-mapclient
-owns-client
 
 build/
 *.o

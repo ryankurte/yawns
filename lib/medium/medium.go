@@ -104,13 +104,6 @@ func (m *Medium) Stop() {
 func (m *Medium) Run() {
 	log.Printf("[INFO] Medium running")
 
-	m.stats.TickMin = 0
-	m.stats.TickMax = 0
-	m.stats.TickAvg = 0
-
-	var avg float64
-	var count float64
-
 	lastTime := time.Now()
 	runTimer := time.NewTicker(m.rate)
 
@@ -131,23 +124,13 @@ running:
 		// Run timed updates
 		case now := <-runTimer.C:
 			// Calculate delta between runs
-			if count != 0 {
-				delta := now.Sub(lastTime)
-				lastTime = now
-				if m.stats.TickMax == 0 || delta > m.stats.TickMax {
-					m.stats.TickMax = delta
-				}
-				if m.stats.TickMin == 0 || delta < m.stats.TickMin {
-					m.stats.TickMin = delta
-				}
-				avg = avg*count/(count+1) + float64(delta)/(count+1)
-			}
-			count++
+			delta := now.Sub(lastTime)
+			lastTime = now
+			m.stats.AddTick(delta)
 			m.update(now)
 		}
 	}
 
-	m.stats.TickAvg = time.Duration(avg)
 	log.Printf("[INFO] Medium exited (stats: %+v)", m.stats)
 
 	runTimer.Stop()

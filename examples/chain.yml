@@ -17,7 +17,7 @@ medium:
     satellite: /tmp/owns/mapbox-satellite-16-64583-39989-10x3-512.jpg
     terrain:   /tmp/owns/mapbox-terrain-rgb-16-64583-39989-10x3-512.png
   bands:
-    Sub1GHz:
+    433MHz:
       frequency: 433MHz
       baud: 10kbps
       packetoverhead: 12B
@@ -26,17 +26,6 @@ medium:
       randomdeviation: 0dB
       channels: 
         count: 32
-        spacing: 200KHz
-      noisefloor: -80dB
-    IEEE802.15.4-2.4GHz:
-      frequency: 2.45GHz
-      baud: 250kbps
-      packetoverhead: 12
-      linkbudget: 90dB
-      interferencebudget: 20dB
-      randomdeviation: 0dB
-      channels: 
-        count: 16
         spacing: 200KHz
       noisefloor: -80dB
 
@@ -48,7 +37,7 @@ plugins:
 # These are inherited by all child nodes (unless overwritten)
 defaults:
   executable: ./cowns/build/owns-client
-  command: "{{.server}} {{.address}} Sub1GHz"
+  command: "{{.server}} {{.address}} 433MHz"
 
 # Node definitions
 # This defines the nodes to be linked to the simulator
