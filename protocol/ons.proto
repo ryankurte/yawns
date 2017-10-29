@@ -11,11 +11,12 @@ message RFInfo {
 // RF Transceiver State
 enum RFState {
     NONE            = 0;    // Mock state to ensure state is always included
-    IDLE            = 1;    // Idle (awake)
-    RECEIVE         = 2;    // Prepared to receive
-    RECEIVING       = 3;    // Currently receiving
-    TRANSMITTING    = 4;    // Currently transmitting
-    SLEEP           = 5;    // Sleeping
+    OFF             = 1;    // Radio off
+    IDLE            = 2;    // Idle (awake)
+    RECEIVE         = 3;    // Prepared to receive
+    RECEIVING       = 4;    // Currently receiving
+    TRANSMITTING    = 5;    // Currently transmitting
+    SLEEP           = 6;    // Sleeping
 }
 
 // Sent on ONS first connection
@@ -80,12 +81,12 @@ message FieldReq {
 // FieldResp is a field value response
 message FieldResp {
     string name = 1;
-    string data = 2;
+    bytes data = 2;
 }
 
 message FieldSet {
     string name = 1;
-    string data = 2;
+    bytes data = 2;
 }
 
 // Base / common message
@@ -102,5 +103,8 @@ message Base {
         Event           event           = 8;
         RSSIReq         rssiReq         = 9;
         RSSIResp        rssiResp        = 10;
+        FieldSet        fieldSet        = 11;
+        FieldReq        fieldReq        = 12;
+        FieldResp       fieldResp       = 13;
     }
 }

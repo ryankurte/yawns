@@ -5,6 +5,7 @@ type TransceiverState string
 
 // Allowed transceiver states
 const (
+	TransceiverStateOff          TransceiverState = "off"
 	TransceiverStateIdle         TransceiverState = "idle"
 	TransceiverStateSleep        TransceiverState = "sleep"
 	TransceiverStateReceive      TransceiverState = "receive"

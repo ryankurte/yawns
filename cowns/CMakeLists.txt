@@ -31,7 +31,8 @@ set(CLIENT_SOURCES
 )
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.c ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.h
-                   COMMAND protoc-c --c_out=${CMAKE_CURRENT_BINARY_DIR} 
+                    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/../protocol/ons.proto
+                    COMMAND protoc-c --c_out=${CMAKE_CURRENT_BINARY_DIR} 
                                 --proto_path=${CMAKE_CURRENT_LIST_DIR}/../protocol/
                                 ${CMAKE_CURRENT_LIST_DIR}/../protocol/*.proto)
 

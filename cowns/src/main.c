@@ -120,6 +120,7 @@ void run_master(uint16_t addr, struct ons_radio_s *radio)
                 usleep(1000);
             }
         }
+        ONS_radio_sleep();
 
         seq++;
         sleep(2);
@@ -132,6 +133,8 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
     uint8_t data[256];
     uint16_t len;
     int res;
+
+    ONS_radio_start_receive(radio, 0);
 
     while (running) {
         res = ONS_radio_check_receive(radio);
@@ -160,6 +163,8 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
 
                 seq++;
             }
+
+            //ONS_radio_start_receive(radio, 0);
         }
 
         usleep(10000);

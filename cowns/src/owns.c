@@ -182,6 +182,12 @@ int ONS_radio_stop_receive(struct ons_radio_s *radio)
     return ons_send_idle(radio->connector, radio->band);
 }
 
+int ONS_radio_sleep(struct ons_radio_s *radio)
+{
+    return ons_send_sleep(radio->connector, radio->band);
+}
+
+
 int ONS_radio_check_receive(struct ons_radio_s *radio)
 {
     if (radio->receive_length > 0) {

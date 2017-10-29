@@ -9,6 +9,7 @@ tickrate: 1ms
 # Wireless Medium Configuration
 # This defines the communication bands to be simulated
 medium:
+  statsfile: chain-stats.yml
   maps:
     level: 16
     x: 64583

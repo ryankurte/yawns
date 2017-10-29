@@ -50,6 +50,7 @@ type Maps struct {
 
 // Medium defines the simulator configuration for the medium module
 type Medium struct {
-	Maps  Maps
-	Bands map[string]Band // Frequency bands in simulation
+	Maps      Maps
+	Bands     map[string]Band // Frequency bands in simulation
+	StatsFile string
 }

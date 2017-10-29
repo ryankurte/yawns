@@ -26,6 +26,8 @@ int ons_send_start_receive(struct ons_s *ons, char* band, int channel);
 int ons_send_idle(struct ons_s *ons, char* band);
 int ons_send_sleep(struct ons_s *ons, char* band);
 int ons_send_event(struct ons_s *ons, char* data);
+int ons_field_set(struct ons_s *ons, char* name, uint8_t* data, size_t len);
+int ons_field_req(struct ons_s *ons, char* name);    
 
 #ifdef __cplusplus
 }

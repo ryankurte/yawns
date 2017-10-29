@@ -10,7 +10,10 @@ package helpers
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strconv"
+
+	"github.com/go-yaml/yaml"
 )
 
 // ParseFieldToFloat64 grabs a field from a map and converts it to a float64
@@ -39,4 +42,32 @@ func ParseFieldToInt(name string, data map[string]string) (int, error) {
 		return 0.0, fmt.Errorf("ParseFieldToInt error field %s is not a float (data: %+v)", name, data)
 	}
 	return fieldInt, nil
+}
+
+func ReadYAMLFile(name string, data interface{}) error {
+	d, err := ioutil.ReadFile(name)
+	if err != nil {
+		return fmt.Errorf("ReadYAMLFile error loading file (%s)", err)
+	}
+
+	err = yaml.Unmarshal(d, data)
+	if err != nil {
+		return fmt.Errorf("ReadYAMLFile error parsing file (%s)", err)
+	}
+
+	return nil
+}
+
+func WriteYAMLFile(name string, data interface{}) error {
+	d, err := yaml.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("WriteYAMLFile error parsing config (%s)", err)
+	}
+
+	err = ioutil.WriteFile(name, d, 0644)
+	if err != nil {
+		return fmt.Errorf("WriteYAMLFile error writing file (%s)", err)
+	}
+
+	return nil
 }

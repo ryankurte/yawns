@@ -24,7 +24,9 @@ protocol: protocol/*.proto
 
 # Build ons server
 owns: protocol
-	go build -ldflags -s ./cmd/...
+	go build -ldflags -s ./cmd/owns-sim
+	go build -ldflags -s ./cmd/owns-mapclient
+	go build -ldflags -s ./cmd/owns-eval
 
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/...
@@ -35,6 +37,9 @@ build-osx-x64:
 # Build libons C library and example client
 lib: protocol
 	/bin/bash -c "cd ./cowns && make all"
+
+client:
+	mkdir -p cowns/build && cd cowns/build && cmake .. && make
 
 # Run application
 run: build
@@ -61,4 +66,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: owns lib run test lint format coverage protocol
+.PHONY: owns lib run test lint format coverage protocol client

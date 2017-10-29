@@ -11,7 +11,6 @@ package connector
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/golang/protobuf/proto"
 
@@ -68,7 +67,6 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
 	// Receive a packet from a device
 	case *protocol.Base_Packet:
-		log.Printf("Received packet from: %s", address)
 		c.OutputChan <- &messages.Packet{
 			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{

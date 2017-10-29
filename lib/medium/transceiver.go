@@ -12,16 +12,7 @@ type Transceiver struct {
 
 	lastTime time.Time
 
-	// Time spent in idle mode
-	IdleTime time.Duration
-	// Time spent in sleep mode
-	SleepTime time.Duration
-	// Time spent in receive (listening) mode
-	ReceiveTime time.Duration
-	// Time spent receiving packets
-	ReceivingTime time.Duration
-	// Time spent transmitting packets
-	TransmittingTime time.Duration
+	Stats TransceiverStats
 }
 
 func NewTransceiver(startTime time.Time) *Transceiver {
@@ -36,16 +27,18 @@ func (t *Transceiver) SetState(now time.Time, state types.TransceiverState) {
 	stateTime := now.Sub(t.lastTime)
 
 	switch lastState {
+	case types.TransceiverStateOff:
+		t.Stats.OffTime += stateTime
 	case types.TransceiverStateIdle:
-		t.IdleTime += stateTime
+		t.Stats.IdleTime += stateTime
 	case types.TransceiverStateSleep:
-		t.SleepTime += stateTime
+		t.Stats.SleepTime += stateTime
 	case types.TransceiverStateReceive:
-		t.ReceiveTime += stateTime
+		t.Stats.ReceiveTime += stateTime
 	case types.TransceiverStateReceiving:
-		t.ReceivingTime += stateTime
+		t.Stats.ReceivingTime += stateTime
 	case types.TransceiverStateTransmitting:
-		t.TransmittingTime += stateTime
+		t.Stats.TransmittingTime += stateTime
 	}
 
 	t.State = state
