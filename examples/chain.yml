@@ -4,7 +4,7 @@
 # Top Level Simulation Configuration
 name: Example Simulation
 endtime: 10s
-tickrate: 1ms
+tickrate: 10us
 
 # Wireless Medium Configuration
 # This defines the communication bands to be simulated
