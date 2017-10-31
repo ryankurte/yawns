@@ -184,3 +184,21 @@ func (r *ONSRadio) GetState() (uint32, error) {
 	}
 	return uint32(state), nil
 }
+
+// SetField Sets a field in the simulation
+func (conn *ONSConnector) SetField(name string, data []byte) error {
+	n := C.CString(name)
+	typedData := make([]C.uint8_t, len(data))
+	ptr := (*C.uint8_t)(unsafe.Pointer(&typedData[0]))
+	length := C.size_t(len(data))
+
+	for i := range data {
+		typedData[i] = C.uint8_t(data[i])
+	}
+
+	res := C.ONS_set_field(&conn.ons, n, ptr, length)
+	if res < 0 {
+		return fmt.Errorf("SetField error %d", res)
+	}
+	return nil
+}

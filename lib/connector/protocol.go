@@ -123,6 +123,13 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			},
 		}
 
+	case *protocol.Base_FieldSet:
+		c.OutputChan <- &messages.FieldSet{
+			BaseMessage: messages.BaseMessage{Address: address},
+			Name:        m.FieldSet.Name,
+			Data:        m.FieldSet.Data,
+		}
+
 	default:
 		return fmt.Errorf("[WARNING] Connector.handleIncoming: unhandled message type (%t)", m)
 	}

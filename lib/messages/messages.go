@@ -112,6 +112,12 @@ type SendComplete struct {
 	RFInfo
 }
 
+type FieldSet struct {
+	BaseMessage
+	Name string
+	Data []byte
+}
+
 func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 	return &SendComplete{
 		BaseMessage: BaseMessage{

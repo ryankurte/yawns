@@ -71,11 +71,14 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 	m.layerManager.BindLayer(layers.NewFreeSpace())
 	m.layerManager.BindLayer(layers.NewRandom())
 
-	mapLayer, err := layers.NewMapLayer(&c.Maps)
-	if err != nil {
-		return nil, err
+	if c.Maps.Satellite != "" {
+		mapLayer, err := layers.NewMapLayer(&c.Maps)
+		if err != nil {
+			return nil, err
+		}
+		m.layerManager.BindLayer(mapLayer)
+
 	}
-	m.layerManager.BindLayer(mapLayer)
 
 	return &m, nil
 }
@@ -325,7 +328,7 @@ func (m *Medium) updateCollisions(now time.Time) {
 				// If difference is less than the interference budget, fail at sending both
 				if (rssiDifference > 0 && rssiDifference < band.InterferenceBudget) ||
 					(rssiDifference < 0 && rssiDifference > -band.InterferenceBudget) {
-					log.Printf("Updating collision state for node %d (%s)", i, n.Address)
+					log.Printf("Updating collision state for message for node %d (%s)", i, n.Address)
 					m.transmissions[j1].SendOK[i] = false
 					m.transmissions[j2].SendOK[i] = false
 					m.setTransceiverState(n.Address, t1.Band, types.TransceiverStateReceive)

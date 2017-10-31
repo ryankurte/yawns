@@ -1,0 +1,103 @@
+---
+# OpenWirelessNetworkSim (OWNS) Example Configuration
+
+# Top Level Simulation Configuration
+name: Example Simulation
+endtime: 10s
+tickrate: 1ms
+
+# Wireless Medium Configuration
+# This defines the communication bands to be simulated
+medium:
+  maps:
+    level: 16
+    x: 64584
+    y: 39988
+    high-res: true
+    satellite: mapbox-satellite-16-64584-39988-9x5-512.jpg
+    terrain: mapbox-terrain-rgb-16-64584-39988-9x5-512.png
+  bands:
+    Sub1GHz:
+      frequency: 433MHz
+      baud: 10kbps
+      packetoverhead: 12B
+      linkbudget: 94dB
+      interferencebudget: 20dB
+      randomdeviation: 0dB
+      channels: 
+        count: 32
+        spacing: 200KHz
+      noisefloor: -80dB
+    IEEE802.15.4-2.4GHz:
+      frequency: 2.45GHz
+      baud: 250kbps
+      packetoverhead: 12
+      linkbudget: 90dB
+      interferencebudget: 20dB
+      randomdeviation: 0dB
+      channels: 
+        count: 16
+        spacing: 200KHz
+      noisefloor: -80dB
+
+plugins:
+  pcap:
+    file: example.pcap
+
+# Node defaults
+# These are inherited by all child nodes (unless overwritten)
+defaults:
+  executable: ./cowns/build/owns-client
+  command: "{{.server}} {{.address}} Sub1GHz"
+
+# Node definitions
+# This defines the nodes to be linked to the simulator
+nodes:
+  - address: 0x0001
+    details: Quay St
+    location: 
+      lat: -36.8474505
+      lng: 174.773418
+      alt: 17.60
+  - address: 0x0002
+    details: East Peir
+    location: 
+      lat: -36.840376
+      lng: 174.783203
+      alt: 1.90
+  - address: 0x0003
+    details: Devonport Wharf
+    location: 
+      lat: -36.833957
+      lng: 174.795257
+      alt: 1.80
+  - address: 0x0004
+    details: Stanley Point
+    location: 
+      lat: -36.828514
+      lng: 174.773170
+      alt: 21.00
+  - address: 0x0005
+    details: Okahu Bay
+    location:
+      lat: -36.845286
+      lng: 174.816868
+      alt: 2.10
+  - address: 0x0006
+    details: Torpedo Bay
+    location:
+      lat: -36.830456
+      lng: 174.809947
+      alt: 1.0
+
+# Event definitions
+# These define changes to the simulation and environment at a given point in time
+events:
+  - action: "set-location"
+    timestamp: 1s
+    nodes: [0x0001]
+    comment: Update the location of node 0x0001 at t=1s
+    data:
+      lat: -36.845214
+      lon: 174.784408
+  

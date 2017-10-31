@@ -204,7 +204,7 @@ func TestLibONS(t *testing.T) {
 
 		state, err := radio.GetState()
 		assert.Nil(t, err)
-		assert.EqualValues(t, 1, state)
+		assert.EqualValues(t, 2, state)
 
 		log.Printf("State Check 2")
 		go respond(t, types.TransceiverStateReceiving)
@@ -212,7 +212,7 @@ func TestLibONS(t *testing.T) {
 
 		state, err = radio.GetState()
 		assert.Nil(t, err)
-		assert.EqualValues(t, 3, state)
+		assert.EqualValues(t, 4, state)
 
 		timer.Stop()
 	})
@@ -251,6 +251,28 @@ func TestLibONS(t *testing.T) {
 			t.FailNow()
 		}
 
+	})
+
+	t.Run("Client can set fields", func(t *testing.T) {
+
+		name := "test-name"
+		data := []byte{0xaa, 0xbb}
+
+		client.SetField(name, data)
+
+		time.Sleep(100 * time.Millisecond)
+		select {
+		case msg := <-server.OutputChan:
+			packet, ok := msg.(*messages.FieldSet)
+			assert.True(t, ok)
+			assert.EqualValues(t, clientAddress, packet.Address)
+			assert.EqualValues(t, name, packet.Name)
+			assert.EqualValues(t, data, packet.Data)
+
+		case <-time.After(timeout):
+			t.Errorf("Timeout")
+			t.FailNow()
+		}
 	})
 
 	t.Run("Exit radio", func(t *testing.T) {

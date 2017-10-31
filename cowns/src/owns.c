@@ -69,9 +69,7 @@ int ONS_init(struct ons_s *ons, char *ons_address, char *local_address, struct o
     pthread_create(&ons->thread, NULL, ons_handle_receive, ons);
 
     // Send message to register with server
-    ons_send_register(ons, (char *)ons->local_address);
-
-    return 0;
+    return ons_send_register(ons, (char *)ons->local_address);
 }
 
 int ONS_status(struct ons_s *ons)
@@ -308,6 +306,11 @@ int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float *rssi)
     return 0;
 }
 
+int ONS_set_field(struct ons_s *ons, char* name, uint8_t* data, size_t len)
+{
+    return ons_send_field_set(ons, name, data, len);
+}
+
 void ONS_print_arr(char *name, uint8_t *data, uint16_t length)
 {
     ONS_DEBUG_PRINT("%s (length: %d): ", name, length);
@@ -316,6 +319,7 @@ void ONS_print_arr(char *name, uint8_t *data, uint16_t length)
     }
     ONS_DEBUG_PRINT("\n");
 }
+
 
 /** Internal Functions **/
 

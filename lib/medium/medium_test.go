@@ -16,7 +16,7 @@ func TestMedium(t *testing.T) {
 
 	// TODO: test currently depends on the example config file
 	// Which might not be ideal, but simple to manage for now
-	c, err := config.LoadConfigFile("../../example.yml")
+	c, err := config.LoadConfigFile("./test.yml")
 	assert.Nil(t, err)
 
 	nodes := make([]types.Node, len(c.Nodes))
@@ -201,12 +201,7 @@ func TestMedium(t *testing.T) {
 
 		// Sends SendComplete packet to msg1 origin
 		CheckSendComplete(t, msg1.Address, msg1.RFInfo, m.outCh)
-		// Forwards msg1 to node 2
-		CheckPacketForward(t, nodes[2].Address, msg1.Data, msg1.RFInfo, m.outCh)
-		// Sends SendComplete packet to msg2 origin
 		CheckSendComplete(t, msg2.Address, msg2.RFInfo, m.outCh)
-		// Forwards msg2 to node 2
-		CheckPacketForward(t, nodes[1].Address, msg2.Data, msg2.RFInfo, m.outCh)
 
 		// Clears transmissions
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")

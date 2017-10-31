@@ -66,7 +66,7 @@ int ons_send_register(struct ons_s *ons, char* address)
     return ons_send_pb(ons, &base);
 }
 
-int ons_field_set(struct ons_s *ons, char* name, uint8_t* data, size_t len) {
+int ons_send_field_set(struct ons_s *ons, char* name, uint8_t* data, size_t len) {
     Base base = BASE__INIT;
     FieldSet set = FIELD_SET__INIT;
 
@@ -80,7 +80,7 @@ int ons_field_set(struct ons_s *ons, char* name, uint8_t* data, size_t len) {
     return ons_send_pb(ons, &base);
 }
 
-int ons_field_req(struct ons_s *ons, char* name) {
+int ons_send_field_req(struct ons_s *ons, char* name) {
     Base base = BASE__INIT;
     FieldReq req = FIELD_REQ__INIT;
 

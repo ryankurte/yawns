@@ -45,8 +45,12 @@ client:
 run: build
 	./owns
 
+test-deps: owns
+	./owns-mapclient -c examples/chain.yml -t satellite
+	./owns-mapclient -c examples/chain.yml -t terrain
+    
 # Test application
-test: owns lib
+test: owns lib test-deps
 	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cowns/...
 
 install: owns lib

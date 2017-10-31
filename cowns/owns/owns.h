@@ -122,6 +122,9 @@ int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float *rssi);
 // Close the ONS radio
 int ONS_radio_close(struct ons_s *ons, struct ons_radio_s *radio);
 
+// Set a field in the simulation
+int ONS_set_field(struct ons_s *ons, char* name, uint8_t* data, size_t len);
+
 // Close the ONS connector
 int ONS_close(struct ons_s *ons);
 
