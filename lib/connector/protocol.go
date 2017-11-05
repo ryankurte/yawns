@@ -56,7 +56,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 	// Perform ZMQ Client ID to address lookup
 	address := c.findClientAddressByID(clientID)
 	if address == "" {
-		return fmt.Errorf("Received message for unknown clientID (%+v)", clientID)
+		return fmt.Errorf("Received message for unknown clientID (%s)", clientID)
 	}
 
 	//log.Printf("Incoming From: %s Message: %+v", address, &message)

@@ -177,8 +177,11 @@ func (m *Medium) handleMessage(message interface{}) error {
 	case *messages.StateSet:
 		m.setTransceiverState(msg.Address, msg.Band, msg.State)
 
+	case *messages.Register:
+		// Mock to avoid warning on unhandled message
+
 	default:
-		log.Printf("[WARNING] medium unhandled message type: %+t", message)
+		log.Printf("[WARNING] medium unhandled message type: %T", message)
 	}
 
 	return nil
