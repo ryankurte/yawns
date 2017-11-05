@@ -103,7 +103,7 @@ void run_master(uint16_t addr, struct ons_radio_s *radio)
 
     while (running) {
         struct fifteen_four_header_s header_out = FIFTEEN_FOUR_DEFAULT_HEADER(0x01, addr, addr + 1, seq);
-        uint8_t test_data[] = {0xaa, 0xbb, 0xcc, 0xdd};
+        uint8_t test_data[] = {1, (addr & 0xFF), (addr >> 8)};
 
         uint8_t packet[sizeof(struct fifteen_four_header_s) + sizeof(test_data) + 2];
         memcpy(packet, &header_out, sizeof(struct fifteen_four_header_s));
@@ -127,6 +127,11 @@ void run_master(uint16_t addr, struct ons_radio_s *radio)
     }
 }
 
+struct hops_s {
+    uint8_t count;
+    uint16_t addresses[16];
+} __attribute__((packed));
+
 void run_slave(uint16_t addr, struct ons_radio_s *radio)
 {
     uint16_t seq = 0;
@@ -148,6 +153,13 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
                 header_in->seq = seq;
                 header_in->src = addr;
                 header_in->dest = addr + 1;
+
+                #if 1
+                struct hops_s * hops = (struct hops_s*) &data[sizeof(struct fifteen_four_header_s)];
+                hops->addresses[hops->count] = addr;
+                hops->count += 1;
+                #endif
+                len += 2;
 
                 uint16_t crc = crc16_ccit_kermit(len - 2, data);
                 memcpy(&data[len - 2], &crc, sizeof(crc));
