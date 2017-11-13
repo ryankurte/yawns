@@ -120,7 +120,7 @@ void run_master(uint16_t addr, struct ons_radio_s *radio)
                 usleep(1000);
             }
         }
-        ONS_radio_sleep();
+        ONS_radio_sleep(radio);
 
         seq++;
         sleep(2);

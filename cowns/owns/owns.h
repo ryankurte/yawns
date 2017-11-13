@@ -19,9 +19,9 @@
 extern "C" {
 #endif
 
-#define ONS_MAX_RADIOS 16
-#define ONS_STRING_LENGTH 64  // Maximum string length
-#define ONS_BUFFER_LENGTH 256 // Maximum buffer length
+#define ONS_MAX_RADIOS 16     //!< Maximum Virtual Radio Interfaces per ONS connector
+#define ONS_STRING_LENGTH 64  //!< Maximum string length
+#define ONS_BUFFER_LENGTH 256 //!< Maximum buffer length
 
 // ONS radio state enumerations
 enum ons_radio_state_e {
@@ -32,14 +32,23 @@ enum ons_radio_state_e {
     ONS_RADIO_STATE_SLEEP = 4
 };
 
+// ONS event enumerations
+enum ons_radio_event_e {
+    ONS_RADIO_EVENT_NONE = 0,
+    ONS_RADIO_EVENT_PACKET_RECEIVED = 1,
+    ONS_RADIO_EVENT_SEND_DONE = 2,
+};
+
 // ONS connector configuration
 struct ons_config_s {
     bool intercept_signals;
+    bool debug_prints;
 };
 
 #define ONS_CONFIG_DEFAULT \
     {                      \
-        true               \
+        true,              \
+        false              \
     }
 
 // ONS connector instance
@@ -58,6 +67,8 @@ struct ons_s {
 
     struct ons_config_s *config;
 };
+
+typedef void (*ons_radio_cb_f) (void* ctx, uint32_t event);
 
 // ONS radio instance
 struct ons_radio_s {
@@ -78,6 +89,9 @@ struct ons_radio_s {
     pthread_mutex_t state_mutex;
     volatile uint32_t state;
     volatile float state_received;
+
+    ons_radio_cb_f cb;
+    void* cb_ctx;
 };
 
 // Initialise the ONS connector
@@ -91,6 +105,9 @@ int OWNS_event(struct ons_s *ons, uint8_t* name, uint8_t* data, size_t len);
 
 // Create a for a specific band using the ons connector
 int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char *band);
+
+// Attach an event callback to a radio
+int ONS_radio_set_cb(struct ons_radio_s *radio, ons_radio_cb_f cb, void* ctx);
 
 // Fetch the radio state
 int ONS_radio_get_state(struct ons_radio_s *radio, uint32_t *state);

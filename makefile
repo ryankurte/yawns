@@ -54,7 +54,7 @@ test: owns lib test-deps
 	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cowns/...
 
 install: owns lib
-	cp $(BINS) $(IDIR)/bin
+	go install ./cmd/...
 	cd cowns/build && cmake .. && make install; cd ../..
 
 # Utilities

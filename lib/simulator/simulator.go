@@ -37,11 +37,13 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	// Create the underlying engine
 	e := engine.NewEngine(config)
 
-	log.Printf("[DEBUG] Creating connector layer")
+	log.Printf("[DEBUG] Creating connector layer with bind address: %s and client address: %s", o.BindAddr, o.ClientAddr)
 
 	// Load and bind connector
 	c := connector.NewZMQConnector(o.BindAddr)
 	e.BindConnectorChannels(c.OutputChan, c.InputChan)
+
+	log.Printf("[DEBUG] Creating connector layer")
 
 	// Add client address to args
 	args := make(map[string]string)
