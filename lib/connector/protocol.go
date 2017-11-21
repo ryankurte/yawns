@@ -130,6 +130,12 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			Data:        m.FieldSet.Data,
 		}
 
+	case *protocol.Base_FieldReq:
+		c.OutputChan <- &messages.FieldGet{
+			BaseMessage: messages.BaseMessage{Address: address},
+			Name:        m.FieldReq.Name,
+		}
+
 	default:
 		return fmt.Errorf("[WARNING] Connector.handleIncoming: unhandled message type (%t)", m)
 	}
@@ -190,6 +196,15 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 		base.Message = &protocol.Base_SendComplete{
 			SendComplete: &protocol.SendComplete{
 				Info: &protocol.RFInfo{Band: m.Band},
+			},
+		}
+
+	case *messages.FieldResp:
+		address = m.Address
+		base.Message = &protocol.Base_FieldResp{
+			FieldResp: &protocol.FieldResp{
+				Name: m.Name,
+				Data: m.Data,
 			},
 		}
 

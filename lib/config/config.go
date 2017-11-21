@@ -33,7 +33,7 @@ type Config struct {
 	Nodes []types.Node
 
 	// Event actions to execute when running
-	Events []Event
+	Updates []Update
 }
 
 // PluginConfig implemented as a generic map[string]interface{} to support future extensions
@@ -117,5 +117,5 @@ func WriteConfigFile(file string, c *Config) error {
 func (c *Config) Info() {
 	log.Printf("Config Name: %s", c.Name)
 	log.Printf("  - Nodes: %d", len(c.Nodes))
-	log.Printf("  - Events: %d", len(c.Events))
+	log.Printf("  - Updates: %d", len(c.Updates))
 }

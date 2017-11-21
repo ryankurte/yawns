@@ -45,6 +45,7 @@ type BaseMessage struct {
 // GetAddress fetches the address of the origin/destination of the message
 func (message *BaseMessage) GetAddress() string { return message.Address }
 
+// RFInfo structure encodes RF packet information
 type RFInfo struct {
 	Band    string
 	Channel int32
@@ -55,14 +56,17 @@ func NewRFInfo(band string, channel int32) RFInfo {
 	return RFInfo{band, channel, 0.0}
 }
 
+// Register message sent when a device registers with the simulator
 type Register struct {
 	BaseMessage
 }
 
+// Deregister message sent when a device is deregistered from the simulator
 type Deregister struct {
 	BaseMessage
 }
 
+// Packet encodes an RF packet to be sent or received
 type Packet struct {
 	BaseMessage
 	RFInfo
@@ -79,11 +83,13 @@ func NewPacket(address string, data []byte, rfInfo RFInfo) *Packet {
 	}
 }
 
+// RSSIRequest is a message from a node requesting RSSI data for a given band and channel
 type RSSIRequest struct {
 	BaseMessage
 	RFInfo
 }
 
+// RSSIResponse is a message from the simulator to a node containing RSSI data for a given band and channel
 type RSSIResponse struct {
 	BaseMessage
 	RFInfo
@@ -112,12 +118,6 @@ type SendComplete struct {
 	RFInfo
 }
 
-type FieldSet struct {
-	BaseMessage
-	Name string
-	Data []byte
-}
-
 func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 	return &SendComplete{
 		BaseMessage: BaseMessage{
@@ -127,7 +127,26 @@ func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 	}
 }
 
+type FieldSet struct {
+	BaseMessage
+	Name string
+	Data []byte
+}
+
+type FieldGet struct {
+	BaseMessage
+	Name string
+}
+
+type FieldResp struct {
+	BaseMessage
+	Name string
+	Data []byte
+}
+
 type Event struct {
 	BaseMessage
-	Data string
+	Address string
+	Type    string
+	Data    string
 }

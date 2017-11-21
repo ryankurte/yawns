@@ -20,6 +20,12 @@ type ConnectHandler interface {
 	Connected(d time.Duration, address string) error
 }
 
+// DisconnectHandler interface should be implemented by plugins that need to detect
+// when a node is connected
+type DisconnectHandler interface {
+	Disconnected(d time.Duration, address string) error
+}
+
 // ReceiveHandler interface should be implemented by plugins to receive packets sent by any node
 type ReceiveHandler interface {
 	Received(d time.Duration, band, address string, message []byte) error
@@ -31,9 +37,19 @@ type SendHandler interface {
 	Send(d time.Duration, band, address string, message []byte) error
 }
 
-// EventHandler interface should be implemented by plugins to handle simulation Events
+// EventHandler interface should be implemented by plugins to receive events from nodes
 type EventHandler interface {
-	Event(d time.Duration, eventType, address string, data map[string]string)
+	OnEvent(d time.Duration, address string, data string) error
+}
+
+// MessageHandler interface should be implemented by plugins to receive raw simulation messages
+type MessageHandler interface {
+	OnMessage(d time.Duration, message interface{}) error
+}
+
+// UpdateHandler interface should be implemented by plugins to handle simulation Events
+type UpdateHandler interface {
+	OnUpdate(d time.Duration, eventType, address string, data map[string]string) error
 }
 
 // CloseHandler interface should be implemented by plugins to handle plugin closing at simulation exit
@@ -43,11 +59,14 @@ type CloseHandler interface {
 
 // PluginManager manages plugins and calls underlying handlers when required
 type PluginManager struct {
-	connectHandlers []ConnectHandler
-	receiveHandlers []ReceiveHandler
-	sendHandlers    []SendHandler
-	eventHandlers   []EventHandler
-	closeHandlers   []CloseHandler
+	connectHandlers    []ConnectHandler
+	disconnectHandlers []DisconnectHandler
+	receiveHandlers    []ReceiveHandler
+	sendHandlers       []SendHandler
+	eventHandlers      []EventHandler
+	messageHandlers    []MessageHandler
+	updateHandlers     []UpdateHandler
+	closeHandlers      []CloseHandler
 }
 
 // NewPluginManager creates an empty plugin manager instance
@@ -64,6 +83,11 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 		bound++
 	}
 
+	if disconnected, ok := plugin.(DisconnectHandler); ok {
+		pm.disconnectHandlers = append(pm.disconnectHandlers, disconnected)
+		bound++
+	}
+
 	if receive, ok := plugin.(ReceiveHandler); ok {
 		pm.receiveHandlers = append(pm.receiveHandlers, receive)
 		bound++
@@ -76,6 +100,16 @@ func (pm *PluginManager) BindPlugin(plugin interface{}) error {
 
 	if event, ok := plugin.(EventHandler); ok {
 		pm.eventHandlers = append(pm.eventHandlers, event)
+		bound++
+	}
+
+	if message, ok := plugin.(MessageHandler); ok {
+		pm.messageHandlers = append(pm.messageHandlers, message)
+		bound++
+	}
+
+	if update, ok := plugin.(UpdateHandler); ok {
+		pm.updateHandlers = append(pm.updateHandlers, update)
 		bound++
 	}
 
@@ -111,9 +145,23 @@ func (pm *PluginManager) OnSend(d time.Duration, band, address string, data []by
 }
 
 // OnEvent calls bound plugin EventHandlers
-func (pm *PluginManager) OnEvent(d time.Duration, eventType, address string, data map[string]string) {
+func (pm *PluginManager) OnEvent(d time.Duration, address string, data string) {
 	for _, h := range pm.eventHandlers {
-		h.Event(d, eventType, address, data)
+		h.OnEvent(d, address, data)
+	}
+}
+
+// OnMessage calls bound plugin MessageHandlers
+func (pm *PluginManager) OnMessage(d time.Duration, message interface{}) {
+	for _, h := range pm.messageHandlers {
+		h.OnMessage(d, message)
+	}
+}
+
+// onUpdate calls bound plugin UpdateHandlers
+func (pm *PluginManager) OnUpdate(d time.Duration, eventType, address string, data map[string]string) {
+	for _, h := range pm.updateHandlers {
+		h.OnUpdate(d, eventType, address, data)
 	}
 }
 

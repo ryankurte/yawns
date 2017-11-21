@@ -16,7 +16,7 @@ import (
 type Engine struct {
 	nodes map[string]*Node
 
-	Events []*Event
+	Updates []*Update
 
 	medium        Medium
 	pluginManager *plugins.PluginManager
@@ -80,11 +80,11 @@ func (e *Engine) loadConfig(c *config.Config) {
 		e.nodes[n.Address] = &node
 	}
 
-	// Create Event array
-	e.Events = make([]*Event, len(c.Events))
-	for i, u := range c.Events {
-		Event := NewEvent(&u)
-		e.Events[i] = Event
+	// Create Update array
+	e.Updates = make([]*Update, len(c.Updates))
+	for i, u := range c.Updates {
+		Update := NewUpdate(&u)
+		e.Updates[i] = Update
 	}
 
 	e.endTime = c.EndTime
@@ -95,12 +95,12 @@ func (e *Engine) Info() {
 	log.Printf("Engine Info")
 	log.Printf("  - End Time: %d ms", e.endTime)
 	log.Printf("  - Nodes: %d", len(e.nodes))
-	log.Printf("  - Events: %d", len(e.Events))
+	log.Printf("  - Updates: %d", len(e.Updates))
 }
 
-func (e *Engine) handleEvent(addresses []string, action config.EventAction, data map[string]string) error {
+func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, data map[string]string) error {
 	for _, address := range addresses {
-		err := e.handleNodeEvent(address, action, data)
+		err := e.handleNodeUpdate(address, action, data)
 		if err != nil {
 			return err
 		}
@@ -108,24 +108,24 @@ func (e *Engine) handleEvent(addresses []string, action config.EventAction, data
 	return nil
 }
 
-func (e *Engine) handleNodeEvent(address string, action config.EventAction, data map[string]string) error {
+func (e *Engine) handleNodeUpdate(address string, action config.UpdateAction, data map[string]string) error {
 	// Fetch matching node
 	node, ok := e.nodes[address]
 	if !ok {
-		return fmt.Errorf("handleEvent node %s not found", address)
+		return fmt.Errorf("handleUpdate node %s not found", address)
 	}
 
 	// Handle actions
 	var err error
 	switch action {
-	case config.EventSetLocation:
-		err = HandleSetLocationEvent(node, data)
+	case config.UpdateSetLocation:
+		err = HandleSetLocationUpdate(node, data)
 
 	default:
-		return fmt.Errorf("handleEvent error, unrecognised action (%s)", action)
+		return fmt.Errorf("handleUpdate error, unrecognised action (%s)", action)
 	}
 
-	// Event node instance in storage
+	// Update node instance in storage
 	e.nodes[address] = node
 
 	return err
@@ -204,23 +204,23 @@ setup:
 	return nil
 }
 
-// Handle Events at a given tick
-func (e *Engine) handleEvents(d time.Duration) {
-	for i, u := range e.Events {
-		// If the time has passed and the Event has not been executed
+// Handle Updates at a given tick
+func (e *Engine) handleUpdates(d time.Duration) {
+	for i, u := range e.Updates {
+		// If the time has passed and the Update has not been executed
 		if d >= u.TimeStamp && !u.executed {
 
-			log.Printf("[INFO] Executing Event %s (%s)", u.Action, u.Comment)
+			log.Printf("[INFO] Executing Update %s (%s)", u.Action, u.Comment)
 
-			// Execute the Event
-			err := e.handleEvent(u.Nodes, u.Action, u.Data)
+			// Execute the Update
+			err := e.handleUpdate(u.Nodes, u.Action, u.Data)
 			if err != nil {
-				log.Printf("[ERROR] Event error: %s", err)
+				log.Printf("[ERROR] Update error: %s", err)
 			}
 
-			// Event the Event list
+			// Update the Update list
 			u.executed = true
-			e.Events[i] = u
+			e.Updates[i] = u
 		}
 	}
 }
@@ -277,10 +277,10 @@ running:
 			log.Printf("[INFO] Simulation: interrupted after %s", time.Now().Sub(e.startTime))
 			break running
 
-		// Simulation Event ticks
+		// Simulation Update ticks
 		case t := <-runTimer.C:
 			d := t.Sub(e.startTime)
-			e.handleEvents(d)
+			e.handleUpdates(d)
 		}
 	}
 

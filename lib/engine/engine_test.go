@@ -50,7 +50,7 @@ func TestEngine(t *testing.T) {
 		EventData["lat"] = strconv.FormatFloat(lat, 'f', 6, 64)
 		EventData["lon"] = strconv.FormatFloat(lng, 'f', 6, 64)
 
-		err := e.handleNodeEvent("TestAddress", config.EventSetLocation, EventData)
+		err := e.handleNodeEvent("TestAddress", config.UpdateSetLocation, EventData)
 		if err != nil {
 			t.Error(err)
 		}

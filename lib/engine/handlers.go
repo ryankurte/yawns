@@ -9,13 +9,16 @@ import (
 
 // HandleConnectorMessage Handle messages sent to the engine from the connector
 func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
+	// Route messages to the appropriate handler
 	switch m := message.(type) {
 	case *messages.Register:
 		e.OnConnected(d, m.GetAddress())
 	case *messages.Packet:
 		e.OnReceived(d, m.Band, m.GetAddress(), m.Data)
 	case *messages.Event:
-		//TODO:
+		e.OnEvent(d, m.Address, m.Data)
+	default:
+		e.OnMessage(d, message)
 	}
 }
 
@@ -66,4 +69,19 @@ func (e *Engine) OnSend(d time.Duration, band, address string, data []byte) {
 
 	// Call plugins
 	e.pluginManager.OnSend(d, band, address, data)
+}
+
+// OnEvent called for nde events
+func (e *Engine) OnEvent(d time.Duration, address string, data string) {
+	e.pluginManager.OnEvent(d, address, data)
+}
+
+// OnUpdate called for simulation updates
+func (e *Engine) OnUpdate(d time.Duration, eventType, address string, data map[string]string) {
+	e.pluginManager.OnUpdate(d, eventType, address, data)
+}
+
+// OnMessage called for all unhandled messages
+func (e *Engine) OnMessage(d time.Duration, message interface{}) {
+	e.pluginManager.OnMessage(d, message)
 }
