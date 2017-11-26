@@ -58,6 +58,14 @@ func NewSimulator(o *Options) (*Simulator, error) {
 	log.Printf("[DEBUG] Initialising plugins")
 
 	// Create plugins
+	addresses := make([]string, len(config.Nodes))
+	for i, v := range config.Nodes {
+		addresses[i] = v.Address
+	}
+
+	stateManager := plugins.NewStateManager(addresses)
+	e.BindPlugin(&stateManager)
+
 	if c, ok := config.Plugins["pcap"]; ok {
 		pcap, err := plugins.NewPCAPPlugin(config.Medium.Bands, time.Now(), c)
 		if err != nil {

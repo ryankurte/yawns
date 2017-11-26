@@ -154,11 +154,20 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
                 header_in->src = addr;
                 header_in->dest = addr + 1;
 
-                #if 1
                 struct hops_s * hops = (struct hops_s*) &data[sizeof(struct fifteen_four_header_s)];
+
+                char route[255];
+                int n = 0;
+                for (int i=0; i<hops->count; i++) {
+                    n += sprintf(route + n, "0x%.4x ", hops->addresses[i]) - 1;
+                }
+                route[n] = '\0';
+
+                printf("Route: %s", route);
+                ONS_set_field(radio->connector, "route", route, strlen(route));
+
                 hops->addresses[hops->count] = addr;
                 hops->count += 1;
-                #endif
                 len += 2;
 
                 uint16_t crc = crc16_ccit_kermit(len - 2, data);

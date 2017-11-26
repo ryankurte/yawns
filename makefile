@@ -28,6 +28,9 @@ owns: protocol
 	go build -ldflags -s ./cmd/owns-mapclient
 	go build -ldflags -s ./cmd/owns-eval
 
+build:
+	go build ./cmd/owns-sim
+
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/...
 
@@ -43,7 +46,7 @@ client:
 
 # Run application
 run: build
-	./owns
+	./owns-sim -c examples/chain.yml
 
 test-deps: owns
 	./owns-mapclient -c examples/chain.yml -t satellite

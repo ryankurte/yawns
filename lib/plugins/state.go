@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -75,6 +76,8 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 		if se.Error == nil && se.Actual == se.Expected {
 			se.Result = true
 		}
+
+		log.Printf("STATE check for address: '%s' ok: '%s'", address, se.Result)
 	}
 
 	sm.eventMutex.Lock()

@@ -66,12 +66,19 @@ nodes:
 
 # Event definitions
 # These define changes to the simulation and environment at a given point in time
-events:
-  - action: "set-location"
+updates:
+  - action: set-location
     timestamp: 1s
     nodes: [0x0001]
     comment: Update the location of node 0x0001 at t=1s
     data:
       lat: -36.845214
       lon: 174.784408
+  - action: check-state
+    timestamp: 9s
+    nodes: [0x0004]
+    comment: Check the route state for node 4
+    data:
+      key: route
+      value: 0x0001 0x0002 0x0003
   

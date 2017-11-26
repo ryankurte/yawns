@@ -98,9 +98,9 @@ func (e *Engine) Info() {
 	log.Printf("  - Updates: %d", len(e.Updates))
 }
 
-func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, data map[string]string) error {
+func (e *Engine) handleUpdate(d time.Duration, addresses []string, action config.UpdateAction, data map[string]string) error {
 	for _, address := range addresses {
-		err := e.handleNodeUpdate(address, action, data)
+		err := e.handleNodeUpdate(d, address, action, data)
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func (e *Engine) handleUpdate(addresses []string, action config.UpdateAction, da
 	return nil
 }
 
-func (e *Engine) handleNodeUpdate(address string, action config.UpdateAction, data map[string]string) error {
+func (e *Engine) handleNodeUpdate(d time.Duration, address string, action config.UpdateAction, data map[string]string) error {
 	// Fetch matching node
 	node, ok := e.nodes[address]
 	if !ok {
@@ -122,7 +122,7 @@ func (e *Engine) handleNodeUpdate(address string, action config.UpdateAction, da
 		err = HandleSetLocationUpdate(node, data)
 
 	default:
-		return fmt.Errorf("handleUpdate error, unrecognised action (%s)", action)
+		e.pluginManager.OnUpdate(d, string(action), address, data)
 	}
 
 	// Update node instance in storage
@@ -213,7 +213,7 @@ func (e *Engine) handleUpdates(d time.Duration) {
 			log.Printf("[INFO] Executing Update %s (%s)", u.Action, u.Comment)
 
 			// Execute the Update
-			err := e.handleUpdate(u.Nodes, u.Action, u.Data)
+			err := e.handleUpdate(d, u.Nodes, u.Action, u.Data)
 			if err != nil {
 				log.Printf("[ERROR] Update error: %s", err)
 			}

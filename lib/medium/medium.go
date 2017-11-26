@@ -180,6 +180,9 @@ func (m *Medium) handleMessage(message interface{}) error {
 	case *messages.Register:
 		// Mock to avoid warning on unhandled message
 
+	case *messages.FieldSet:
+		// Mock to avoid warning on unhandled message
+
 	default:
 		log.Printf("[WARNING] medium unhandled message type: %T", message)
 	}
