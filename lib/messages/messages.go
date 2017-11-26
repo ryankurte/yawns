@@ -42,6 +42,10 @@ type BaseMessage struct {
 	Address string
 }
 
+func NewBaseMessage(address string) BaseMessage {
+	return BaseMessage{Address: address}
+}
+
 // GetAddress fetches the address of the origin/destination of the message
 func (message *BaseMessage) GetAddress() string { return message.Address }
 
