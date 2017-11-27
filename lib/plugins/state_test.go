@@ -19,10 +19,10 @@ func TestState(t *testing.T) {
 		m := messages.FieldSet{
 			BaseMessage: messages.NewBaseMessage(addresses[0]),
 			Name:        key,
-			Data:        []byte(val),
+			Data:        val,
 		}
 
-		err := sm.OnMessage(time.Second, m)
+		err := sm.OnMessage(time.Second, &m)
 		assert.Nil(t, err)
 
 		val2, err := sm.getField(addresses[0], key)

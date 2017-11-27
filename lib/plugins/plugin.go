@@ -12,6 +12,8 @@ package plugins
 import (
 	"fmt"
 	"time"
+
+	"github.com/ryankurte/owns/lib/config"
 )
 
 // ConnectHandler interface should be implemented by plugins that need to detect
@@ -49,7 +51,7 @@ type MessageHandler interface {
 
 // UpdateHandler interface should be implemented by plugins to handle simulation Events
 type UpdateHandler interface {
-	OnUpdate(d time.Duration, eventType, address string, data map[string]string) error
+	OnUpdate(d time.Duration, eventType config.UpdateAction, address string, data map[string]string) error
 }
 
 // CloseHandler interface should be implemented by plugins to handle plugin closing at simulation exit
@@ -159,7 +161,7 @@ func (pm *PluginManager) OnMessage(d time.Duration, message interface{}) {
 }
 
 // onUpdate calls bound plugin UpdateHandlers
-func (pm *PluginManager) OnUpdate(d time.Duration, eventType, address string, data map[string]string) {
+func (pm *PluginManager) OnUpdate(d time.Duration, eventType config.UpdateAction, address string, data map[string]string) {
 	for _, h := range pm.updateHandlers {
 		h.OnUpdate(d, eventType, address, data)
 	}

@@ -156,15 +156,9 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
 
                 struct hops_s * hops = (struct hops_s*) &data[sizeof(struct fifteen_four_header_s)];
 
-                char route[255];
-                int n = 0;
-                for (int i=0; i<hops->count; i++) {
-                    n += sprintf(route + n, "0x%.4x ", hops->addresses[i]) - 1;
-                }
-                route[n] = '\0';
-
-                printf("Route: %s", route);
-                ONS_set_field(radio->connector, "route", route, strlen(route));
+                char parent[] = "abcdef";
+                //sprintf(parent, "0x%.4x", hops->addresses[hops->count - 1]);
+                ONS_set_field(radio->connector, "parent", parent);
 
                 hops->addresses[hops->count] = addr;
                 hops->count += 1;

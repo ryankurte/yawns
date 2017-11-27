@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/messages"
 )
 
@@ -77,7 +78,7 @@ func (e *Engine) OnEvent(d time.Duration, address string, data string) {
 }
 
 // OnUpdate called for simulation updates
-func (e *Engine) OnUpdate(d time.Duration, eventType, address string, data map[string]string) {
+func (e *Engine) OnUpdate(d time.Duration, eventType config.UpdateAction, address string, data map[string]string) {
 	e.pluginManager.OnUpdate(d, eventType, address, data)
 }
 

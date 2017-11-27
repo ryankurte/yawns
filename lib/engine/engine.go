@@ -115,6 +115,8 @@ func (e *Engine) handleNodeUpdate(d time.Duration, address string, action config
 		return fmt.Errorf("handleUpdate node %s not found", address)
 	}
 
+	log.Printf("UPDATE %s %s", address, string(action))
+
 	// Handle actions
 	var err error
 	switch action {
@@ -122,7 +124,7 @@ func (e *Engine) handleNodeUpdate(d time.Duration, address string, action config
 		err = HandleSetLocationUpdate(node, data)
 
 	default:
-		e.pluginManager.OnUpdate(d, string(action), address, data)
+		e.pluginManager.OnUpdate(d, action, address, data)
 	}
 
 	// Update node instance in storage

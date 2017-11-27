@@ -256,7 +256,7 @@ func TestLibONS(t *testing.T) {
 	t.Run("Client can set fields", func(t *testing.T) {
 
 		name := "test-name"
-		data := []byte{0xaa, 0xbb}
+		data := "test-data"
 
 		client.SetField(name, data)
 

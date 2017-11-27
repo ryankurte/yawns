@@ -134,7 +134,7 @@ func NewSendComplete(address, bandName string, channel int32) *SendComplete {
 type FieldSet struct {
 	BaseMessage
 	Name string
-	Data []byte
+	Data string
 }
 
 type FieldGet struct {
@@ -145,7 +145,7 @@ type FieldGet struct {
 type FieldResp struct {
 	BaseMessage
 	Name string
-	Data []byte
+	Data string
 }
 
 type Event struct {

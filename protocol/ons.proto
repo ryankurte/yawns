@@ -81,12 +81,12 @@ message FieldReq {
 // FieldResp is a field value response
 message FieldResp {
     string name = 1;
-    bytes data = 2;
+    string data = 2;
 }
 
 message FieldSet {
     string name = 1;
-    bytes data = 2;
+    string data = 2;
 }
 
 // Base / common message

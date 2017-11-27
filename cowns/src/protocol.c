@@ -66,13 +66,12 @@ int ons_send_register(struct ons_s *ons, char* address)
     return ons_send_pb(ons, &base);
 }
 
-int ons_send_field_set(struct ons_s *ons, char* name, uint8_t* data, size_t len) {
+int ons_send_field_set(struct ons_s *ons, char* name, char* data_str) {
     Base base = BASE__INIT;
     FieldSet set = FIELD_SET__INIT;
 
     set.name = name;
-    set.data.data = data;
-    set.data.len = len;
+    set.data = data_str;
 
     base.message_case = BASE__MESSAGE_FIELD_SET;
     base.fieldset = &set;

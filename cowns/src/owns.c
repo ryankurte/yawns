@@ -358,9 +358,9 @@ int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float *rssi)
     return 0;
 }
 
-int ONS_set_field(struct ons_s *ons, char* name, uint8_t* data, size_t len)
+int ONS_set_field(struct ons_s *ons, char* name, char* data_str)
 {
-    return ons_send_field_set(ons, name, data, len);
+    return ons_send_field_set(ons, name, data_str);
 }
 
 void ONS_print_arr(char *name, uint8_t *data, uint16_t length)

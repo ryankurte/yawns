@@ -49,7 +49,7 @@ func NewStateManager(addresses []string) StateManager {
 func (sm *StateManager) OnMessage(d time.Duration, message interface{}) error {
 
 	switch m := message.(type) {
-	case messages.FieldSet:
+	case *messages.FieldSet:
 		sm.setField(m.Address, m.Name, string(m.Data))
 	}
 
@@ -87,6 +87,10 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 	return nil
 }
 
+func (sm *StateManager) Close() {
+	log.Printf("State events: %+v", sm.events)
+}
+
 // setField sets the value of a field in the map
 // A mutex is used here to ensure partial updates cannot occur
 func (sm *StateManager) setField(address, key, value string) {
@@ -95,11 +99,13 @@ func (sm *StateManager) setField(address, key, value string) {
 
 	fields, ok := sm.fields[address]
 	if !ok {
-		return
+		sm.fields = make(FieldMap)
 	}
 
 	fields[key] = Field(value)
 	sm.fields[address] = fields
+
+	log.Printf("Wrote field %s.%s = '%.s'", address, key, value)
 }
 
 // getField fetches the value of a field from the map
