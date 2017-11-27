@@ -53,7 +53,7 @@ test-deps: owns
 	./owns-mapclient -c examples/chain.yml -t terrain
     
 # Test application
-test: owns lib test-deps
+test: owns lib client
 	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cowns/...
 
 install: owns lib

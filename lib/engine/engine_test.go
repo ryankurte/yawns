@@ -10,6 +10,7 @@ import (
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/connector"
 	"github.com/ryankurte/owns/lib/types"
+	"time"
 )
 
 func FloatEq(a, b float64) bool {
@@ -50,7 +51,7 @@ func TestEngine(t *testing.T) {
 		EventData["lat"] = strconv.FormatFloat(lat, 'f', 6, 64)
 		EventData["lon"] = strconv.FormatFloat(lng, 'f', 6, 64)
 
-		err := e.handleNodeEvent("TestAddress", config.UpdateSetLocation, EventData)
+		err := e.handleNodeUpdate(time.Second, "TestAddress", config.UpdateSetLocation, EventData)
 		if err != nil {
 			t.Error(err)
 		}
