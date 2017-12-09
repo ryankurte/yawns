@@ -1,0 +1,60 @@
+---
+# OpenWirelessNetworkSim (OWNS) Example Configuration
+
+# Top Level Simulation Configuration
+name: Example Simulation
+tickrate: 1ms
+endtime: 10s
+
+# Wireless Medium Configuration
+# This defines the communication bands to be simulated
+medium:
+  statsfile: simple-stats.yml
+  bands:
+    433MHz:
+      frequency: 433MHz
+      baud: 10kbps
+      packetoverhead: 12B
+      linkbudget: 94dB
+      interferencebudget: 20dB
+      randomdeviation: 0dB
+      channels: 
+        count: 32
+        spacing: 200KHz
+      noisefloor: -80dB
+
+plugins:
+  pcap:
+    file: simple.pcap
+
+# Node defaults
+# These are inherited by all child nodes (unless overwritten)
+defaults:
+  executable: ./cowns/build/owns-client
+  command: "{{.server}} {{.address}} 433MHz"
+
+# Node definitions
+# This defines the nodes to be linked to the simulator
+nodes:
+  - address: 0x0001
+    location: 
+      lat: -36.835
+      lng: 174.770
+      alt: 2.0
+  - address: 0x0002
+    location: 
+      lat: -36.842
+      lng: 174.785
+      alt: 2.0
+  - address: 0x0003
+    location: 
+      lat: -36.835
+      lng: 174.800
+      alt: 2.0
+  - address: 0x0004
+    location: 
+      lat: -36.842
+      lng: 174.815
+      alt: 2.0
+
+  

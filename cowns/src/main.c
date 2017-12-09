@@ -156,8 +156,8 @@ void run_slave(uint16_t addr, struct ons_radio_s *radio)
 
                 struct hops_s * hops = (struct hops_s*) &data[sizeof(struct fifteen_four_header_s)];
 
-                char parent[] = "abcdef";
-                //sprintf(parent, "0x%.4x", hops->addresses[hops->count - 1]);
+                char parent[512];
+                sprintf(parent, "0x%.4x", hops->addresses[hops->count - 1]);
                 ONS_set_field(radio->connector, "parent", parent);
 
                 hops->addresses[hops->count] = addr;

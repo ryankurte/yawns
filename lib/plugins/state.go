@@ -47,10 +47,9 @@ func NewStateManager(addresses []string) StateManager {
 // OnMessage is is called to handle simulation messages
 // This allows the plugin to receive, handle (and respond to) simulation messages
 func (sm *StateManager) OnMessage(d time.Duration, message interface{}) error {
-
 	switch m := message.(type) {
 	case *messages.FieldSet:
-		sm.setField(m.Address, m.Name, string(m.Data))
+		sm.setField(m.Address, m.Name, m.Data)
 	}
 
 	return nil
@@ -87,6 +86,8 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 	return nil
 }
 
+// Close the state manager plugin
+// This finalises the output log if enabled.
 func (sm *StateManager) Close() {
 	log.Printf("State events: %+v", sm.events)
 }
@@ -105,7 +106,7 @@ func (sm *StateManager) setField(address, key, value string) {
 	fields[key] = Field(value)
 	sm.fields[address] = fields
 
-	log.Printf("Wrote field %s.%s = '%.s'", address, key, value)
+	log.Printf("Wrote field %s.%s = '%s'", address, key, value)
 }
 
 // getField fetches the value of a field from the map
