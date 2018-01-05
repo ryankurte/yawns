@@ -19,6 +19,10 @@ func TestMedium(t *testing.T) {
 	c, err := config.LoadConfigFile("./test.yml")
 	assert.Nil(t, err)
 
+	// Override terrain to remove from tests
+	c.Medium.Maps.Satellite = ""
+	c.Medium.Maps.Terrain = ""
+
 	nodes := make([]types.Node, len(c.Nodes))
 	for i := range c.Nodes {
 		nodes[i] = c.Nodes[i]

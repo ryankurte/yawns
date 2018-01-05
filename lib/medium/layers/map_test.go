@@ -45,12 +45,13 @@ func TestMapLayer(t *testing.T) {
 
 	t.Run("Calculates terrain fading", func(t *testing.T) {
 		t.SkipNow()
-		fading := mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[3].Location, c.Nodes[5].Location)
+		fading, err := mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[3].Location, c.Nodes[5].Location)
+		assert.Nil(t, err)
 		assert.InDelta(t, 6.0, fading, 0.1)
 
-		fading = mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[4].Location, c.Nodes[5].Location)
+		fading, err = mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[4].Location, c.Nodes[5].Location)
+		assert.Nil(t, err)
 		assert.InDelta(t, 0.0, fading, 0.1)
-
 	})
 
 }

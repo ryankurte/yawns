@@ -46,6 +46,8 @@ type Maps struct {
 	Satellite string
 	// Terrain map file
 	Terrain string
+	// Default terrain offset (for unset altitudes)
+	DefaultOffset types.Distance
 }
 
 // Medium defines the simulator configuration for the medium module

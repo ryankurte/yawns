@@ -68,19 +68,42 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 	}
 
 	// Load medium simulation layers
-	m.layerManager.BindLayer(layers.NewFreeSpace())
-	m.layerManager.BindLayer(layers.NewRandom())
+	m.layerManager.BindLayer("free-space", layers.NewFreeSpace())
+	m.layerManager.BindLayer("random", layers.NewRandom())
 
 	if c.Maps.Satellite != "" {
 		mapLayer, err := layers.NewMapLayer(&c.Maps)
 		if err != nil {
 			return nil, err
 		}
-		m.layerManager.BindLayer(mapLayer)
+		m.layerManager.BindLayer("terrain", mapLayer)
 
 	}
 
 	return &m, nil
+}
+
+func (m *Medium) BindDefaultLayers(c *config.Medium) error {
+	// Load medium simulation layers
+	m.layerManager.BindLayer("free-space", layers.NewFreeSpace())
+	m.layerManager.BindLayer("random", layers.NewRandom())
+
+	if c.Maps.Satellite != "" {
+		mapLayer, err := layers.NewMapLayer(&c.Maps)
+		if err != nil {
+			return err
+		}
+		m.layerManager.BindLayer("terrain", mapLayer)
+	}
+	return nil
+}
+
+func (m *Medium) BindLayer(name string, layer interface{}) error {
+	return m.layerManager.BindLayer(name, layer)
+}
+
+func (m *Medium) GetLayer(name string) (interface{}, error) {
+	return m.layerManager.GetLayer(name)
 }
 
 func (m *Medium) Send() chan interface{} {
@@ -93,7 +116,11 @@ func (m *Medium) Receive() chan interface{} {
 
 // GetPointToPointFading fetches the (instantaneous) fading between two nodes at a given frequency
 func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.Attenuation {
-	return types.Attenuation(m.layerManager.CalculateFading(band, n1.Location, n2.Location))
+	attenuation, err := m.layerManager.CalculateFading(band, n1.Location, n2.Location)
+	if err != nil {
+		log.Printf("[ERROR] medium layer error: %s", err)
+	}
+	return types.Attenuation(attenuation)
 }
 
 func (m *Medium) Start() {

@@ -16,11 +16,11 @@ func NewFreeSpace() *FreeSpace {
 }
 
 // CalculateFading calculates the free space fading for a link
-func (fs *FreeSpace) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
+func (fs *FreeSpace) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
 
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1.Alt, p2.Lat, p2.Lng, p2.Alt)
 
 	attenuation := rf.CalculateFreeSpacePathLoss(rf.Frequency(band.Frequency), distance)
 
-	return float64(attenuation)
+	return float64(attenuation), nil
 }

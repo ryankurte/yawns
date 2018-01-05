@@ -18,7 +18,7 @@ import (
 
 // FadingLayer interface for layers implementing fading calculations
 type FadingLayer interface {
-	CalculateFading(band config.Band, p1, p2 types.Location) float64
+	CalculateFading(band config.Band, p1, p2 types.Location) (float64, error)
 	//CalculateFadingBounds(band config.Band, p1, p2 types.Location) (float64, float64)
 }
 
@@ -34,29 +34,29 @@ type RenderLayer interface {
 
 // LayerManager manages a set of medium layers
 type LayerManager struct {
-	fadingLayers []FadingLayer
-	infoLayers   []InfoLayer
+	fadingLayers map[string]FadingLayer
+	infoLayers   map[string]InfoLayer
 	renderLayer  RenderLayer
 }
 
 // NewLayerManager creates a new medium layer manager
 func NewLayerManager() *LayerManager {
 	return &LayerManager{
-		fadingLayers: make([]FadingLayer, 0),
-		infoLayers:   make([]InfoLayer, 0),
+		fadingLayers: make(map[string]FadingLayer),
+		infoLayers:   make(map[string]InfoLayer),
 	}
 }
 
 // BindLayer binds a layer into the layer manager
 // This checks the layer against available interfaces and binds where matches are found
-func (lm *LayerManager) BindLayer(layer interface{}) error {
+func (lm *LayerManager) BindLayer(name string, layer interface{}) error {
 	match := false
 	if fading, ok := layer.(FadingLayer); ok {
-		lm.fadingLayers = append(lm.fadingLayers, fading)
+		lm.fadingLayers[name] = fading
 		match = true
 	}
 	if info, ok := layer.(InfoLayer); ok {
-		lm.infoLayers = append(lm.infoLayers, info)
+		lm.infoLayers[name] = info
 		match = true
 	}
 	if render, ok := layer.(RenderLayer); ok {
@@ -70,13 +70,30 @@ func (lm *LayerManager) BindLayer(layer interface{}) error {
 	return nil
 }
 
-// CalculateFading calculates the overall fading using the provided layers
-func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
-	fading := 0.0
-	for _, layer := range lm.fadingLayers {
-		fading += layer.CalculateFading(band, p1, p2)
+func (lm *LayerManager) GetLayer(name string) (interface{}, error) {
+	f, ok := lm.fadingLayers[name]
+	if ok {
+		return f, nil
 	}
-	return fading
+	i, ok := lm.infoLayers[name]
+	if ok {
+		return i, nil
+	}
+	return nil, nil
+}
+
+// CalculateFading calculates the overall fading using the provided layers
+func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+	fading := 0.0
+	fmt.Printf("Fading ")
+	for name, layer := range lm.fadingLayers {
+		layerFading, _ := layer.CalculateFading(band, p1, p2)
+		fading += layerFading
+		fmt.Printf("%s: %.2f ", name, layerFading)
+	}
+	fmt.Printf("total: %.2f\n", fading)
+
+	return fading, nil
 }
 
 func (lm *LayerManager) Render(filename string, nodes []types.Node, links []types.Link) error {

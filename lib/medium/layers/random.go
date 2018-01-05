@@ -17,6 +17,6 @@ func NewRandom() *Random {
 }
 
 // CalculateFading calculates random fading based on an independent normal distribution
-func (r *Random) CalculateFading(band config.Band, p1, p2 types.Location) float64 {
-	return rand.NormFloat64() * float64(band.RandomDeviation)
+func (r *Random) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+	return rand.NormFloat64() * float64(band.RandomDeviation), nil
 }

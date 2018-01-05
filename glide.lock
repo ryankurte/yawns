@@ -1,5 +1,5 @@
-hash: 1723d1e05c84d7b22b058f7fb74896c95345ada072e0ef86afcae9aadaec2f3a
-updated: 2017-10-09T12:45:47.08153+13:00
+hash: 6cbf641eaea65266bd218d6463ff69915aa754ad01c4102393fb1f055abf2604
+updated: 2018-01-05T14:46:40.286926+13:00
 imports:
 - name: github.com/go-yaml/yaml
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
@@ -15,6 +15,8 @@ imports:
   version: 11c65f1ca9081dfea43b4f9643f5c155583b73ba
 - name: github.com/jessevdk/go-flags
   version: 96dc06278ce32a0e9d957d590bb987c81ee66407
+- name: github.com/pbnjay/pixfont
+  version: 80412ecf517af357b35b325eda36477d4c1f9c88
 - name: github.com/ryankurte/go-async-cmd
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: github.com/ryankurte/go-mapbox
@@ -32,9 +34,9 @@ imports:
   subpackages:
   - types
 - name: github.com/ryankurte/go-rf
-  version: 66dba4c49199410208a88f1d9751d6882a76cdfa
+  version: f7826f21d77dc9751f9b06d8afe94c87c272e365
 - name: github.com/zeromq/goczmq
-  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
+  version: 98ab09146269d98bc3e427046f5fc222c4134e0b
 - name: golang.org/x/sync
   version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
@@ -51,6 +53,6 @@ testImports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
   subpackages:
   - assert
