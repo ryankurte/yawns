@@ -46,6 +46,8 @@ type Maps struct {
 	Satellite string
 	// Terrain map file
 	Terrain string
+	// Foliage map file
+	Foliage string
 	// Default terrain offset (for unset altitudes)
 	DefaultOffset types.Distance
 }

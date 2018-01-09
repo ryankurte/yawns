@@ -77,7 +77,7 @@ func main() {
 	}
 
 	ml, _ := m.GetLayer("terrain")
-	mapLayer := ml.(*layers.MapLayer)
+	mapLayer := ml.(*layers.TerrainLayer)
 
 	links := make([]types.Link, 0)
 	for i := 0; i < len(nodes); i++ {

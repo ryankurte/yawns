@@ -67,34 +67,41 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 		}
 	}
 
-	// Load medium simulation layers
-	m.layerManager.BindLayer("free-space", layers.NewFreeSpace())
-	m.layerManager.BindLayer("random", layers.NewRandom())
-
-	if c.Maps.Satellite != "" {
-		mapLayer, err := layers.NewMapLayer(&c.Maps)
-		if err != nil {
-			return nil, err
-		}
-		m.layerManager.BindLayer("terrain", mapLayer)
-
-	}
+	m.BindDefaultLayers(c)
 
 	return &m, nil
 }
 
+// BindDefaultLayers Binds default medium layers
 func (m *Medium) BindDefaultLayers(c *config.Medium) error {
 	// Load medium simulation layers
 	m.layerManager.BindLayer("free-space", layers.NewFreeSpace())
 	m.layerManager.BindLayer("random", layers.NewRandom())
 
 	if c.Maps.Satellite != "" {
-		mapLayer, err := layers.NewMapLayer(&c.Maps)
+		mapLayer, err := layers.NewRenderLayer(&c.Maps)
+		if err != nil {
+			return err
+		}
+		m.layerManager.BindLayer("render", mapLayer)
+	}
+
+	if c.Maps.Terrain != "" {
+		mapLayer, err := layers.NewTerrainLayer(&c.Maps)
 		if err != nil {
 			return err
 		}
 		m.layerManager.BindLayer("terrain", mapLayer)
 	}
+
+	if c.Maps.Foliage != "" {
+		mapLayer, err := layers.NewFoliageLayer(&c.Maps)
+		if err != nil {
+			return err
+		}
+		m.layerManager.BindLayer("foliage", mapLayer)
+	}
+
 	return nil
 }
 
