@@ -14,8 +14,8 @@ medium:
     x: 64584
     y: 39988
     high-res: true
-    satellite: mapbox-satellite-16-64584-39988-9x5-512.jpg
-    terrain: mapbox-terrain-rgb-16-64584-39988-9x5-512.png
+    satellite: /tmp/owns/mapbox-satellite-16-64584-39988-9x5-512.jpg
+    terrain: /tmp/owns/mapbox-terrain-rgb-16-64584-39988-9x5-512.png
   bands:
     Sub1GHz:
       frequency: 433MHz

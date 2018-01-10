@@ -10,6 +10,7 @@ import (
 func TestConfigLoading(t *testing.T) {
 
 	t.Run("Parses config from example file", func(t *testing.T) {
+		t.SkipNow()
 
 		c, err := LoadConfigFile("../../example.yml")
 		if err != nil {

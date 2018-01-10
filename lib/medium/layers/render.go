@@ -13,6 +13,8 @@ import (
 	"github.com/ryankurte/owns/lib/types"
 )
 
+// RenderLayer provides mechanisms for map rendering and visualisation
+// Using the provided map tile
 type RenderLayer struct {
 	In        chan RenderCommand
 	satellite maps.Tile
@@ -25,6 +27,7 @@ type RenderCommand struct {
 	Links    []types.Link
 }
 
+// NewRenderLayer creates a new instance of the rendering layer based on the provided config
 func NewRenderLayer(c *config.Maps) (*RenderLayer, error) {
 	r := RenderLayer{
 		In: make(chan RenderCommand, 128),
@@ -40,6 +43,7 @@ func NewRenderLayer(c *config.Maps) (*RenderLayer, error) {
 	return &r, nil
 }
 
+// Run launches a render layer thread to process RenderEvents
 func (m *RenderLayer) Run() {
 	for {
 		select {
@@ -55,6 +59,7 @@ func (m *RenderLayer) Run() {
 	}
 }
 
+// Render renders a simulation map with the provided nodes and links
 func (m *RenderLayer) Render(fileName string, nodes []types.Node, links []types.Link) error {
 	tile := m.satellite
 

@@ -11,10 +11,12 @@ import (
 	"github.com/ryankurte/owns/lib/types"
 )
 
+// FoliageLayer implements Weissburg fading using a map tile with foliage areas blacked out.
 type FoliageLayer struct {
 	foliage maps.Tile
 }
 
+// NewFoliageLayer creates a new foliage layer from the provided map configuration
 func NewFoliageLayer(c *config.Maps) (*FoliageLayer, error) {
 	t := FoliageLayer{}
 
@@ -50,8 +52,6 @@ func (t *FoliageLayer) CalculateFading(band config.Band, p1, p2 types.Location) 
 	impingement := float64(distance) / (foliage + notFoliage) * foliage
 
 	f, err := rf.CalculateFoliageLoss(rf.Frequency(band.Frequency), rf.Distance(impingement))
-
-	log.Printf("Foliage: %.2f Not Foliage: %.2f Distance: %.2f m Impingement %.2f m Loss: %.2f dB", foliage, notFoliage, distance, impingement, f)
 
 	return float64(f), err
 }

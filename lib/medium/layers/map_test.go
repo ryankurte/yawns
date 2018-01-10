@@ -18,17 +18,16 @@ func TestMapLayer(t *testing.T) {
 	}
 
 	// Rewrite path to images
-	c.Medium.Maps.Satellite = "../../../" + c.Medium.Maps.Satellite
-	c.Medium.Maps.Terrain = "../../../" + c.Medium.Maps.Terrain
-
-	// Create map layer
-	mapLayer, err := NewMapLayer(&c.Medium.Maps)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	c.Medium.Maps.Satellite = c.Medium.Maps.Satellite
+	c.Medium.Maps.Terrain = c.Medium.Maps.Terrain
 
 	t.Run("Can render out map", func(t *testing.T) {
+		renderLayer, err := NewRenderLayer(&c.Medium.Maps)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+		}
+
 		links := make([]types.Link, 0)
 
 		for i := 0; i < len(c.Nodes); i++ {
@@ -40,16 +39,23 @@ func TestMapLayer(t *testing.T) {
 			}
 		}
 
-		mapLayer.Render("./map-render-test-01.png", c.Nodes, links)
+		renderLayer.Render("./map-render-test-01.png", c.Nodes, links)
 	})
 
 	t.Run("Calculates terrain fading", func(t *testing.T) {
 		t.SkipNow()
-		fading, err := mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[3].Location, c.Nodes[5].Location)
+
+		terrainLayer, err := NewTerrainLayer(&c.Medium.Maps)
+		if err != nil {
+			t.Error(err)
+			t.FailNow()
+		}
+
+		fading, err := terrainLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[0].Location, c.Nodes[4].Location)
 		assert.Nil(t, err)
 		assert.InDelta(t, 6.0, fading, 0.1)
 
-		fading, err = mapLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[4].Location, c.Nodes[5].Location)
+		fading, err = terrainLayer.CalculateFading(c.Medium.Bands["433MHz"], c.Nodes[4].Location, c.Nodes[5].Location)
 		assert.Nil(t, err)
 		assert.InDelta(t, 0.0, fading, 0.1)
 	})
