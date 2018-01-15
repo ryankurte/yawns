@@ -93,8 +93,6 @@ func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location)
 		layers[name] = layerFading
 	}
 
-	fmt.Printf("Fading %+v total: %.2f dB\n", layers, fading)
-
 	return fading, nil
 }
 

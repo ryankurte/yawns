@@ -131,7 +131,7 @@ int ONS_radio_check_receive(struct ons_radio_s *radio);
 int ONS_radio_get_received(struct ons_radio_s *radio, uint16_t max_len, uint8_t *data, uint16_t *len);
 
 // Put a radio into sleep mode
-int ONS_radio_set_sleep(struct ons_radio_s *radio);
+int ONS_radio_sleep(struct ons_radio_s *radio);
 
 // Fetch rssi for a given band and channel
 int ONS_radio_get_rssi(struct ons_radio_s *radio, int32_t channel, float *rssi);

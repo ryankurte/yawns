@@ -136,7 +136,6 @@ func (m *Medium) Start() {
 
 func (m *Medium) Stop() {
 	close(m.inCh)
-	close(m.outCh)
 }
 
 // Run runs the medium simulation
@@ -152,6 +151,7 @@ running:
 		case message, ok := <-m.inCh:
 			if !ok {
 				log.Printf("[INFO] Medium input channel closed")
+				close(m.outCh)
 				break running
 			}
 
@@ -361,6 +361,10 @@ func (m *Medium) updateCollisions(now time.Time) {
 					continue
 				}
 
+				if !m.transmissions[j1].SendOK[i] || !m.transmissions[j2].SendOK[i] {
+					continue
+				}
+
 				// RSSI difference calculated on last saved RSSI from previous update stage
 				rssiDifference := t1.RSSIs[i][len(t1.RSSIs[i])-1] - t2.RSSIs[i][len(t2.RSSIs[i])-1]
 				band := m.config.Bands[t1.Band]
@@ -368,7 +372,6 @@ func (m *Medium) updateCollisions(now time.Time) {
 				// If difference is less than the interference budget, fail at sending both
 				if (rssiDifference > 0 && rssiDifference < band.InterferenceBudget) ||
 					(rssiDifference < 0 && rssiDifference > -band.InterferenceBudget) {
-					log.Printf("Updating collision state for message for node %d (%s)", i, n.Address)
 					m.transmissions[j1].SendOK[i] = false
 					m.transmissions[j2].SendOK[i] = false
 					m.setTransceiverState(n.Address, t1.Band, types.TransceiverStateReceive)

@@ -5,9 +5,9 @@ type Options struct {
 	ConfigFile string `short:"c" long:"config" description:"Simulation configuration file" default:"owns.yml"`
 	BindAddr   string `short:"a" long:"address" description:"Simulator Bind Address"`
 
+	OutputDir  string `short:"o" long:"output" description:"Directory for output files"`
 	PCAPFile   string `short:"f" long:"pcap-file" description:"PCap Output File"`
 	PCAPStream string `short:"s" long:"pcap-stream" description:"PCap Output Stream"`
-
 	ReportFile string `short:"r" long:"report" description:"Report file to write"`
 	LogDir     string `short:"l" long:"log-dir" description:"Log file directory"`
 
@@ -23,6 +23,7 @@ func DefaultOptions() Options {
 		PCAPStream: "",
 		ReportFile: "",
 		LogDir:     "",
+		OutputDir:  "./out/",
 		ClientAddr: "tcp://localhost:10109",
 	}
 }
