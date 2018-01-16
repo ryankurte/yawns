@@ -249,7 +249,7 @@ running:
 			log.Printf("[INFO] Simulation: completed")
 			break running
 
-		// Connector inputs
+		// External connector inputs
 		case message, ok := <-e.connectorReadCh:
 			if !ok {
 				log.Printf("[ERROR] Connector channel error")
@@ -258,6 +258,7 @@ running:
 			e.medium.Send() <- message
 			e.HandleConnectorMessage(time.Now().Sub(e.startTime), message)
 
+		// Medium outputs
 		case message, ok := <-e.medium.Receive():
 			if !ok {
 				log.Printf("[ERROR] Medium output channel error")

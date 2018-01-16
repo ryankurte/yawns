@@ -196,8 +196,8 @@ func TestMedium(t *testing.T) {
 		m.update(now)
 
 		// At this instant collisions have been detected and transmissions not yet removed
-		assert.EqualValues(t, []bool{false, false, true, false, false, false}, m.transmissions[0].SendOK)
-		assert.EqualValues(t, []bool{false, true, false, false, false, false}, m.transmissions[1].SendOK)
+		assert.EqualValues(t, []bool{true, false, true, false, false, false}, m.transmissions[0].SendOK)
+		assert.EqualValues(t, []bool{false, true, false, false, false, true}, m.transmissions[1].SendOK)
 
 		// Next instant causes transmission to be finalised
 		now = now.Add(time.Microsecond)
@@ -205,7 +205,9 @@ func TestMedium(t *testing.T) {
 
 		// Sends SendComplete packet to msg1 origin
 		CheckSendComplete(t, msg1.Address, msg1.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[0].Address, msg1.Data, msg1.RFInfo, m.outCh)
 		CheckSendComplete(t, msg2.Address, msg2.RFInfo, m.outCh)
+		CheckPacketForward(t, nodes[5].Address, msg2.Data, msg2.RFInfo, m.outCh)
 
 		// Clears transmissions
 		assert.EqualValues(t, 0, len(m.transmissions), "Removes transmission instances")
@@ -220,15 +222,15 @@ func TestMedium(t *testing.T) {
 func CheckSendComplete(t assert.TestingT, address string, rfInfo messages.RFInfo, ch chan interface{}, msgAndArgs ...interface{}) {
 	sendComplete := messages.NewSendComplete(address, rfInfo.Band, rfInfo.Channel)
 	resp := ChannelGet(t, ch, time.Millisecond, msgAndArgs...)
-	assert.IsType(t, &messages.SendComplete{}, resp, msgAndArgs...)
+	assert.IsType(t, messages.SendComplete{}, resp, msgAndArgs...)
 	assert.EqualValues(t, sendComplete, resp, msgAndArgs...)
 }
 
 func CheckPacketForward(t assert.TestingT, address string, data []byte, rfInfo messages.RFInfo, ch chan interface{}, msgAndArgs ...interface{}) {
 	forwardedPacket := messages.NewPacket(address, data, rfInfo)
 	resp := ChannelGet(t, ch, time.Millisecond, msgAndArgs...)
-	assert.IsType(t, &messages.Packet{}, resp, msgAndArgs...)
-	if respPacket, ok := resp.(*messages.Packet); ok {
+	assert.IsType(t, messages.Packet{}, resp, msgAndArgs...)
+	if respPacket, ok := resp.(messages.Packet); ok {
 		forwardedPacket.RSSI = respPacket.RSSI
 	}
 	assert.EqualValues(t, forwardedPacket, resp, msgAndArgs...)

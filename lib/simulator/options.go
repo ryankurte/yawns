@@ -12,6 +12,7 @@ type Options struct {
 	LogDir     string `short:"l" long:"log-dir" description:"Log file directory"`
 
 	ClientAddr string `short:"b" long:"client-address" description:"Client bind address for autorun clients"`
+	Profile    bool   `short:"p" long:"profile" description:"Enable application profiling"`
 }
 
 // DefaultOptions creates an options instance populated with the default options

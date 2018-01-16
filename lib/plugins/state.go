@@ -48,7 +48,7 @@ func NewStateManager(addresses []string) StateManager {
 // This allows the plugin to receive, handle (and respond to) simulation messages
 func (sm *StateManager) OnMessage(d time.Duration, message interface{}) error {
 	switch m := message.(type) {
-	case *messages.FieldSet:
+	case messages.FieldSet:
 		sm.setField(m.Address, m.Name, m.Data)
 	}
 

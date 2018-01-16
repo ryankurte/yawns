@@ -77,8 +77,8 @@ type Packet struct {
 	Data []byte
 }
 
-func NewPacket(address string, data []byte, rfInfo RFInfo) *Packet {
-	return &Packet{
+func NewPacket(address string, data []byte, rfInfo RFInfo) Packet {
+	return Packet{
 		BaseMessage: BaseMessage{
 			Address: address,
 		},
@@ -122,8 +122,8 @@ type SendComplete struct {
 	RFInfo
 }
 
-func NewSendComplete(address, bandName string, channel int32) *SendComplete {
-	return &SendComplete{
+func NewSendComplete(address, bandName string, channel int32) SendComplete {
+	return SendComplete{
 		BaseMessage: BaseMessage{
 			Address: address,
 		},

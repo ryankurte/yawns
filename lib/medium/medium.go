@@ -11,7 +11,10 @@ package medium
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
+
+	"github.com/coocood/freecache"
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/helpers"
@@ -41,6 +44,8 @@ type Medium struct {
 
 	inCh  chan interface{}
 	outCh chan interface{}
+
+	cache freecache.Cache
 }
 
 // NewMedium creates a new medium instance
@@ -56,6 +61,7 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 		layerManager:  layers.NewLayerManager(),
 		nodes:         nodes,
 		stats:         NewStats(),
+		cache:         *freecache.NewCache(1024 * 1024),
 	}
 
 	// Initialise TransceiverState for each node and band
@@ -121,16 +127,43 @@ func (m *Medium) Receive() chan interface{} {
 	return m.outCh
 }
 
+func (m *Medium) preloadFadings() {
+	for _, v := range m.config.Bands {
+		for i1, n1 := range *m.nodes {
+			for i2, n2 := range *m.nodes {
+				if i1 == i2 {
+					continue
+				}
+				m.GetPointToPointFading(v, n1, n2)
+			}
+		}
+	}
+}
+
 // GetPointToPointFading fetches the (instantaneous) fading between two nodes at a given frequency
 func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.Attenuation {
+	key := fmt.Sprintf("%s %s %s", band, n1.Location, n2.Location)
+
+	d, err := m.cache.Get([]byte(key))
+	if err == nil {
+		if v, err := strconv.ParseFloat(string(d), 64); err == nil {
+			return types.Attenuation(v)
+		}
+	}
+
 	attenuation, err := m.layerManager.CalculateFading(band, n1.Location, n2.Location)
 	if err != nil {
 		log.Printf("[ERROR] medium layer error: %s", err)
 	}
+
+	m.cache.Set([]byte(key), []byte(fmt.Sprintf("%f", attenuation)), 0)
+
 	return types.Attenuation(attenuation)
 }
 
 func (m *Medium) Start() {
+	m.preloadFadings()
+
 	go m.Run()
 }
 
@@ -187,34 +220,34 @@ running:
 
 func (m *Medium) handleMessage(message interface{}) error {
 	switch msg := message.(type) {
-	case *messages.Packet:
-		return m.sendPacket(time.Now(), *msg)
-	case *messages.RSSIRequest:
+	case messages.Packet:
+		return m.sendPacket(time.Now(), msg)
+	case messages.RSSIRequest:
 		rssi, err := m.getRSSI(msg.Address, msg.Band, msg.Channel)
 		if err != nil {
 			log.Printf("[ERROR] Medium RSSI get error: %s", err)
 		}
-		m.outCh <- &messages.RSSIResponse{
+		m.outCh <- messages.RSSIResponse{
 			BaseMessage: msg.BaseMessage,
 			RFInfo:      msg.RFInfo,
 			RSSI:        float32(rssi),
 		}
-	case *messages.StateRequest:
+	case messages.StateRequest:
 		nodeIndex, _ := m.getNodeIndex(msg.Address)
 		state := m.transceivers[nodeIndex][msg.Band].State
-		m.outCh <- &messages.StateResponse{
+		m.outCh <- messages.StateResponse{
 			BaseMessage: msg.BaseMessage,
 			RFInfo:      msg.RFInfo,
 			State:       state,
 		}
 
-	case *messages.StateSet:
+	case messages.StateSet:
 		m.setTransceiverState(msg.Address, msg.Band, msg.State)
 
-	case *messages.Register:
+	case messages.Register:
 		// Mock to avoid warning on unhandled message
 
-	case *messages.FieldSet:
+	case messages.FieldSet:
 		// Mock to avoid warning on unhandled message
 
 	default:

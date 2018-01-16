@@ -53,7 +53,7 @@ func TestLibONS(t *testing.T) {
 	t.Run("Client sends registration packet", func(t *testing.T) {
 		select {
 		case msg := <-server.OutputChan:
-			reg, ok := msg.(*messages.Register)
+			reg, ok := msg.(messages.Register)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, reg.Address)
 
@@ -81,7 +81,7 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.Packet)
+			packet, ok := msg.(messages.Packet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
 			assert.EqualValues(t, data, packet.Data)
@@ -108,7 +108,7 @@ func TestLibONS(t *testing.T) {
 			RFInfo:      messages.NewRFInfo(band, 0),
 			Data:        []byte(data),
 		}
-		server.InputChan <- &packet
+		server.InputChan <- packet
 
 		time.Sleep(100 * time.Millisecond)
 
@@ -132,14 +132,14 @@ func TestLibONS(t *testing.T) {
 			select {
 			case msg, ok := <-server.OutputChan:
 				assert.True(t, ok)
-				req, ok := msg.(*messages.RSSIRequest)
+				req, ok := msg.(messages.RSSIRequest)
 				assert.True(t, ok)
 
 				resp := messages.RSSIResponse{
 					BaseMessage: messages.BaseMessage{Address: req.Address},
 					RFInfo:      messages.NewRFInfo(band, 0),
 					RSSI:        value}
-				server.InputChan <- &resp
+				server.InputChan <- resp
 
 			case <-time.After(timeout):
 				t.Errorf("Timeout")
@@ -177,7 +177,7 @@ func TestLibONS(t *testing.T) {
 			select {
 			case msg, ok := <-server.OutputChan:
 				assert.True(t, ok)
-				req, ok := msg.(*messages.StateRequest)
+				req, ok := msg.(messages.StateRequest)
 				assert.True(t, ok)
 
 				resp := messages.StateResponse{
@@ -185,7 +185,7 @@ func TestLibONS(t *testing.T) {
 					RFInfo:      messages.NewRFInfo(band, 0),
 					State:       state,
 				}
-				server.InputChan <- &resp
+				server.InputChan <- resp
 
 			case <-time.After(timeout):
 				t.Errorf("Timeout")
@@ -223,7 +223,7 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.StateSet)
+			packet, ok := msg.(messages.StateSet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
 			assert.EqualValues(t, types.TransceiverStateReceive, packet.State)
@@ -240,7 +240,7 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.StateSet)
+			packet, ok := msg.(messages.StateSet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
 			assert.EqualValues(t, types.TransceiverStateIdle, packet.State)
@@ -263,7 +263,7 @@ func TestLibONS(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		select {
 		case msg := <-server.OutputChan:
-			packet, ok := msg.(*messages.FieldSet)
+			packet, ok := msg.(messages.FieldSet)
 			assert.True(t, ok)
 			assert.EqualValues(t, clientAddress, packet.Address)
 			assert.EqualValues(t, name, packet.Name)

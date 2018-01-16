@@ -12,11 +12,11 @@ import (
 func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
 	// Route messages to the appropriate handler
 	switch m := message.(type) {
-	case *messages.Register:
+	case messages.Register:
 		e.OnConnected(d, m.GetAddress())
-	case *messages.Packet:
+	case messages.Packet:
 		e.OnReceived(d, m.Band, m.GetAddress(), m.Data)
-	case *messages.Event:
+	case messages.Event:
 		e.OnEvent(d, m.Address, m.Data)
 	default:
 		e.OnMessage(d, message)
@@ -26,7 +26,7 @@ func (e *Engine) HandleConnectorMessage(d time.Duration, message interface{}) {
 // HandleMediumMessage handles messages from the medium emulation module
 func (e *Engine) HandleMediumMessage(d time.Duration, message interface{}) {
 	switch m := message.(type) {
-	case *messages.Packet:
+	case messages.Packet:
 		e.OnSend(d, m.Band, m.GetAddress(), m.Data)
 	}
 }

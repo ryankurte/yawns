@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/profile"
+
 	"github.com/ryankurte/owns/lib/simulator"
 )
 
@@ -27,8 +29,19 @@ func main() {
 	// Display info
 	sim.Info()
 
+	var p interface {
+		Stop()
+	}
+	if o.Profile {
+		p = profile.Start()
+	}
+
 	// Launch simulation
 	sim.Run()
+
+	if o.Profile {
+		p.Stop()
+	}
 
 	// Exit simulation
 	sim.Close()

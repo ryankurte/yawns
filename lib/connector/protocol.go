@@ -45,7 +45,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			// Save to list
 			c.clients[address] = clientID
 			// Send connected event
-			c.OutputChan <- &messages.Register{
+			c.OutputChan <- messages.Register{
 				BaseMessage: messages.BaseMessage{Address: address},
 			}
 		}
@@ -67,7 +67,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 
 	// Receive a packet from a device
 	case *protocol.Base_Packet:
-		c.OutputChan <- &messages.Packet{
+		c.OutputChan <- messages.Packet{
 			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band:    m.Packet.Info.Band,
@@ -91,7 +91,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 			state = types.TransceiverStateSleep
 		}
 
-		c.OutputChan <- &messages.StateSet{
+		c.OutputChan <- messages.StateSet{
 			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band:    m.StateSet.Info.Band,
@@ -101,13 +101,13 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		}
 
 	case *protocol.Base_Event:
-		c.OutputChan <- &messages.Event{
+		c.OutputChan <- messages.Event{
 			BaseMessage: messages.BaseMessage{Address: address},
 			Data:        m.Event.Data,
 		}
 
 	case *protocol.Base_RssiReq:
-		c.OutputChan <- &messages.RSSIRequest{
+		c.OutputChan <- messages.RSSIRequest{
 			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band:    m.RssiReq.Info.Band,
@@ -116,7 +116,7 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		}
 
 	case *protocol.Base_StateReq:
-		c.OutputChan <- &messages.StateRequest{
+		c.OutputChan <- messages.StateRequest{
 			BaseMessage: messages.BaseMessage{Address: address},
 			RFInfo: messages.RFInfo{
 				Band: m.StateReq.Info.Band,
@@ -124,14 +124,14 @@ func (c *ZMQConnector) handleIncoming(data [][]byte) error {
 		}
 
 	case *protocol.Base_FieldSet:
-		c.OutputChan <- &messages.FieldSet{
+		c.OutputChan <- messages.FieldSet{
 			BaseMessage: messages.BaseMessage{Address: address},
 			Name:        m.FieldSet.Name,
 			Data:        m.FieldSet.Data,
 		}
 
 	case *protocol.Base_FieldReq:
-		c.OutputChan <- &messages.FieldGet{
+		c.OutputChan <- messages.FieldGet{
 			BaseMessage: messages.BaseMessage{Address: address},
 			Name:        m.FieldReq.Name,
 		}
@@ -151,7 +151,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 	address := ""
 
 	switch m := message.(type) {
-	case *messages.Packet:
+	case messages.Packet:
 		address = m.Address
 		base.Message = &protocol.Base_Packet{
 			Packet: &protocol.Packet{
@@ -160,7 +160,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 			},
 		}
 
-	case *messages.StateResponse:
+	case messages.StateResponse:
 		address = m.Address
 		state := protocol.RFState_IDLE
 		switch m.State {
@@ -183,7 +183,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 			},
 		}
 
-	case *messages.RSSIResponse:
+	case messages.RSSIResponse:
 		address = m.Address
 		base.Message = &protocol.Base_RssiResp{
 			RssiResp: &protocol.RSSIResp{
@@ -191,7 +191,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 				Rssi: m.RSSI,
 			},
 		}
-	case *messages.SendComplete:
+	case messages.SendComplete:
 		address = m.Address
 		base.Message = &protocol.Base_SendComplete{
 			SendComplete: &protocol.SendComplete{
@@ -199,7 +199,7 @@ func (c *ZMQConnector) handleOutgoing(message interface{}) error {
 			},
 		}
 
-	case *messages.FieldResp:
+	case messages.FieldResp:
 		address = m.Address
 		base.Message = &protocol.Base_FieldResp{
 			FieldResp: &protocol.FieldResp{
