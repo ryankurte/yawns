@@ -1,10 +1,23 @@
-hash: 6cbf641eaea65266bd218d6463ff69915aa754ad01c4102393fb1f055abf2604
-updated: 2018-01-05T14:46:40.286926+13:00
+hash: e49b94e3f849a392b008b29d61f5c7f377394ff322b833152fafe018c0559211
+updated: 2018-01-16T17:27:21.394898286+13:00
 imports:
+- name: github.com/blendlabs/go-exception
+  version: 8d6614c6a381fe586fa618174af22043ff966730
+- name: github.com/blendlabs/go-util
+  version: 2da91d26dd94224b78f3a8bae48baf36f920b84a
+- name: github.com/cespare/xxhash
+  version: e4e2bd419cbedb5b2ec48e4a88e4c993ddb74555
+- name: github.com/coocood/freecache
+  version: 3e2d56b0a16accf0b3733f0a778322a989058015
 - name: github.com/go-yaml/yaml
-  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
+  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
+- name: github.com/golang/freetype
+  version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
+  subpackages:
+  - raster
+  - truetype
 - name: github.com/golang/protobuf
-  version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
+  version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
   subpackages:
   - proto
 - name: github.com/google/go-querystring
@@ -17,6 +30,8 @@ imports:
   version: 96dc06278ce32a0e9d957d590bb987c81ee66407
 - name: github.com/pbnjay/pixfont
   version: 80412ecf517af357b35b325eda36477d4c1f9c88
+- name: github.com/pkg/profile
+  version: 5b67d428864e92711fcbd2f8629456121a56d91f
 - name: github.com/ryankurte/go-async-cmd
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: github.com/ryankurte/go-mapbox
@@ -34,24 +49,39 @@ imports:
   subpackages:
   - types
 - name: github.com/ryankurte/go-rf
-  version: f7826f21d77dc9751f9b06d8afe94c87c272e365
+  version: ba947abede86ec514efe6d9a30f4b8a2d1cf4360
+- name: github.com/wcharczuk/go-chart
+  version: f72f7fd57b99907bc56d34b7071656c83dbf0a16
+  subpackages:
+  - drawing
+  - matrix
+  - roboto
+  - seq
+  - util
 - name: github.com/zeromq/goczmq
   version: 98ab09146269d98bc3e427046f5fc222c4134e0b
+- name: golang.org/x/image
+  version: 12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7
+  subpackages:
+  - draw
+  - font
+  - math/f64
+  - math/fixed
 - name: golang.org/x/sync
-  version: f52d1811a62927559de87708c8913c1650ce4f26
+  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
   subpackages:
   - syncmap
 testImports:
 - name: github.com/davecgh/go-spew
-  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
   - difflib
 - name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/stretchr/testify
   version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
   subpackages:
