@@ -14,6 +14,8 @@ package runner
 import (
 	"fmt"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/ryankurte/owns/lib/config"
 )
@@ -98,14 +100,28 @@ func (runner *Runner) Write(address, line string) {
 
 // Stop exits all child clients
 func (runner *Runner) Stop() error {
-	errors := make(map[string]error)
+	wg := sync.WaitGroup{}
 
 	for name, runner := range runner.clients {
-		err := runner.Exit()
-		if err != nil {
-			errors[name] = err
-		}
+		wg.Add(1)
+		go func(name string, runner *Runnable) {
+			runner.Interrupt()
+			killTimer := time.AfterFunc(time.Second, func() {
+				runner.Process.Kill()
+			})
+
+			err := runner.Wait()
+			if err != nil {
+				log.Printf("Runner error: %s waiting for runnable: %s", err, name)
+			}
+
+			killTimer.Stop()
+
+			wg.Done()
+		}(name, runner)
 	}
+
+	wg.Wait()
 
 	return nil
 }
