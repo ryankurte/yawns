@@ -11,10 +11,7 @@ package medium
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
-
-	"github.com/coocood/freecache"
 
 	"github.com/ryankurte/owns/lib/config"
 	"github.com/ryankurte/owns/lib/helpers"
@@ -44,8 +41,6 @@ type Medium struct {
 
 	inCh  chan interface{}
 	outCh chan interface{}
-
-	cache freecache.Cache
 }
 
 // NewMedium creates a new medium instance
@@ -61,7 +56,6 @@ func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medi
 		layerManager:  layers.NewLayerManager(),
 		nodes:         nodes,
 		stats:         NewStats(),
-		cache:         *freecache.NewCache(1024 * 1024),
 	}
 
 	// Initialise TransceiverState for each node and band
@@ -142,21 +136,10 @@ func (m *Medium) preloadFadings() {
 
 // GetPointToPointFading fetches the (instantaneous) fading between two nodes at a given frequency
 func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.Attenuation {
-	key := fmt.Sprintf("%s %s %s", band, n1.Location, n2.Location)
-
-	d, err := m.cache.Get([]byte(key))
-	if err == nil {
-		if v, err := strconv.ParseFloat(string(d), 64); err == nil {
-			return types.Attenuation(v)
-		}
-	}
-
 	attenuation, err := m.layerManager.CalculateFading(band, n1.Location, n2.Location)
 	if err != nil {
 		log.Printf("[ERROR] medium layer error: %s", err)
 	}
-
-	m.cache.Set([]byte(key), []byte(fmt.Sprintf("%f", attenuation)), 0)
 
 	return types.Attenuation(attenuation)
 }

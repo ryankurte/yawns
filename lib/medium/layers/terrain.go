@@ -14,6 +14,7 @@ import (
 type TerrainLayer struct {
 	terrain       maps.Tile
 	defaultOffset float64
+	cache         Cache
 }
 
 func NewTerrainLayer(c *config.Maps) (*TerrainLayer, error) {
@@ -28,11 +29,18 @@ func NewTerrainLayer(c *config.Maps) (*TerrainLayer, error) {
 	}
 	t.terrain = maps.NewTile(c.X, c.Y, c.Level, 512, terrainImg)
 
+	t.cache = NewCache()
+
 	return &t, nil
 }
 
 // CalculateFading calculates the free space fading for a link
 func (m *TerrainLayer) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+	attenuation, ok := m.cache.Get(band.Frequency, p1, p2)
+	if ok {
+		return attenuation, nil
+	}
+
 	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
 
 	// Fetch terrain between points
@@ -67,6 +75,8 @@ func (m *TerrainLayer) CalculateFading(band config.Band, p1, p2 types.Location) 
 	if err != nil {
 		return 0.0, err
 	}
+
+	m.cache.Set(band.Frequency, p1, p2, float64(f))
 
 	return float64(f), nil
 }

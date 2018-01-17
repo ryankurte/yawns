@@ -14,6 +14,7 @@ import (
 // FoliageLayer implements Weissburg fading using a map tile with foliage areas blacked out.
 type FoliageLayer struct {
 	foliage maps.Tile
+	cache   Cache
 }
 
 // NewFoliageLayer creates a new foliage layer from the provided map configuration
@@ -27,11 +28,18 @@ func NewFoliageLayer(c *config.Maps) (*FoliageLayer, error) {
 	}
 	t.foliage = maps.NewTile(c.X, c.Y, c.Level, 512, foliageImg)
 
+	t.cache = NewCache()
+
 	return &t, nil
 }
 
 // CalculateFading calculates the free space fading for a link
 func (t *FoliageLayer) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
+	attenuation, ok := t.cache.Get(band.Frequency, p1, p2)
+	if ok {
+		return attenuation, nil
+	}
+
 	p1m, p2m := onsToMapLoc(&p1), onsToMapLoc(&p2)
 
 	// Calculate LoS distance between two points
@@ -52,6 +60,8 @@ func (t *FoliageLayer) CalculateFading(band config.Band, p1, p2 types.Location) 
 	impingement := float64(distance) / (foliage + notFoliage) * foliage
 
 	f, err := rf.CalculateFoliageLoss(rf.Frequency(band.Frequency), rf.Distance(impingement))
+
+	t.cache.Set(band.Frequency, p1, p2, float64(f))
 
 	return float64(f), err
 }
