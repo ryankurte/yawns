@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"runtime"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/profile"
@@ -13,6 +14,8 @@ func main() {
 
 	// Load default options
 	o := sim.DefaultOptions()
+
+	log.Printf("GOMAXPROCS: %d", runtime.GOMAXPROCS(0))
 
 	// Load command line config
 	_, err := flags.Parse(&o)

@@ -193,6 +193,8 @@ running:
 	}
 
 	log.Printf("[INFO] Medium exited")
+	log.Printf("Medium Info")
+	log.Printf("  - Tick Count: %d Mean: %s StdDev: %s Min: %s Max: %s", m.stats.Tick.Count, m.stats.Tick.Mean, m.stats.Tick.StdDev, m.stats.Tick.Min, m.stats.Tick.Max)
 
 	if m.config.StatsFile != "" {
 		helpers.WriteYAMLFile(m.config.StatsFile, &m.stats)

@@ -116,7 +116,6 @@ func (runner *Runner) Stop() error {
 			}
 
 			killTimer.Stop()
-
 			wg.Done()
 		}(name, runner)
 	}

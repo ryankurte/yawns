@@ -13,7 +13,7 @@ deps:
 tools:
 	go get -u github.com/golang/lint/golint
 	go get -u github.com/Masterminds/glide
-	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
+	go get -u github.com/golang/protobuf/...
 
 all: owns lib client
 
