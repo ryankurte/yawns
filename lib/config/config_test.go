@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ryankurte/owns/lib/types"
 )
@@ -36,7 +37,7 @@ func TestConfigLoading(t *testing.T) {
 		UpdateData["lat"] = "1.0"
 		UpdateData["lon"] = "2.0"
 
-		Update := Update{1000, []string{"TestAddress"}, UpdateSetLocation, UpdateData, "Test Comment"}
+		Update := Update{Action: UpdateSetLocation, TimeStamp: 1 * time.Second, Nodes: []string{"TestAddress"}, Data: UpdateData, Comment: "Test Comment"}
 		c.Updates = append(c.Updates, Update)
 
 		err := WriteConfigFile("/tmp/ons-test.yml", &c)

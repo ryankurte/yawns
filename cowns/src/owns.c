@@ -372,7 +372,7 @@ int ONS_set_fieldf(struct ons_s *ons, char* name, char* format, ...)
     va_start(args, format);
     int n = vsnprintf(buff, sizeof(buff)-1, format, args);
     va_end(args);
-    buff[n] = "\0";
+    buff[n] = '\0';
 
     return ONS_set_field(ons, name, buff);
 }

@@ -63,7 +63,7 @@ func NewSimulator(o *Options) (*Simulator, error) {
 		addresses[i] = v.Address
 	}
 
-	stateManager := plugins.NewStateManager(addresses)
+	stateManager := plugins.NewStateManager(addresses, config.Plugins["state"])
 	e.BindPlugin(&stateManager)
 
 	if c, ok := config.Plugins["pcap"]; ok {

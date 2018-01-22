@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/owns/lib/helpers"
 	"github.com/ryankurte/owns/lib/messages"
 )
 
@@ -35,14 +36,30 @@ type StateEvent struct {
 	Error    error
 }
 
+// Summary is a state event plugin
+type Summary struct {
+	States  FieldMap
+	Updates []StateEvent
+}
+
 // NewStateManager creates a new StateManger instance
-func NewStateManager(addresses []string) StateManager {
-	fields := make(FieldMap)
-	for _, v := range addresses {
-		fields[v] = make(Fields)
+func NewStateManager(addresses []string, options map[string]interface{}) *StateManager {
+	sm := StateManager{
+		fields:     make(FieldMap),
+		fieldMutex: sync.Mutex{},
+		events:     make([]StateEvent, 0),
+		eventMutex: sync.Mutex{},
 	}
-	events := make([]StateEvent, 0)
-	return StateManager{fields: fields, fieldMutex: sync.Mutex{}, events: events, eventMutex: sync.Mutex{}}
+
+	for _, v := range addresses {
+		sm.fields[v] = make(Fields)
+	}
+
+	if name, ok := options["filename"]; ok {
+		sm.outputFile = name.(string)
+	}
+
+	return &sm
 }
 
 // OnMessage is is called to handle simulation messages
@@ -91,6 +108,15 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 // This finalises the output log if enabled.
 func (sm *StateManager) Close() {
 	log.Printf("State events: %+v", sm.events)
+
+	if sm.outputFile != "" {
+		summary := Summary{States: sm.fields, Updates: sm.events}
+		err := helpers.WriteYAMLFile(sm.outputFile, summary)
+		if err != nil {
+			log.Printf("StateManager.Close error: %s", err)
+		}
+	}
+
 }
 
 // setField sets the value of a field in the map

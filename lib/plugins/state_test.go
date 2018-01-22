@@ -13,7 +13,7 @@ import (
 func TestState(t *testing.T) {
 	addresses := []string{"a", "b"}
 	key, val, addr := "testName1", "testData1", addresses[0]
-	sm := NewStateManager(addresses)
+	sm := NewStateManager(addresses, make(map[string]interface{}))
 
 	t.Run("Handles set state messages", func(t *testing.T) {
 		m := messages.FieldSet{

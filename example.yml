@@ -93,11 +93,8 @@ nodes:
 # Event definitions
 # These define changes to the simulation and environment at a given point in time
 updates:
-  - action: "set-location"
+  - action: set-location
     timestamp: 1s
     nodes: [0x0001]
-    comment: Update the location of node 0x0001 at t=1s
-    data:
-      lat: -36.845214
-      lon: 174.784408
+    data: {lat: -36.845214, lon: 174.784408}
   

@@ -18,3 +18,5 @@ vendor/
 .vscode/
 ./owns-eval
 ./owns-sim
+*.yml
+/owns-*
