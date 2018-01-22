@@ -38,6 +38,8 @@ func main() {
 		os.Exit(-1)
 	}
 
+	fmt.Printf("Loaded %d nodes and %d events\n", len(c.Nodes), len(c.Updates))
+
 	nodes := make([]types.Node, 0)
 	if len(o.Nodes) != 0 {
 		for _, v := range c.Nodes {

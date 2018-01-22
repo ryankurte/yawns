@@ -268,12 +268,12 @@ running:
 			e.HandleMediumMessage(time.Now().Sub(e.startTime), message)
 
 		// Runner log inputs
-		case line, ok := <-e.runnerLogCh:
-			if !ok {
-				log.Printf("[ERROR] Runner channel error")
-				break running
-			}
-			log.Printf("Runner: %s", line)
+		//		case line, ok := <-e.runnerLogCh:
+		//			if !ok {
+		//				log.Printf("[ERROR] Runner channel error")
+		//				break running
+		//			}
+		//			log.Printf("Runner: %s", line)
 
 		// Handle command line interrupts
 		case <-interruptCh:

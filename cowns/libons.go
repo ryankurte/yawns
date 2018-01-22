@@ -11,7 +11,12 @@ package libons
 /*
 #include <stdint.h>
 #include "owns/owns.h"
+#cgo CFLAGS: -g
 #cgo LDFLAGS: -L./build -L./cowns/build -lowns -lzmq -lczmq -lpthread -lprotobuf-c
+int shm_set_fieldf(struct ons_s *ons, char* name, char* format, uint32_t data) {
+	printf("Name: %s Format: %s Data: %d\n", name, format, data);
+	return ONS_set_fieldf(ons, name, format, data);
+}
 */
 import "C"
 
@@ -191,6 +196,19 @@ func (c *ONSConnector) SetField(name string, data string) error {
 	d := C.CString(data)
 
 	res := C.ONS_set_field(&c.ons, n, d)
+	if res < 0 {
+		return fmt.Errorf("SetField error %d", res)
+	}
+	return nil
+}
+
+// SetFieldF sets a field with a format string
+func (c *ONSConnector) SetFieldf(name string, format string, data uint32) error {
+	n := C.CString(name)
+	f := C.CString(format)
+	d := C.uint32_t(data)
+
+	res := C.shm_set_fieldf(&c.ons, n, f, d)
 	if res < 0 {
 		return fmt.Errorf("SetField error %d", res)
 	}

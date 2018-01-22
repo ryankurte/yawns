@@ -92,7 +92,7 @@ nodes:
 
 # Event definitions
 # These define changes to the simulation and environment at a given point in time
-events:
+updates:
   - action: "set-location"
     timestamp: 1s
     nodes: [0x0001]

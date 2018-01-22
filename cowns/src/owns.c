@@ -147,7 +147,8 @@ int ONS_close(struct ons_s *ons)
     return 0;
 }
 
-int ONS_radio_set_cb(struct ons_radio_s *radio, ons_radio_cb_f cb, void* ctx) {
+int ONS_radio_set_cb(struct ons_radio_s *radio, ons_radio_cb_f cb, void* ctx)
+{
     if (radio == NULL) {
         return -1;
     }
@@ -363,6 +364,19 @@ int ONS_set_field(struct ons_s *ons, char* name, char* data_str)
     return ons_send_field_set(ons, name, data_str);
 }
 
+int ONS_set_fieldf(struct ons_s *ons, char* name, char* format, ...)
+{
+    va_list args;
+    char buff[1024];
+
+    va_start(args, format);
+    int n = vsnprintf(buff, sizeof(buff)-1, format, args);
+    va_end(args);
+    buff[n] = "\0";
+
+    return ONS_set_field(ons, name, buff);
+}
+
 void ONS_print_arr(char *name, uint8_t *data, uint16_t length)
 {
     ONS_PRINTF("%s (length: %d): ", name, length);
@@ -455,8 +469,8 @@ void *ons_handle_receive(void *ctx)
                 if ((base == NULL) || (base->rssiresp == NULL) ||
                     (base->rssiresp->info == NULL) || (base->rssiresp->info->band == NULL)) {
                     ONS_CORE_PRINT("[ONCS THREAD] invalid rssi response (missing elements) %p %p %p\n",
-                        base->rssiresp, base->rssiresp->info, base->rssiresp->info->band
-                    );
+                                   base->rssiresp, base->rssiresp->info, base->rssiresp->info->band
+                                  );
                     break;
                 }
 

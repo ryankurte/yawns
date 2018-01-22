@@ -18,14 +18,9 @@ const (
 
 // Update struct defines changes to the system
 type Update struct {
-	// Simulation time at which the Update action should be executed
-	TimeStamp time.Duration
-	// Node address for Update to be applied
-	Nodes []string
-	// Update action to be executed
-	Action UpdateAction
-	// Update data, parsed based on action
-	Data map[string]string
-	// Comment for log purposes
-	Comment string
+	Action    UpdateAction      `yaml:"action"`    // Update action to be executed
+	TimeStamp time.Duration     `yaml:"timestamp"` // Simulation time at which the Update action should be executed
+	Nodes     []string          `yaml:"nodes"`     // Node address for Update to be applied
+	Data      map[string]string `yaml:"data"`      // Update data, parsed based on action
+	Comment   string            `yaml:"comment"`   // Comment for log purposes
 }

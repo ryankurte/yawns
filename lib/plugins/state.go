@@ -20,6 +20,7 @@ type StateManager struct {
 	fieldMutex sync.Mutex
 	events     []StateEvent
 	eventMutex sync.Mutex
+	outputFile string
 }
 
 // StateEvent is a simulation state event record
@@ -68,7 +69,7 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 			break
 		}
 		if se.Expected, ok = data["value"]; !ok {
-			se.Error = fmt.Errorf("No value in state updatefor address '%s'", address)
+			se.Error = fmt.Errorf("No value in state update for address '%s'", address)
 			break
 		}
 		se.Actual, se.Error = sm.getField(se.Address, se.Key)
@@ -76,7 +77,7 @@ func (sm *StateManager) OnUpdate(d time.Duration, eventType config.UpdateAction,
 			se.Result = true
 		}
 
-		log.Printf("STATE check for address: '%s' ok: '%s'", address, se.Result)
+		log.Printf("STATE check for address: '%s' key: '%s' expected: '%s' actual: '%s' ok: '%v'", address, se.Key, se.Expected, se.Actual, se.Result)
 	}
 
 	sm.eventMutex.Lock()

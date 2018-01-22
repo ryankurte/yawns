@@ -106,13 +106,14 @@ func (runner *Runner) Stop() error {
 		wg.Add(1)
 		go func(name string, runner *Runnable) {
 			runner.Interrupt()
-			killTimer := time.AfterFunc(time.Second, func() {
+
+			killTimer := time.AfterFunc(10*time.Second, func() {
 				runner.Process.Kill()
 			})
 
 			err := runner.Wait()
 			if err != nil {
-				log.Printf("Runner error: %s waiting for runnable: %s", err, name)
+				//log.Printf("Runner error: %s waiting for runnable: %s", err, name)
 			}
 
 			killTimer.Stop()
