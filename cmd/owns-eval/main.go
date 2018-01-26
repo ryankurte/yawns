@@ -79,7 +79,6 @@ func main() {
 	}
 
 	ml, _ := m.GetLayer("terrain")
-	mapLayer := ml.(*layers.TerrainLayer)
 
 	links := make([]types.Link, 0)
 	for i := 0; i < len(nodes); i++ {
@@ -94,7 +93,10 @@ func main() {
 				links = append(links, types.Link{A: i, B: j, Fading: float64(f)})
 			}
 
-			mapLayer.GraphTerrain(fmt.Sprintf("%s/terrain-%s-%s.png", o.OutputDir, n1.Address, n2.Address), n1.Location, n2.Location)
+			if ml != nil {
+				mapLayer := ml.(*layers.TerrainLayer)
+				mapLayer.GraphTerrain(fmt.Sprintf("%s/terrain-%s-%s.png", o.OutputDir, n1.Address, n2.Address), n1.Location, n2.Location)
+			}
 		}
 	}
 

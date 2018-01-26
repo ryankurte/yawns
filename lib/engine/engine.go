@@ -115,8 +115,6 @@ func (e *Engine) handleNodeUpdate(d time.Duration, address string, action config
 		return fmt.Errorf("handleUpdate node %s not found", address)
 	}
 
-	log.Printf("UPDATE %s %s", address, string(action))
-
 	// Handle actions
 	var err error
 	switch action {
@@ -211,9 +209,6 @@ func (e *Engine) handleUpdates(d time.Duration) {
 	for i, u := range e.Updates {
 		// If the time has passed and the Update has not been executed
 		if d >= u.TimeStamp && !u.executed {
-
-			log.Printf("[INFO] Executing Update %s (%s)", u.Action, u.Comment)
-
 			// Execute the Update
 			err := e.handleUpdate(d, u.Nodes, u.Action, u.Data)
 			if err != nil {
@@ -266,14 +261,6 @@ running:
 			}
 			e.connectorWriteCh <- message
 			e.HandleMediumMessage(time.Now().Sub(e.startTime), message)
-
-		// Runner log inputs
-		//		case line, ok := <-e.runnerLogCh:
-		//			if !ok {
-		//				log.Printf("[ERROR] Runner channel error")
-		//				break running
-		//			}
-		//			log.Printf("Runner: %s", line)
 
 		// Handle command line interrupts
 		case <-interruptCh:

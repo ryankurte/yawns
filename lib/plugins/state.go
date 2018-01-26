@@ -43,23 +43,27 @@ type Summary struct {
 }
 
 // NewStateManager creates a new StateManger instance
-func NewStateManager(addresses []string, options map[string]interface{}) *StateManager {
-	sm := StateManager{
-		fields:     make(FieldMap),
+func NewStateManager(addresses []string, options map[string]interface{}) StateManager {
+	fields := make(FieldMap)
+	for _, v := range addresses {
+		fields[v] = make(Fields)
+	}
+
+	outputFile := ""
+	if n, ok := options["file"]; ok {
+		if name, ok := n.(string); ok {
+			log.Printf("State output file: %s", name)
+			outputFile = name
+		}
+	}
+
+	return StateManager{
+		fields:     fields,
 		fieldMutex: sync.Mutex{},
 		events:     make([]StateEvent, 0),
 		eventMutex: sync.Mutex{},
+		outputFile: outputFile,
 	}
-
-	for _, v := range addresses {
-		sm.fields[v] = make(Fields)
-	}
-
-	if name, ok := options["filename"]; ok {
-		sm.outputFile = name.(string)
-	}
-
-	return &sm
 }
 
 // OnMessage is is called to handle simulation messages

@@ -374,6 +374,8 @@ int ONS_set_fieldf(struct ons_s *ons, char* name, char* format, ...)
     va_end(args);
     buff[n] = '\0';
 
+    ONS_PRINTF("set field '%s' data: '%s'\n", name, buff);
+
     return ONS_set_field(ons, name, buff);
 }
 
