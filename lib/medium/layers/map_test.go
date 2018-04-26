@@ -40,7 +40,7 @@ func TestMapLayer(t *testing.T) {
 			t.FailNow()
 		}
 
-		links := make([]types.Link, 0)
+		links := make(types.Links, 0)
 
 		for i := 0; i < len(c.Nodes); i++ {
 			for j := i; j < len(c.Nodes); j++ {

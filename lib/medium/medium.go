@@ -30,7 +30,7 @@ type Link struct {
 // Medium is the wireless medium simulation instance
 type Medium struct {
 	config        *config.Medium
-	nodes         *[]types.Node
+	nodes         *types.Nodes
 	transmissions []*Transmission
 	transceivers  []map[string]Transceiver
 	rate          time.Duration
@@ -44,7 +44,7 @@ type Medium struct {
 }
 
 // NewMedium creates a new medium instance
-func NewMedium(c *config.Medium, rate time.Duration, nodes *[]types.Node) (*Medium, error) {
+func NewMedium(c *config.Medium, rate time.Duration, nodes *types.Nodes) (*Medium, error) {
 	// Create base medium object
 	m := Medium{
 		config:        c,
@@ -135,13 +135,13 @@ func (m *Medium) preloadFadings() {
 }
 
 // GetPointToPointFading fetches the (instantaneous) fading between two nodes at a given frequency
-func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.Attenuation {
+func (m *Medium) GetPointToPointFading(band config.Band, n1, n2 types.Node) types.AttenuationMap {
 	attenuation, err := m.layerManager.CalculateFading(band, n1.Location, n2.Location)
 	if err != nil {
 		log.Printf("[ERROR] medium layer error: %s", err)
 	}
 
-	return types.Attenuation(attenuation)
+	return attenuation
 }
 
 func (m *Medium) Start() {
@@ -242,7 +242,7 @@ func (m *Medium) handleMessage(message interface{}) error {
 	return nil
 }
 
-func (m *Medium) Render(filename string, nodes []types.Node, links []types.Link) error {
+func (m *Medium) Render(filename string, nodes types.Nodes, links types.Links) error {
 	return m.layerManager.Render(filename, nodes, links)
 }
 
@@ -296,7 +296,7 @@ func (m *Medium) sendPacket(now time.Time, p messages.Packet) error {
 			continue
 		}
 
-		fading := m.GetPointToPointFading(band, *source, n)
+		fading := m.GetPointToPointFading(band, *source, n).Reduce()
 		t.RSSIs[i] = make([]types.Attenuation, 1)
 		t.RSSIs[i][0] = fading
 
@@ -344,7 +344,7 @@ func (m *Medium) updateTransmissions(now time.Time) {
 			if n.Address == t.Origin.Address {
 				continue
 			}
-			fading := m.GetPointToPointFading(band, *t.Origin, n)
+			fading := m.GetPointToPointFading(band, *t.Origin, n).Reduce()
 			m.transmissions[i].RSSIs[j] = append(t.RSSIs[j], fading)
 
 			// Reject if fading exceeds link budget

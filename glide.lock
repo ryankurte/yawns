@@ -1,25 +1,45 @@
 hash: e49b94e3f849a392b008b29d61f5c7f377394ff322b833152fafe018c0559211
-updated: 2018-01-16T17:27:21.394898286+13:00
+updated: 2018-01-30T15:27:11.668869+13:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
 - name: github.com/blendlabs/go-util
-  version: 2da91d26dd94224b78f3a8bae48baf36f920b84a
-- name: github.com/cespare/xxhash
-  version: e4e2bd419cbedb5b2ec48e4a88e4c993ddb74555
-- name: github.com/coocood/freecache
-  version: 3e2d56b0a16accf0b3733f0a778322a989058015
+  version: 6326ad605727b9b3ff75448bd9287050aa6eecd3
 - name: github.com/go-yaml/yaml
-  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
+  version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 - name: github.com/golang/freetype
   version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
   subpackages:
   - raster
   - truetype
 - name: github.com/golang/protobuf
-  version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
+  version: c3cefd437628a0b7d31b34fe44b3a7a540e98527
   subpackages:
   - proto
+- name: github.com/gonum/blas
+  version: e7c5890b24cf6f3bb173f76e1bd71e80e887e3f9
+  subpackages:
+  - blas64
+  - native
+  - native/internal/math32
+- name: github.com/gonum/floats
+  version: 7de1f4ea7ab57890bfd427af68c7994cd67975d4
+- name: github.com/gonum/internal
+  version: fda53f8d25717c07e2dac25758075a182bd74235
+  subpackages:
+  - asm/f32
+  - asm/f64
+- name: github.com/gonum/lapack
+  version: f0b8b25edeceafb3a2752941c7bf0cda962df112
+  subpackages:
+  - lapack64
+  - native
+- name: github.com/gonum/matrix
+  version: a41cc49d4c29f7451775f4379a5cc6ec6239dfab
+  subpackages:
+  - mat64
+- name: github.com/gonum/stat
+  version: ec9c8a1062f4be6c6ad671f0f5dba12d4a76826d
 - name: github.com/google/go-querystring
   version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
   subpackages:
@@ -35,7 +55,7 @@ imports:
 - name: github.com/ryankurte/go-async-cmd
   version: 1f123adcbbbba2918ed7e0dca2728b89c472fc18
 - name: github.com/ryankurte/go-mapbox
-  version: f134225efee408ead854071bb225d4e861aa65d3
+  version: 14b48a4ab28d2e5d075442994c62cafa7e750c5a
   subpackages:
   - lib
   - lib/base
@@ -49,9 +69,9 @@ imports:
   subpackages:
   - types
 - name: github.com/ryankurte/go-rf
-  version: ba947abede86ec514efe6d9a30f4b8a2d1cf4360
+  version: e7052ddb8216cedefa064856246db0f8479051dc
 - name: github.com/wcharczuk/go-chart
-  version: f72f7fd57b99907bc56d34b7071656c83dbf0a16
+  version: 11e380634bd594f5635f2f8e89a6e8c075ec1222
   subpackages:
   - drawing
   - matrix
@@ -68,16 +88,16 @@ imports:
   - math/f64
   - math/fixed
 - name: golang.org/x/sync
-  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
+  version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
   - syncmap
 testImports:
 - name: github.com/davecgh/go-spew
-  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
 - name: github.com/pmezard/go-difflib
-  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
   - difflib
 - name: github.com/satori/go.uuid

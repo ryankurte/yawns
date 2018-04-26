@@ -63,6 +63,13 @@ func (m *TerrainLayer) CalculateFading(band config.Band, p1, p2 types.Location) 
 	// Calculate LoS distance between two points
 	distance := rf.CalculateDistanceLOS(p1.Lat, p1.Lng, p1Alt, p2.Lat, p2.Lng, p2Alt)
 
+	// Calculate maximum impingement (< 0.4 assume free space)
+	impingement, _ := rf.FresnelImpingementMax(p1Alt, p2Alt, distance, rf.Frequency(band.Frequency), terrain)
+	if impingement < band.FreeSpaceThreshold {
+		m.cache.Set(band.Frequency, p1, p2, 0.0)
+		return 0.0, nil
+	}
+
 	// Calculate equivalent knife edge using bullington figure 12 method
 	d1, d2, h := rf.BullingtonFigure12Method(p1Alt, p2Alt, distance, terrain)
 

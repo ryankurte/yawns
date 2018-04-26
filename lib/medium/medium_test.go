@@ -23,7 +23,7 @@ func TestMedium(t *testing.T) {
 	c.Medium.Maps.Satellite = ""
 	c.Medium.Maps.Terrain = ""
 
-	nodes := make([]types.Node, len(c.Nodes))
+	nodes := make(types.Nodes, len(c.Nodes))
 	for i := range c.Nodes {
 		nodes[i] = c.Nodes[i]
 	}
@@ -48,10 +48,10 @@ func TestMedium(t *testing.T) {
 	})
 
 	t.Run("Calculates fading between points", func(t *testing.T) {
-		fading := m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[0], c.Nodes[1])
+		fading := m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[0], c.Nodes[1]).Reduce()
 		assert.InDelta(t, 86, float64(fading), 1.0)
 
-		fading = m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[1], c.Nodes[2])
+		fading = m.GetPointToPointFading(c.Medium.Bands["Sub1GHz"], c.Nodes[1], c.Nodes[2]).Reduce()
 		assert.InDelta(t, 87, float64(fading), 1.0)
 	})
 

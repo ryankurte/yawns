@@ -34,6 +34,8 @@ type Band struct {
 	NoAutoTXRXTransition bool
 	// Noise floor in dB
 	NoiseFloor types.Attenuation
+	// Free space threshold for terrain interference calculation
+	FreeSpaceThreshold float64
 }
 
 // Maps configuration for the Medium Map layer

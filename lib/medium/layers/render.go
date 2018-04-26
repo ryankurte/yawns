@@ -23,8 +23,8 @@ type RenderLayer struct {
 type RenderCommand struct {
 	FileName string
 	Level    int
-	Nodes    []types.Node
-	Links    []types.Link
+	Nodes    types.Nodes
+	Links    types.Links
 }
 
 // NewRenderLayer creates a new instance of the rendering layer based on the provided config
@@ -60,7 +60,7 @@ func (m *RenderLayer) Run() {
 }
 
 // Render renders a simulation map with the provided nodes and links
-func (m *RenderLayer) Render(fileName string, nodes []types.Node, links []types.Link) error {
+func (m *RenderLayer) Render(fileName string, nodes types.Nodes, links types.Links) error {
 	tile := m.satellite
 
 	for _, l := range links {
@@ -81,6 +81,35 @@ func (m *RenderLayer) Render(fileName string, nodes []types.Node, links []types.
 	}
 
 	return maps.SaveImageJPG(tile, fileName)
+}
+
+type Render struct {
+	tile maps.Tile
+}
+
+func (m *RenderLayer) NewRender() *Render {
+	return &Render{tile: m.satellite}
+}
+
+func (r *Render) Nodes(nodes types.Nodes, c color.RGBA, size uint64) *Render {
+	for _, n := range nodes {
+		r.tile.DrawPoint(onsToMapLoc(&n.Location), 16, c)
+		x, y, _ := r.tile.LocationToPixel(onsToMapLoc(&n.Location))
+		pixfont.DrawString(r.tile, int(x)-len(n.Address)*8/2, int(y)-4, n.Address, color.Black)
+	}
+	return r
+}
+
+func (r *Render) Links(nodes types.Nodes, links types.Links, color color.Color) *Render {
+	for _, l := range links {
+		n1, n2 := nodes[l.A], nodes[l.B]
+		r.tile.DrawLine(onsToMapLoc(&n1.Location), onsToMapLoc(&n2.Location), color)
+	}
+	return r
+}
+
+func (r *Render) Finish(fileName string) error {
+	return maps.SaveImageJPG(r.tile, fileName)
 }
 
 func onsToMapLoc(l *types.Location) base.Location {

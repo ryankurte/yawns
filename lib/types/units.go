@@ -48,6 +48,17 @@ func (a *Attenuation) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// AttenuationMap is a map of attenuation values with keys
+type AttenuationMap map[string]Attenuation
+
+func (am AttenuationMap) Reduce() Attenuation {
+	sum := Attenuation(0)
+	for _, v := range am {
+		sum += v
+	}
+	return sum
+}
+
 // Baud type for parsing/rendering
 type Baud float64
 

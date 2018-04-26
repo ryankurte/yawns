@@ -29,7 +29,7 @@ type InfoInterface interface {
 
 // RenderInterface interface for layers implementing rendering functions
 type RenderInterface interface {
-	Render(fileName string, nodes []types.Node, links []types.Link) error
+	Render(fileName string, nodes types.Nodes, links types.Links) error
 }
 
 // LayerManager manages a set of medium layers
@@ -79,24 +79,25 @@ func (lm *LayerManager) GetLayer(name string) (interface{}, error) {
 	if ok {
 		return i, nil
 	}
+	if name == "render" {
+		return lm.RenderInterface, nil
+	}
 	return nil, nil
 }
 
 // CalculateFading calculates the overall fading using the provided layers
-func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location) (float64, error) {
-	fading := 0.0
-	layers := make(map[string]float64)
+func (lm *LayerManager) CalculateFading(band config.Band, p1, p2 types.Location) (types.AttenuationMap, error) {
+	layers := make(types.AttenuationMap)
 
 	for name, layer := range lm.FadingInterfaces {
 		layerFading, _ := layer.CalculateFading(band, p1, p2)
-		fading += layerFading
-		layers[name] = layerFading
+		layers[name] = types.Attenuation(layerFading)
 	}
 
-	return fading, nil
+	return layers, nil
 }
 
-func (lm *LayerManager) Render(filename string, nodes []types.Node, links []types.Link) error {
+func (lm *LayerManager) Render(filename string, nodes types.Nodes, links types.Links) error {
 	if lm.RenderInterface != nil {
 		return lm.RenderInterface.Render(filename, nodes, links)
 	}

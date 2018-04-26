@@ -14,9 +14,30 @@ type Node struct {
 	Sent, Received uint32 // Sent and Received packet count
 }
 
+type Nodes []Node
+
+func (n Nodes) FindIndex(address string) (int, bool) {
+	for i, v := range n {
+		if v.Address == address {
+			return i, true
+		}
+	}
+	return 0, false
+}
+
+func (n Nodes) Find(address string) (*Node, bool) {
+	for _, v := range n {
+		if v.Address == address {
+			return &v, true
+		}
+	}
+	return nil, false
+}
+
 type Link struct {
 	A, B   int
 	Fading float64
+	Meta   interface{}
 }
 
 func GetNodeBounds(nodes []Node) (Location, Location) {
@@ -36,4 +57,34 @@ func GetNodeBounds(nodes []Node) (Location, Location) {
 		}
 	}
 	return min, max
+}
+
+type Links []Link
+
+func (l *Links) Find(a, b int) (float64, bool) {
+	for _, v := range *l {
+		if v.A == a && v.B == b {
+			return v.Fading, true
+		}
+	}
+
+	return 0, false
+}
+
+func (vs Links) Filter(f func(Link) bool) Links {
+	vsf := make(Links, 0)
+	for _, v := range vs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
+}
+
+func (vs Links) Map(f func(Link) Link) Links {
+	vsm := make(Links, len(vs))
+	for i, v := range vs {
+		vsm[i] = f(v)
+	}
+	return vsm
 }

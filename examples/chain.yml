@@ -43,22 +43,22 @@ defaults:
 # Node definitions
 # This defines the nodes to be linked to the simulator
 nodes:
-  - address: 0x0001
+  - address: 0x0000
     location: 
       lat: -36.835
       lng: 174.770
       alt: 2.0
-  - address: 0x0002
+  - address: 0x0001
     location: 
       lat: -36.842
       lng: 174.785
       alt: 2.0
-  - address: 0x0003
+  - address: 0x0002
     location: 
       lat: -36.835
       lng: 174.800
       alt: 2.0
-  - address: 0x0004
+  - address: 0x0003
     location: 
       lat: -36.842
       lng: 174.815

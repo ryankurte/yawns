@@ -30,7 +30,7 @@ type Config struct {
 	Defaults types.Node
 
 	// Nodes definitions for the engine
-	Nodes []types.Node
+	Nodes types.Nodes
 
 	// Event actions to execute when running
 	Updates []Update
@@ -40,8 +40,9 @@ type Config struct {
 type PluginConfig map[string]interface{}
 
 const (
-	defaultEndTime  = 1 * time.Second
-	defaultTickRate = 100 * time.Millisecond
+	defaultEndTime            = 1 * time.Second
+	defaultTickRate           = 100 * time.Millisecond
+	defaultFreeSpaceThreshold = 0.6
 )
 
 // LoadConfig parses a configuration object and initialises defaults
