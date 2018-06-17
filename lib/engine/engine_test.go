@@ -7,9 +7,9 @@ import (
 )
 
 import (
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/connector"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/connector"
+	"github.com/ryankurte/yawns/lib/types"
 	"time"
 )
 

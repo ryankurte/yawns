@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#include "owns/owns.h"
+#include "yawns/yawns.h"
 
 #ifdef __cplusplus
 extern "C" {

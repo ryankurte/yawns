@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/yawns/lib/config"
 )
 
 // ConnectHandler interface should be implemented by plugins that need to detect

@@ -3,8 +3,8 @@ package layers
 import (
 	"testing"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/types"
 	"github.com/stretchr/testify/assert"
 )
 

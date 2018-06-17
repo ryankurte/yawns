@@ -1,5 +1,5 @@
-hash: e49b94e3f849a392b008b29d61f5c7f377394ff322b833152fafe018c0559211
-updated: 2018-01-30T15:27:11.668869+13:00
+hash: 864f5a92028d593589343cff04fb9a80347de6a8df402d2fe17520e40b10c720
+updated: 2018-06-17T18:18:59.0405351+12:00
 imports:
 - name: github.com/blendlabs/go-exception
   version: 8d6614c6a381fe586fa618174af22043ff966730
@@ -47,7 +47,7 @@ imports:
 - name: github.com/google/gopacket
   version: 11c65f1ca9081dfea43b4f9643f5c155583b73ba
 - name: github.com/jessevdk/go-flags
-  version: 96dc06278ce32a0e9d957d590bb987c81ee66407
+  version: c6ca198ec95c841fdb89fc0de7496fed11ab854e
 - name: github.com/pbnjay/pixfont
   version: 80412ecf517af357b35b325eda36477d4c1f9c88
 - name: github.com/pkg/profile
@@ -103,6 +103,6 @@ testImports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/stretchr/testify
-  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
   - assert

@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/yawns/lib/config"
 )
 
 // Runner instance manages runnable clients

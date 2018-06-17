@@ -1,6 +1,6 @@
 /**
  * OpenNetworkSim Connector Protocol Definitions
- * Defines protocol message constants, construction, and parsing. This must match the definitions in libons
+ * Defines protocol message constants, construction, and parsing. This must match the definitions in libyawns
  * to allow the c language connector to interact with the ons server.
  *
  * https://github.com/ryankurte/ons
@@ -14,9 +14,9 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/ryankurte/owns/lib/messages"
-	"github.com/ryankurte/owns/lib/protocol"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/messages"
+	"github.com/ryankurte/yawns/lib/protocol"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // handleIncoming handles incoming messages from external sources (ie. from nodes to ONS)

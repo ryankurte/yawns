@@ -2,7 +2,7 @@ package sim
 
 // Options defines the command line options available to ons instances
 type Options struct {
-	ConfigFile string `short:"c" long:"config" description:"Simulation configuration file" default:"owns.yml"`
+	ConfigFile string `short:"c" long:"config" description:"Simulation configuration file" default:"yawns.yml"`
 	BindAddr   string `short:"a" long:"address" description:"Simulator Bind Address"`
 
 	OutputDir  string `short:"o" long:"output" description:"Directory for output files"`

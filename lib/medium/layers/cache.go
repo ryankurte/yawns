@@ -3,7 +3,7 @@ package layers
 import (
 	"fmt"
 
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // Cache is a simple map based cache to minimise computations required for each layer

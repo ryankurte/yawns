@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/messages"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/messages"
 )
 
 func TestState(t *testing.T) {

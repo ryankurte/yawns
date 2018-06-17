@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/yawns/lib/config"
 )
 
 func TestRunner(t *testing.T) {

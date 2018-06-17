@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/helpers"
-	"github.com/ryankurte/owns/lib/messages"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/helpers"
+	"github.com/ryankurte/yawns/lib/messages"
 )
 
 type Field string

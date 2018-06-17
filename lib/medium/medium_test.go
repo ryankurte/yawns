@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
-	//"github.com/ryankurte/owns/lib/medium/layers"
-	"github.com/ryankurte/owns/lib/messages"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	//"github.com/ryankurte/yawns/lib/medium/layers"
+	"github.com/ryankurte/yawns/lib/messages"
+	"github.com/ryankurte/yawns/lib/types"
 
 	"github.com/stretchr/testify/assert"
 )

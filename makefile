@@ -1,35 +1,35 @@
 
 IDIR=/usr/local
 
-BINS=owns owns-mapclient
-LIBS=cowns/build/libowns.a cowns/build/libowns.so
+BINS=yawns yawns-mapclient
+LIBS=cyawns/build/libyawns.a cyawns/build/libyawns.so
 
-default: owns
+default: yawns
 
 # Install dependencies
 deps:
-	glide install
-
-tools:
 	go get -u github.com/golang/lint/golint
 	go get -u github.com/Masterminds/glide
-	go get -u github.com/golang/protobuf/...
+	# Glide manages go deps
+	glide install
+	# Protobuf binaries must match library version
+	go install ./vendor/github.com/golang/protobuf/...
 
-all: owns lib client
+all: yawns lib client
 
 # Build protocol
 protocol: protocol/*.proto
 	protoc --go_out=import_path=protocol:lib/ protocol/*.proto
-	protoc-c --c_out=cowns/src protocol/*.proto
+	protoc-c --c_out=cyawns/src protocol/*.proto
 
 # Build ons server
-owns: protocol
-	go build -ldflags -s ./cmd/owns-sim
-	go build -ldflags -s ./cmd/owns-mapclient
-	go build -ldflags -s ./cmd/owns-eval
+yawns: protocol
+	go build -ldflags -s ./cmd/yawns-sim
+	go build -ldflags -s ./cmd/yawns-mapclient
+	go build -ldflags -s ./cmd/yawns-eval
 
 build:
-	go build ./cmd/owns-sim
+	go build ./cmd/yawns-sim
 
 build-linux-x64:
 	GOOS=linux GOARCH=amd64 go build ./cmd/...
@@ -37,28 +37,28 @@ build-linux-x64:
 build-osx-x64:
 	GOOS=darwin GOARCH=amd64 go build ./cmd/...
 
-# Build libons C library and example client
+# Build libyawns C library and example client
 lib: protocol
-	/bin/bash -c "cd ./cowns && make all"
+	/bin/bash -c "cd ./cyawns && make all"
 
 client:
-	mkdir -p cowns/build && cd cowns/build && cmake .. && make
+	mkdir -p cyawns/build && cd cyawns/build && cmake .. && make
 
 # Run application
 run: build
-	./owns-sim -c examples/chain.yml
+	./yawns-sim -c examples/chain.yml
 
-test-deps: owns
-	./owns-mapclient -c examples/chain.yml -t satellite
-	./owns-mapclient -c examples/chain.yml -t terrain
+test-deps: yawns
+	./yawns-mapclient -c examples/chain.yml -t satellite
+	./yawns-mapclient -c examples/chain.yml -t terrain
     
 # Test application
-test: owns lib client
-	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cowns/...
+test: yawns lib client
+	GODEBUG=cgocheck=0 go test -p=1 -timeout=10s -ldflags -s ./lib/... ./cyawns/...
 
-install: owns lib
+install: yawns lib
 	go install ./cmd/...
-	cd cowns/build && cmake .. && make install; cd ../..
+	cd cyawns/build && cmake .. && make install; cd ../..
 
 # Utilities
 
@@ -73,4 +73,4 @@ coverage:
 	
 checks: lint format coverage
 
-.PHONY: owns lib run test lint format coverage protocol client
+.PHONY: yawns lib run test lint format coverage protocol client

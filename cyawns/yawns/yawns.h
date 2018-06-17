@@ -4,8 +4,8 @@
  * Copyright 2017 Ryan Kurte
  */
 
-#ifndef OWNS_H
-#define OWNS_H
+#ifndef YAWNS_H
+#define YAWNS_H
 
 #include <stdint.h>
 #include <float.h>
@@ -101,7 +101,7 @@ int ONS_init(struct ons_s *ons, char *ons_address, char *local_address, struct o
 int ONS_status(struct ons_s *ons);
 
 // Send an ONS event
-int OWNS_event(struct ons_s *ons, uint8_t* name, uint8_t* data, size_t len);
+int YAWNS_event(struct ons_s *ons, uint8_t* name, uint8_t* data, size_t len);
 
 // Create a for a specific band using the ons connector
 int ONS_radio_init(struct ons_s *ons, struct ons_radio_s *radio, char *band);

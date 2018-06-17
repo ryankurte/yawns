@@ -4,7 +4,7 @@ A Next-Generation Wireless Sensor Network Simulation Engine for Wireless Sensor 
 
 This is designed to assist the development and evaluation of WSN operating systems, protocols, and applications in a programmable virtual environment, with a focus on replicating the radio environment of a physical environment in a virtual space.
 
-This project consists of two parts. The core simulator (ons) that manages clients and connections, simulates the medium and environment, and processes Events to the simulation environment, and libons that implements a C Language radio interface for use in the node application.
+This project consists of two parts. The core simulator (ons) that manages clients and connections, simulates the medium and environment, and processes Events to the simulation environment, and libyawns that implements a C Language radio interface for use in the node application.
 
 ## Status
 
@@ -16,13 +16,13 @@ Very early prototype
 
 ## Goals
 
-- [ ] Event Engine
-- [ ] Common Medium interface
-  - [ ] Definition of wireless medium as appropriate for simulation tasks
-- [ ] Plugin support
+- [X] Event Engine
+- [X] Common Medium interface
+  - X ] Definition of wireless medium as appropriate for simulation tasks
+- [X] Plugin support
   - [X]Standard Plugin Interface
-- [ ] PCAP streaming, file writing
-- [ ] Runnable / Client Management
+- [X] PCAP streaming, file writing
+- [X] Runnable / Client Management
 - [ ] Platform / OS independent
   - [X] Generic Radio Driver
   - [ ] Cross compiled packages
@@ -30,23 +30,36 @@ Very early prototype
 
 ## Dependencies
 
+Go compiler from  [golang.org/](https://golang.org/dl/).
+
+- cmake
 - sodium
 - czmq
-- go
 - protoc
 - protobuf-c
 
+### Debian / Ubuntu
+```
+sudo apt install libsodium-dev libzmq5-dev libczmq-dev libprotobuf-dev protobuf-compiler libprotobuf-c-dev protobuf-c-compiler pkg-config build-essential
+```
+
 ### OSX
+```
+brew install libsodium czmq protobuf-c
+```
 
-OSX dependencies can be installed with `brew install libsodium czmq go protobuf-c`, though you may prefer to use the more up-to-date official go package from [golang.org/](https://golang.org/dl/).
+## Building
 
+1. `make tools` to fetch required (go) tools
+2. `make deps` to update dependencies
+3. `make` to build yawns
 
 ## Usage
 
 ONS is designed to be platform and network agnostic. To simulate a given platform
 
 1. Install ons
-2. Create a wrapper for libons to adapt to the system under test
+2. Create a wrapper for libyawns to adapt to the system under test
 3. Create a simulation configuration file
 4. Launch ons with the specified configuration
 
@@ -60,7 +73,7 @@ ONS is designed to be platform and network agnostic. To simulate a given platfor
 - [lib/engine](/lib/engine) contains the core simulation engine
 - [lib/medium](/lib/medium) contains the wireless medium emulation
 - [lib/runner](/lib/runner) contains the client application runner
-- [libons](/libons) contains the libons C library for client nodes as well as go bindings for testing these
+- [libyawns](/libyawns) contains the libyawns C library for client nodes as well as go bindings for testing these
 
 ## Licence
 

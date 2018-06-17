@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <signal.h>
 
-#include "owns/owns.h"
-#include "owns/fifteenfour.h"
+#include "yawns/yawns.h"
+#include "yawns/fifteenfour.h"
 
 static volatile int running = 1;
 

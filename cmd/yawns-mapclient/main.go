@@ -10,8 +10,8 @@ import (
 	"github.com/ryankurte/go-mapbox/lib/base"
 	"github.com/ryankurte/go-mapbox/lib/maps"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 type Options struct {
@@ -19,15 +19,15 @@ type Options struct {
 	APIKey    string         `short:"a" long:"api-key" description:"Mapbox API key" env:"MAPBOX_TOKEN"`
 	Type      string         `short:"t" long:"map-type" description:"Map download type" default:"satellite"`
 	Level     int            `short:"l" long:"level" description:"Map level" default:"16" required:"yes"`
-	Output    string         `short:"o" long:"output-dir" description:"Output directory" default:"/tmp/owns/"`
-	Cache     string         `short:"d" long:"cache-dir" description:"Cache directory" default:"/tmp/owns/"`
+	Output    string         `short:"o" long:"output-dir" description:"Output directory" default:"/tmp/yawns/"`
+	Cache     string         `short:"d" long:"cache-dir" description:"Cache directory" default:"/tmp/yawns/"`
 	Update    bool           `short:"u" long:"update" description:"Automatically updates the provided configuration file with new map references"`
 	NoHighDPI bool           `long:"no-high-dpi" description:"Uses standard (not high DPI) tiles"`
 	Flatten   bool           `long:"flatten-terrain" description:"Flattens terrain images to greyscale for human parsing"`
 }
 
 func main() {
-	fmt.Printf("OWNS Map Fetching Utility\n")
+	fmt.Printf("YAWNS Map Fetching Utility\n")
 
 	options := Options{}
 

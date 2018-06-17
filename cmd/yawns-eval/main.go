@@ -11,15 +11,15 @@ import (
 	"github.com/gonum/stat"
 	"github.com/jessevdk/go-flags"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/helpers"
-	"github.com/ryankurte/owns/lib/medium"
-	"github.com/ryankurte/owns/lib/medium/layers"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/helpers"
+	"github.com/ryankurte/yawns/lib/medium"
+	"github.com/ryankurte/yawns/lib/medium/layers"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 type Options struct {
-	ConfigFile string   `short:"c" long:"config" description:"Simulation configuration file" default:"owns.yml"`
+	ConfigFile string   `short:"c" long:"config" description:"Simulation configuration file" default:"yawns.yml"`
 	Band       string   `short:"b" long:"band" description:"Medium band for evaluation"`
 	Nodes      []string `short:"n" long:"node" description:"Nodes to be filtered from configuration"`
 	OutputDir  string   `short:"o" long:"output" description:"Output directory" default:"outputs"`
@@ -59,7 +59,7 @@ func (l LinkInfoList) Find(a, b string) (*LinkInfo, bool) {
 }
 
 func main() {
-	fmt.Println("OWNS-Eval Utility")
+	fmt.Println("YAWNS-Eval Utility")
 
 	o := Options{}
 	_, err := flags.Parse(&o)

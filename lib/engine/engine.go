@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/plugins"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/plugins"
 )
 
 // Engine is the base simulation engine

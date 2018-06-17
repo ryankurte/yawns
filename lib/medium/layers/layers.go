@@ -12,8 +12,8 @@ package layers
 import (
 	"fmt"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // FadingInterface interface for layers implementing fading calculations

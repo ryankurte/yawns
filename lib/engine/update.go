@@ -5,8 +5,8 @@ import (
 )
 
 import (
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/helpers"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/helpers"
 )
 
 // Update engine type

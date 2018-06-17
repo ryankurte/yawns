@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/yawns/lib/config"
 )
 
 func TestPCap(t *testing.T) {

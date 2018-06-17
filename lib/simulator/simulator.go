@@ -4,12 +4,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/connector"
-	"github.com/ryankurte/owns/lib/engine"
-	"github.com/ryankurte/owns/lib/medium"
-	"github.com/ryankurte/owns/lib/plugins"
-	"github.com/ryankurte/owns/lib/runner"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/connector"
+	"github.com/ryankurte/yawns/lib/engine"
+	"github.com/ryankurte/yawns/lib/medium"
+	"github.com/ryankurte/yawns/lib/plugins"
+	"github.com/ryankurte/yawns/lib/runner"
 )
 
 // Simulator instance
@@ -22,7 +22,7 @@ type Simulator struct {
 // NewSimulator creates a simulator instance
 func NewSimulator(o *Options) (*Simulator, error) {
 
-	log.Printf("[INFO] Starting OWNS")
+	log.Printf("[INFO] Starting YAWNS")
 
 	log.Printf("[DEBUG] Loading configuration file")
 
@@ -127,7 +127,7 @@ func (s *Simulator) Run() error {
 
 // Close the simulation
 func (s *Simulator) Close() {
-	log.Printf("[INFO] Exiting OWNS")
+	log.Printf("[INFO] Exiting YAWNS")
 
 	s.medium.Stop()
 

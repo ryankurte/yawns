@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // Channels defines channel information for the medium
