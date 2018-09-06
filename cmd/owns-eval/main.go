@@ -19,13 +19,14 @@ import (
 )
 
 type Options struct {
-	ConfigFile string   `short:"c" long:"config" description:"Simulation configuration file" default:"owns.yml"`
-	Band       string   `short:"b" long:"band" description:"Medium band for evaluation"`
-	Nodes      []string `short:"n" long:"node" description:"Nodes to be filtered from configuration"`
-	OutputDir  string   `short:"o" long:"output" description:"Output directory" default:"outputs"`
-	LinkInfo   string   `long:"link-info" description:"Real link information file for analysis"`
-	RealOnly   bool     `long:"real-only" description:"Render real links only"`
-	SimOnly    bool     `long:"simulated-only" description:"Render simulated links only"`
+	ConfigFile   string   `short:"c" long:"config" description:"Simulation configuration file" default:"owns.yml"`
+	Band         string   `short:"b" long:"band" description:"Medium band for evaluation"`
+	Nodes        []string `short:"n" long:"node" description:"Nodes to be filtered from configuration"`
+	OutputDir    string   `short:"o" long:"output" description:"Output directory" default:"outputs"`
+	LinkInfo     string   `long:"link-info" description:"Real link information file for analysis"`
+	RealOnly     bool     `long:"real-only" description:"Render real links only"`
+	SimOnly      bool     `long:"simulated-only" description:"Render simulated links only"`
+	TerrainFiles bool     `long:"terrain" description:"Render terrain slices"`
 }
 
 type LinkInfo struct {
@@ -54,9 +55,17 @@ func (l LinkInfoList) Find(a, b string) (*LinkInfo, bool) {
 		if v.A == a && v.B == b {
 			return &v, true
 		}
+		if v.A == b && v.B == a {
+			return &v, true
+		}
 	}
 	return nil, false
 }
+
+var red = color.RGBA{255, 0, 0, 128}
+var green = color.RGBA{0, 255, 0, 128}
+var blue = color.RGBA{0, 0, 255, 128}
+var black = color.RGBA{0, 0, 0, 128}
 
 func main() {
 	fmt.Println("OWNS-Eval Utility")
@@ -85,6 +94,8 @@ func main() {
 			fmt.Printf("Error loading link info: %s", err)
 			os.Exit(-2)
 		}
+
+		fmt.Printf("Loaded %d real-world links\n", len(linkInfo))
 	}
 
 	nodes := make(types.Nodes, 0)
@@ -109,6 +120,7 @@ func main() {
 	}
 
 	realLinks := linkInfo.ResolveLinks(nodes)
+	fmt.Printf("Mapped %d (of %d) real-world links\n", len(realLinks), len(linkInfo))
 
 	sort.Slice(nodes, func(i, j int) bool {
 		n := strings.Compare(nodes[i].Address, nodes[j].Address)
@@ -137,8 +149,9 @@ func main() {
 
 	ml, _ := m.GetLayer("terrain")
 
-	links := make(types.Links, 0)
+	simLinks := make(types.Links, 0)
 
+	fmt.Printf("\nComputed fadings:\n")
 	fmt.Printf("\t")
 	for i := 0; i < len(nodes); i++ {
 		fmt.Printf("%s,\t", nodes[i].Address)
@@ -148,10 +161,7 @@ func main() {
 	// Compute links
 	for i := 0; i < len(nodes); i++ {
 		fmt.Printf("%s,\t", nodes[i].Address)
-		for j := 0; j < i; j++ {
-			fmt.Printf("\t")
-		}
-		for j := i; j < len(nodes); j++ {
+		for j := 0; j < len(nodes); j++ {
 
 			n1, n2 := nodes[i], nodes[j]
 
@@ -161,12 +171,12 @@ func main() {
 				fading = -fm.Reduce()
 
 				if fading > -b.LinkBudget {
-					links = append(links, types.Link{A: i, B: j, Fading: float64(fading), Meta: fm})
+					simLinks = append(simLinks, types.Link{A: i, B: j, Fading: float64(fading), Meta: fm})
 				}
 			}
 			fmt.Printf("%3.1f,\t", fading)
 
-			if ml != nil {
+			if ml != nil && o.TerrainFiles {
 				mapLayer := ml.(*layers.TerrainLayer)
 				mapLayer.GraphTerrain(fmt.Sprintf("%s/terrain-%s-%s.png", o.OutputDir, n1.Address, n2.Address), n1.Location, n2.Location)
 			}
@@ -182,8 +192,9 @@ func main() {
 		simulated := make([]float64, 0)
 		errors := make([]float64, 0)
 
+		fmt.Printf("\nReal world comparison:\n")
 		fmt.Printf("A,     B,     Real,    Free Space, Terrain, Foliage, Simulated, Error\n")
-		for _, l := range links {
+		for _, l := range simLinks {
 			n1, n2 := nodes[l.A], nodes[l.B]
 
 			if r, ok := linkInfo.Find(n1.Address, n2.Address); ok {
@@ -197,15 +208,15 @@ func main() {
 			}
 		}
 
-		fmt.Printf("Stats:\n")
+		fmt.Printf("\nStatistics:\n")
 
 		n := len(nodes)
 		maxLinks := n * (n - 1) / 2
 
 		if len(linkInfo) != 0 {
-			fmt.Printf("Simulated links: %d real links: %d (of possible %d)\n", len(links), len(realLinks), maxLinks)
+			fmt.Printf("Simulated links: %d real links: %d (of possible %d)\n", len(simLinks), len(realLinks), maxLinks)
 		} else {
-			fmt.Printf("Simulated links: %d (of possible %d)\n", len(links), maxLinks)
+			fmt.Printf("Simulated links: %d (of possible %d)\n", len(simLinks), maxLinks)
 		}
 
 		AvgReal, stdDevReal := stat.MeanStdDev(real, nil)
@@ -223,32 +234,48 @@ func main() {
 		fmt.Printf("Correlation, %.2f\n", correlation)
 	}
 
+	both := simLinks.Filter(func(l types.Link) bool {
+		_, ok1 := realLinks.Find(l.A, l.B)
+		_, ok2 := realLinks.Find(l.B, l.A)
+		return (ok1 || ok2)
+	})
+
+	realOnly := realLinks.Difference(both)
+	simOnly := simLinks.Difference(both)
+	//both = both
+
+	fmt.Printf("Real links: %d Simulated links: %d\n", len(realLinks), len(simLinks))
+	fmt.Printf("Common links: %d Real only: %d Sim only: %d\n", len(both), len(realOnly), len(simOnly))
+
 	rl, _ := m.GetLayer("render")
 	renderLayer := rl.(*layers.RenderLayer)
 	RenderLinks(renderLayer, fmt.Sprintf("%s/00-simulated.png", o.OutputDir),
-		nodes, []types.Links{links}, []color.Color{color.RGBA{0, 0, 255, 128}})
+		nodes, []types.Links{simLinks},
+		[]color.Color{blue})
 
-	if len(linkInfo) != 0 {
-		RenderLinks(renderLayer, fmt.Sprintf("%s/00-real.png", o.OutputDir),
-			nodes, []types.Links{
-				realLinks.Filter(func(l types.Link) bool { return !l.Meta.(LinkInfo).Critical }),
-				realLinks.Filter(func(l types.Link) bool { return l.Meta.(LinkInfo).Critical }),
-			}, []color.Color{
-				color.RGBA{0, 0, 255, 128},
-				color.RGBA{255, 0, 0, 128},
-			})
-	}
+	RenderLinks(renderLayer, fmt.Sprintf("%s/00-real.png", o.OutputDir),
+		nodes, []types.Links{realLinks},
+		[]color.Color{blue})
 
-	RenderLinks(renderLayer, fmt.Sprintf("%s/00-map.png", o.OutputDir),
-		nodes, []types.Links{links, realLinks}, []color.Color{color.RGBA{255, 0, 0, 128}, color.RGBA{0, 0, 255, 128}})
+	RenderLinks(renderLayer, fmt.Sprintf("%s/00-both.png", o.OutputDir),
+		nodes, []types.Links{both},
+		[]color.Color{black})
+
+	RenderLinks(renderLayer, fmt.Sprintf("%s/00-only-sim.png", o.OutputDir),
+		nodes, []types.Links{simOnly},
+		[]color.Color{red})
+
+	RenderLinks(renderLayer, fmt.Sprintf("%s/00-only-real.png", o.OutputDir),
+		nodes, []types.Links{realOnly},
+		[]color.Color{red})
 
 }
 
 func RenderLinks(r *layers.RenderLayer, name string, nodes types.Nodes, links []types.Links, c []color.Color) error {
 	render := r.NewRender()
 	for i, _ := range links {
-		render = render.Links(nodes, links[i], c[i])
+		render = render.Links(nodes, links[i].Deduplicate(), c[i])
 	}
-	render = render.Nodes(nodes, color.RGBA{255, 0, 0, 255}, 16)
+	render = render.Nodes(nodes, color.RGBA{255, 0, 0, 128}, 16)
 	return render.Finish(name)
 }

@@ -1,10 +1,6 @@
-hash: e49b94e3f849a392b008b29d61f5c7f377394ff322b833152fafe018c0559211
-updated: 2018-01-30T15:27:11.668869+13:00
+hash: 8dbdc59365be867d08314351a0f1261bbcab3ea22a69509e56724459ec172823
+updated: 2018-05-07T18:46:57.661547+12:00
 imports:
-- name: github.com/blendlabs/go-exception
-  version: 8d6614c6a381fe586fa618174af22043ff966730
-- name: github.com/blendlabs/go-util
-  version: 6326ad605727b9b3ff75448bd9287050aa6eecd3
 - name: github.com/go-yaml/yaml
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 - name: github.com/golang/freetype
@@ -47,7 +43,9 @@ imports:
 - name: github.com/google/gopacket
   version: 11c65f1ca9081dfea43b4f9643f5c155583b73ba
 - name: github.com/jessevdk/go-flags
-  version: 96dc06278ce32a0e9d957d590bb987c81ee66407
+  version: c6ca198ec95c841fdb89fc0de7496fed11ab854e
+- name: github.com/jinzhu/copier
+  version: 7e38e58719c33e0d44d585c4ab477a30f8cb82dd
 - name: github.com/pbnjay/pixfont
   version: 80412ecf517af357b35b325eda36477d4c1f9c88
 - name: github.com/pkg/profile
@@ -71,7 +69,7 @@ imports:
 - name: github.com/ryankurte/go-rf
   version: e7052ddb8216cedefa064856246db0f8479051dc
 - name: github.com/wcharczuk/go-chart
-  version: 11e380634bd594f5635f2f8e89a6e8c075ec1222
+  version: 9e3a080aa3e7573281cf8d65a55305e1148d857d
   subpackages:
   - drawing
   - matrix
@@ -81,7 +79,7 @@ imports:
 - name: github.com/zeromq/goczmq
   version: 98ab09146269d98bc3e427046f5fc222c4134e0b
 - name: golang.org/x/image
-  version: 12117c17ca67ffa1ce22e9409f3b0b0a93ac08c7
+  version: f315e440302883054d0c2bd85486878cb4f8572c
   subpackages:
   - draw
   - font
@@ -103,6 +101,6 @@ testImports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/stretchr/testify
-  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
+  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
   subpackages:
   - assert

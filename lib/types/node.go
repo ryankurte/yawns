@@ -88,3 +88,58 @@ func (vs Links) Map(f func(Link) Link) Links {
 	}
 	return vsm
 }
+
+func (vs Links) FilterMap(f func(Link) (Link, bool)) Links {
+	vsf := make(Links, 0)
+	for _, v := range vs {
+		if n, ok := f(v); ok {
+			vsf = append(vsf, n)
+		}
+	}
+	return vsf
+}
+
+func (vs Links) Deduplicate() Links {
+	vsm := make(Links, 0)
+
+	for _, v := range vs {
+		opposite, oppositeOk := vs.Find(v.B, v.A)
+		_, existingOk := vsm.Find(v.B, v.A)
+		if oppositeOk && !existingOk {
+			v.Fading = (v.Fading + opposite) / 2.0
+			vsm = append(vsm, v)
+		}
+	}
+
+	return vsm
+}
+
+func (l1 Links) Difference(l2 Links) Links {
+	vsm := make(Links, 0)
+
+	for _, v := range l1 {
+		if _, ok := l2.Find(v.A, v.B); !ok {
+			vsm = append(vsm, v)
+		}
+	}
+
+	for _, v := range l2 {
+		if _, ok := l1.Find(v.A, v.B); !ok {
+			vsm = append(vsm, v)
+		}
+	}
+
+	return vsm
+}
+
+func (l1 Links) Common(l2 Links) Links {
+	vsm := make(Links, 0)
+
+	for _, v := range l1 {
+		if _, ok := l2.Find(v.A, v.B); ok {
+			vsm = append(vsm, v)
+		}
+	}
+
+	return vsm
+}

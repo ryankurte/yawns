@@ -91,7 +91,7 @@ nodes:
       alt: 1.0
 
 # Event definitions
-# These define changes to the simulation and environment at a given point in time
+# These define changes to the simulation and environment
 updates:
   - action: set-location
     timestamp: 1s

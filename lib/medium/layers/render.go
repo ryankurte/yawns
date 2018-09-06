@@ -88,7 +88,7 @@ type Render struct {
 }
 
 func (m *RenderLayer) NewRender() *Render {
-	return &Render{tile: m.satellite}
+	return &Render{tile: m.satellite.Clone()}
 }
 
 func (r *Render) Nodes(nodes types.Nodes, c color.RGBA, size uint64) *Render {
