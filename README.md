@@ -8,11 +8,11 @@ This project consists of two parts. The core simulator (ons) that manages client
 
 ## Status
 
-[![Documentation](https://img.shields.io/badge/docs-godoc-blue.svg)](https://godoc.org/github.com/ryankurte/ons)
-[![GitHub tag](https://img.shields.io/github/tag/ryankurte/ons.svg)](https://github.com/ryankurte/ons)
-[![Build Status](https://travis-ci.com/ryankurte/ons.svg?token=s4CML2iJ2hd54vvqz5FP&branch=master)](https://travis-ci.com/ryankurte/ons/branches)
+[![Documentation](https://img.shields.io/badge/docs-godoc-blue.svg)](https://godoc.org/github.com/ryankurte/yawns)
+[![GitHub tag](https://img.shields.io/github/tag/ryankurte/yawns.svg)](https://github.com/ryankurte/yawns)
+[![Build Status](https://travis-ci.com/ryankurte/yawns.svg?branch=master)](https://travis-ci.com/ryankurte/yawns/branches)
 
-Very early prototype
+_PROTOTYPE_
 
 ## Goals
 
@@ -30,7 +30,7 @@ Very early prototype
 
 ## Dependencies
 
-Go compiler from  [golang.org/](https://golang.org/dl/).
+Go toolhain from [golang.org](https://golang.org/dl/).
 
 - cmake
 - sodium
