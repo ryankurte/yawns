@@ -15,7 +15,7 @@ import (
 	"github.com/ryankurte/go-pcapng"
 	"github.com/ryankurte/go-pcapng/types"
 
-	"github.com/ryankurte/owns/lib/config"
+	"github.com/ryankurte/yawns/lib/config"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	LinkType string = "linktype"
 
 	// Default (no config) pcap file name
-	DefaultFileName = "./owns.pcap"
+	DefaultFileName = "./yawns.pcap"
 
 	// Default (no config) link type
 	DefaultLinkType = types.LinkTypeIEEE802_15_4

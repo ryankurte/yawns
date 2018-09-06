@@ -7,7 +7,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/profile"
 
-	"github.com/ryankurte/owns/lib/simulator"
+	"github.com/ryankurte/yawns/lib/simulator"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // Node base type

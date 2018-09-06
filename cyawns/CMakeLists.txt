@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 
-project(owns CXX C)
+project(yawns CXX C)
 
 set(VERBOSE 1)
 
@@ -21,30 +21,30 @@ include_directories(
 )
 
 set(LIB_SOURCES
-    src/owns.c
+    src/yawns.c
     src/protocol.c
-    ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.c
+    ${CMAKE_CURRENT_BINARY_DIR}/yawns.pb-c.c
 )
 
 set(CLIENT_SOURCES
     src/main.c    
 )
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.c ${CMAKE_CURRENT_BINARY_DIR}/ons.pb-c.h
-                    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/../protocol/ons.proto
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/yawns.pb-c.c ${CMAKE_CURRENT_BINARY_DIR}/yawns.pb-c.h
+                    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/../protocol/yawns.proto
                     COMMAND protoc-c --c_out=${CMAKE_CURRENT_BINARY_DIR} 
                                 --proto_path=${CMAKE_CURRENT_LIST_DIR}/../protocol/
                                 ${CMAKE_CURRENT_LIST_DIR}/../protocol/*.proto)
 
-add_library(owns ${LIB_SOURCES})
-target_link_libraries(owns zmq czmq protobuf protobuf-c pthread)
+add_library(yawns ${LIB_SOURCES})
+target_link_libraries(yawns zmq czmq protobuf protobuf-c pthread)
 
-add_executable(owns-client ${CLIENT_SOURCES})
-target_link_libraries(owns-client ${OPTIONAL_LIBS} owns)
+add_executable(yawns-client ${CLIENT_SOURCES})
+target_link_libraries(yawns-client ${OPTIONAL_LIBS} yawns)
 
 set(CMAKE_INSTALL_PATH /usr/local)
-install(TARGETS owns DESTINATION lib/)
-file(GLOB HEADERS owns/**.h)
+install(TARGETS yawns DESTINATION lib/)
+file(GLOB HEADERS yawns/**.h)
 install(FILES ${HEADERS} DESTINATION include/${PROJECT_NAME})
 
 

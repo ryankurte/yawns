@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 hash: 8dbdc59365be867d08314351a0f1261bbcab3ea22a69509e56724459ec172823
 updated: 2018-05-07T18:46:57.661547+12:00
+=======
+hash: 864f5a92028d593589343cff04fb9a80347de6a8df402d2fe17520e40b10c720
+updated: 2018-06-17T18:18:59.0405351+12:00
+>>>>>>> 3b573b8fbfbe1775c6da6e4f17855b834d79da67
 imports:
 - name: github.com/go-yaml/yaml
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
@@ -44,8 +49,11 @@ imports:
   version: 11c65f1ca9081dfea43b4f9643f5c155583b73ba
 - name: github.com/jessevdk/go-flags
   version: c6ca198ec95c841fdb89fc0de7496fed11ab854e
+<<<<<<< HEAD
 - name: github.com/jinzhu/copier
   version: 7e38e58719c33e0d44d585c4ab477a30f8cb82dd
+=======
+>>>>>>> 3b573b8fbfbe1775c6da6e4f17855b834d79da67
 - name: github.com/pbnjay/pixfont
   version: 80412ecf517af357b35b325eda36477d4c1f9c88
 - name: github.com/pkg/profile
@@ -101,6 +109,10 @@ testImports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/stretchr/testify
+<<<<<<< HEAD
   version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+=======
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
+>>>>>>> 3b573b8fbfbe1775c6da6e4f17855b834d79da67
   subpackages:
   - assert

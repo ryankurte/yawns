@@ -5,11 +5,11 @@
  */
 
 
-#include "owns/protocol.h"
+#include "yawns/protocol.h"
 
 #include <stdint.h>
 
-#include "ons.pb-c.h"
+#include "yawns.pb-c.h"
 
 
 // ONS_DEBUG macro controls debug printing

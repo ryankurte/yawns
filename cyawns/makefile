@@ -1,7 +1,7 @@
 # C-ONS Example / Library Makefile
 
-TARGET=owns-client
-LIB=libowns
+TARGET=yawns-client
+LIB=libyawns
 OUTDIR=build
 
 # Helper to set default action

@@ -4,7 +4,7 @@
  * Copyright 2017 Ryan Kurte
  */
 
-#include "owns/owns.h"
+#include "yawns/yawns.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,8 +14,8 @@
 
 #include "zmq.h"
 #include "czmq.h"
-#include "owns/protocol.h"
-#include "ons.pb-c.h"
+#include "yawns/protocol.h"
+#include "yawns.pb-c.h"
 
 #define ONS_DEBUG
 #define ONS_INFO
@@ -65,7 +65,7 @@ int ONS_init(struct ons_s *ons, char *ons_address, char *local_address, struct o
 
 int ONS_status(struct ons_s *ons)
 {
-    printf("OWNS connector status: ");
+    printf("YAWNS connector status: ");
 
     if (ons->running != 0) {
         printf("Running\n");

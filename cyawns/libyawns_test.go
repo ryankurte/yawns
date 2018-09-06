@@ -1,13 +1,13 @@
 /**
  * OpenNetworkSim CZMQ Radio Driver Tests
- * Uses the libons.go cgo wrapper around libons to test the native ons connector
+ * Uses the libyawns.go cgo wrapper around libyawns to test the native ons connector
  * against the ONS controller
  *
  * https://github.com/ryankurte/ons
  * Copyright 2017 Ryan Kurte
  */
 
-package libons
+package libyawns
 
 import (
 	"fmt"
@@ -18,9 +18,9 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ryankurte/owns/lib/connector"
-	"github.com/ryankurte/owns/lib/messages"
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/connector"
+	"github.com/ryankurte/yawns/lib/messages"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 func TestLibONS(t *testing.T) {

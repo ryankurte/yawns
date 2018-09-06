@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/ryankurte/owns/lib/config"
-	"github.com/ryankurte/owns/lib/messages"
+	"github.com/ryankurte/yawns/lib/config"
+	"github.com/ryankurte/yawns/lib/messages"
 )
 
 // HandleConnectorMessage Handle messages sent to the engine from the connector

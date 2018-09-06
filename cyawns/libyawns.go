@@ -6,13 +6,13 @@
  * Copyright 2017 Ryan Kurte
  */
 
-package libons
+package libyawns
 
 /*
 #include <stdint.h>
-#include "owns/owns.h"
+#include "yawns/yawns.h"
 #cgo CFLAGS: -g
-#cgo LDFLAGS: -L./build -L./cowns/build -lowns -lzmq -lczmq -lpthread -lprotobuf-c
+#cgo LDFLAGS: -L./build -L./cyawns/build -lyawns -lzmq -lczmq -lpthread -lprotobuf-c
 int shm_set_fieldf(struct ons_s *ons, char* name, char* format, uint32_t data) {
 	printf("Name: %s Format: %s Data: %d\n", name, format, data);
 	return ONS_set_fieldf(ons, name, format, data);

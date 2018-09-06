@@ -3,7 +3,7 @@ package medium
 import (
 	"time"
 
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 type Transceiver struct {

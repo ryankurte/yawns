@@ -9,7 +9,7 @@
 package messages
 
 import (
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // Type defines the type of message being passed

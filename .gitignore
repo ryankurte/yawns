@@ -16,7 +16,7 @@ vendor/
 *.pcap
 
 .vscode/
-./owns-eval
-./owns-sim
+./yawns-eval
+./yawns-sim
 *.yml
-/owns-*
+/yawns-*

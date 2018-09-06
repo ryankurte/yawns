@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-yaml/yaml"
 
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 // Config Engine configuration

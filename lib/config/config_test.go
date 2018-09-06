@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ryankurte/owns/lib/types"
+	"github.com/ryankurte/yawns/lib/types"
 )
 
 func TestConfigLoading(t *testing.T) {
